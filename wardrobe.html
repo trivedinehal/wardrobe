@@ -137,13 +137,49 @@
   .bottom-panel {
     position: absolute;
     bottom: 0; left: 0; right: 0;
-    height: 270px;
+    height: 290px;
     background: #f2f2f7;
     border-top: 1px solid #e5e5ea;
     display: flex;
     flex-direction: column;
     z-index: 40;
   }
+
+  /* AI match strip — above carousel */
+  .match-strip {
+    display: none;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 16px;
+    flex-shrink: 0;
+  }
+  .match-strip.visible { display: flex; }
+  .match-strip span {
+    font-size: 11px;
+    color: #3a8a3a;
+    font-weight: 500;
+  }
+  .match-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: #34c759;
+    flex-shrink: 0;
+  }
+
+  /* Hint strip — below carousel */
+  .hint-strip {
+    display: none;
+    padding: 5px 16px;
+    flex-shrink: 0;
+    border-top: 1px solid #e5e5ea;
+  }
+  .hint-strip.visible { display: block; }
+  .hint-strip p {
+    font-size: 11px;
+    color: #636366;
+    line-height: 1.4;
+  }
+  .hint-strip strong { color: #1c1c1e; }
 
   /* Main category tabs */
   .cat-tabs {
@@ -288,7 +324,14 @@
     <button class="cat-tab" onclick="setCategory(this,'shoes')">Shoes</button>
   </div>
   <div class="sub-tabs" id="subTabs"></div>
+  <div class="match-strip" id="matchStrip">
+    <div class="match-dot"></div>
+    <span id="matchText">Showing items that match your selection</span>
+  </div>
   <div class="carousel" id="carousel"></div>
+  <div class="hint-strip" id="hintStrip">
+    <p id="hintText"></p>
+  </div>
 </div>
 
 <script>
@@ -369,11 +412,89 @@ let currentCat = 'blazers';
 let currentSub = 'All';
 let currentScenario = 'office';
 
+// Hint messages per scenario + what's been selected
+const HINTS = {
+  office: {
+    none:    "For <strong>Office</strong> — start by picking a blazer or suit",
+    outer:   "Great start! Now pick a <strong>shirt</strong> to go with it",
+    top:     "Looking sharp! Now choose your <strong>pants</strong>",
+    pants:   "Almost there — pick a <strong>belt</strong> and <strong>shoes</strong> to finish",
+    done:    "Outfit complete! Looking office-ready 💼",
+  },
+  casual: {
+    none:    "For <strong>Casual</strong> — pick any top or blazer to start",
+    outer:   "Nice! Now choose a <strong>shirt or t-shirt</strong>",
+    top:     "Now pick your <strong>pants</strong> — denims or chinos work great",
+    pants:   "Finish it off with <strong>shoes</strong>",
+    done:    "Great casual outfit! 👌",
+  },
+  'casual-friday': {
+    none:    "For <strong>Casual Friday</strong> — try a casual blazer to start",
+    outer:   "Nice choice! Pair it with a <strong>shirt or polo</strong>",
+    top:     "Now pick your <strong>jeans or chinos</strong>",
+    pants:   "Finish with <strong>clean sneakers or loafers</strong>",
+    done:    "Perfect Casual Friday look! 🎉",
+  },
+  formal: {
+    none:    "For <strong>Formal</strong> — start with a suit or formal blazer",
+    outer:   "Excellent! Now pick a <strong>formal shirt</strong>",
+    top:     "Choose your <strong>formal trousers</strong>",
+    pants:   "Complete the look with a <strong>belt and dress shoes</strong>",
+    done:    "Very sharp formal outfit! 👔",
+  },
+  weekend: {
+    none:    "For <strong>Weekend</strong> — keep it relaxed, start with a casual top",
+    outer:   "Laid back! Now pick a <strong>t-shirt or casual shirt</strong>",
+    top:     "Go for comfortable <strong>casual pants or jeans</strong>",
+    pants:   "Finish with your favourite <strong>sneakers</strong>",
+    done:    "Perfect weekend look! 😎",
+  },
+};
+
+function updateHintStrip() {
+  const hintStrip = document.getElementById('hintStrip');
+  const hintText  = document.getElementById('hintText');
+  const hints = HINTS[currentScenario];
+  if (!hints) return;
+
+  const hasOuter = !!selected['outer'];
+  const hasTop   = !!selected['top'];
+  const hasPants = !!selected['pants'];
+  const hasShoes = !!selected['shoes'];
+  const hasBelt  = !!selected['belts'];
+  const totalSelected = Object.keys(selected).length;
+
+  let key = 'none';
+  if (totalSelected === 0) key = 'none';
+  else if (!hasOuter && !hasTop) key = 'none';
+  else if (hasOuter && !hasTop) key = 'outer';
+  else if (hasTop && !hasPants) key = 'top';
+  else if (hasPants && (!hasShoes || !hasBelt)) key = 'pants';
+  else key = 'done';
+
+  hintText.innerHTML = hints[key];
+  hintStrip.classList.add('visible');
+}
+
+function updateMatchStrip() {
+  const matchStrip = document.getElementById('matchStrip');
+  const matchText  = document.getElementById('matchText');
+  const totalSelected = Object.keys(selected).length;
+
+  if (totalSelected > 0) {
+    const names = Object.values(selected).map(i => i.name).join(', ');
+    matchText.textContent = `Matched to: ${names}`;
+    matchStrip.classList.add('visible');
+  } else {
+    matchStrip.classList.remove('visible');
+  }
+}
+
 function setScenario(el, scenario) {
   document.querySelectorAll('.scenario-pill').forEach(p => p.classList.remove('active'));
   el.classList.add('active');
   currentScenario = scenario;
-  // Hint strip will use this — placeholder for now
+  updateHintStrip();
   renderCarousel(currentCat, currentSub);
 }
 
@@ -450,6 +571,8 @@ function selectItem(cat, item, card) {
   card.classList.add('selected');
   fillSlot(slotKey, cat, item);
   updateSuitMode();
+  updateHintStrip();
+  updateMatchStrip();
 }
 
 function fillSlot(slotKey, cat, item) {
@@ -474,7 +597,9 @@ function removeItem(slotKey) {
   delete selected[slotKey];
   clearSlot(slotKey);
   updateSuitMode();
-  renderCarousel(currentCat);
+  updateHintStrip();
+  updateMatchStrip();
+  renderCarousel(currentCat, currentSub);
 }
 
 function updateSuitMode() {
@@ -490,6 +615,7 @@ function updateSuitMode() {
 // Init
 renderSubTabs('blazers');
 renderCarousel('blazers', 'All');
+updateHintStrip();
 </script>
 </body>
 </html>
