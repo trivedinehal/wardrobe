@@ -266,7 +266,7 @@
   }
   .car-item img {
     width: 100%;
-    height: 100px;
+    height: 130px;
     object-fit: contain;
     background: #fff;
     padding: 4px;
@@ -279,6 +279,26 @@
     line-height: 1.3;
     display: flex;
     align-items: center;
+  }
+
+  /* AI match badge */
+  .car-item {
+    position: relative;
+  }
+  .match-badge {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    width: 20px;
+    height: 20px;
+    background: #FFD700;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+    z-index: 10;
   }
 
   .empty-carousel {
@@ -405,6 +425,27 @@ const catalog = {
     { file: "shoes_sneaker_wildrhino_olive.png", name: "Wild Rhino Olive", sub: "Sneakers" },
   ]
 };
+
+// Basic pairing rules — file key -> what pairs well with it
+const PAIRINGS = {
+  // Blazers -> pants
+  "blazer_formal_charcoal_grey.png":            { pants: ["pants_chino_allensolly_black.png","pants_denim_levis_dark_wash.png","pants_denim_westbay_dark_indigo.png","pants_chino_allensolly_khaki.png"], shoes: ["shoes_boot_colorado_black_leather_chelsea.png","shoes_sneaker_wildrhino_brown_leather.png"] },
+  "blazer_formal_mid_blue.png":                 { pants: ["pants_chino_allensolly_khaki.png","pants_chino_beige_cotton.png","pants_denim_levis_dark_wash.png","pants_denim_levis_dark_blue.png"], shoes: ["shoes_boot_colorado_black_leather_chelsea.png","shoes_sneaker_wildrhino_brown_leather.png"] },
+  "blazer_formal_navy.png":                     { pants: ["pants_chino_allensolly_khaki.png","pants_chino_beige_cotton.png","pants_chino_white_cotton.png","pants_denim_levis_dark_wash.png"], shoes: ["shoes_boot_colorado_black_leather_chelsea.png","shoes_sneaker_wildrhino_brown_leather.png"] },
+  "blazer_formal_dark_charcoal_burgundy_lining.png": { pants: ["pants_chino_allensolly_black.png","pants_denim_levis_dark_wash.png","pants_denim_westbay_dark_indigo.png"], shoes: ["shoes_boot_colorado_black_leather_chelsea.png"] },
+  "blazer_casual_blue_wool.png":                { pants: ["pants_denim_levis_dark_wash.png","pants_denim_levis_mid_blue.png","pants_chino_allensolly_khaki.png","pants_chino_beige_cotton.png"], shoes: ["shoes_sneaker_wildrhino_brown_leather.png","shoes_sneaker_wildrhino_olive.png"] },
+  "blazer_casual_beige_linen.png":              { pants: ["pants_denim_levis_dark_wash.png","pants_denim_levis_mid_blue.png","pants_chino_allensolly_dark_olive.png","pants_casual_levis_linen_olive.png"], shoes: ["shoes_sneaker_wildrhino_brown_leather.png","shoes_sneaker_wildrhino_olive.png"] },
+  "blazer_casual_grey_check.png":               { pants: ["pants_denim_levis_mid_blue.png","pants_denim_levis_dark_wash.png","pants_chino_allensolly_khaki.png","pants_chino_beige_cotton.png"], shoes: ["shoes_sneaker_wildrhino_brown_leather.png","shoes_boot_colorado_black_leather_chelsea.png"] },
+};
+
+function isAIMatch(cat, itemFile) {
+  // Check if any selected item has a pairing rule that includes this item
+  for (const [slotKey, selItem] of Object.entries(selected)) {
+    const rules = PAIRINGS[selItem.file];
+    if (rules && rules[cat] && rules[cat].includes(itemFile)) return true;
+  }
+  return false;
+}
 
 // State
 let selected = {};
@@ -542,9 +583,11 @@ function renderCarousel(cat, sub) {
   const slotKey = SLOT_MAP[cat];
   items.forEach(item => {
     const isSelected = selected[slotKey]?.file === item.file && selected[slotKey]?.cat === cat;
+    const aiMatch = Object.keys(selected).length > 0 && isAIMatch(cat, item.file);
     const card = document.createElement('div');
     card.className = 'car-item' + (isSelected ? ' selected' : '');
     card.innerHTML = `
+      ${aiMatch ? '<div class="match-badge">⭐</div>' : ''}
       <img src="${CATALOG_BASE}/${cat}/${item.file}" alt="${item.name}" loading="lazy">
       <div class="car-name">${item.name}</div>
     `;
