@@ -126,16 +126,17 @@
     z-index: 40;
   }
 
+  /* Main category tabs */
   .cat-tabs {
     display: flex;
     gap: 8px;
-    padding: 10px 16px 8px;
+    padding: 10px 16px 6px;
     overflow-x: auto;
     flex-shrink: 0;
   }
   .cat-tabs::-webkit-scrollbar { display: none; }
   .cat-tab {
-    padding: 6px 16px;
+    padding: 5px 14px;
     border-radius: 20px;
     font-size: 13px;
     font-weight: 600;
@@ -152,12 +153,40 @@
     color: #fff;
   }
 
+  /* Sub-category tabs */
+  .sub-tabs {
+    display: flex;
+    gap: 6px;
+    padding: 4px 16px 6px;
+    overflow-x: auto;
+    flex-shrink: 0;
+  }
+  .sub-tabs::-webkit-scrollbar { display: none; }
+  .sub-tab {
+    padding: 3px 12px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 500;
+    border: 1.5px solid #d1d1d6;
+    background: transparent;
+    color: #8e8e93;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s;
+    flex-shrink: 0;
+  }
+  .sub-tab.active {
+    background: #fff;
+    color: #1c1c1e;
+    border-color: #1c1c1e;
+  }
+
   /* Carousel */
   .carousel {
     flex: 1;
     display: flex;
-    gap: 10px;
-    padding: 4px 16px 16px;
+    gap: 8px;
+    padding: 4px 16px 12px;
     overflow-x: auto;
     scroll-snap-type: x mandatory;
     align-items: stretch;
@@ -166,8 +195,8 @@
 
   .car-item {
     flex-shrink: 0;
-    width: 115px;
-    border-radius: 14px;
+    width: 95px;
+    border-radius: 12px;
     background: #fff;
     border: 2px solid transparent;
     cursor: pointer;
@@ -182,14 +211,14 @@
   }
   .car-item img {
     width: 100%;
-    height: 145px;
+    height: 110px;
     object-fit: contain;
     background: #fff;
-    padding: 6px;
+    padding: 4px;
   }
   .car-item .car-name {
-    padding: 4px 8px 6px;
-    font-size: 10px;
+    padding: 3px 6px 5px;
+    font-size: 9px;
     font-weight: 500;
     color: #3a3a3c;
     line-height: 1.3;
@@ -236,102 +265,129 @@
     <button class="cat-tab" onclick="setCategory(this,'belts')">Belts</button>
     <button class="cat-tab" onclick="setCategory(this,'shoes')">Shoes</button>
   </div>
+  <div class="sub-tabs" id="subTabs"></div>
   <div class="carousel" id="carousel"></div>
 </div>
 
 <script>
 const CATALOG_BASE = "catalog";
 
-// Slot mapping — which categories share which slot
 const SLOT_MAP = {
-  blazers: 'outer',
-  suits:   'outer',
-  jackets: 'outer',
-  shirts:  'top',
-  tshirts: 'top',
-  pants:   'pants',
-  belts:   'belts',
-  shoes:   'shoes',
+  blazers: 'outer', suits: 'outer', jackets: 'outer',
+  shirts: 'top', tshirts: 'top',
+  pants: 'pants', belts: 'belts', shoes: 'shoes',
 };
 
-// Slot display labels when empty
 const SLOT_LABELS = {
-  outer: 'Blazer / Suit',
-  top:   'Shirt / T-Shirt',
-  pants: 'Pants',
-  belts: 'Belt',
-  shoes: 'Shoes',
+  outer: 'Blazer / Suit', top: 'Shirt / T-Shirt',
+  pants: 'Pants', belts: 'Belt', shoes: 'Shoes',
+};
+
+// Sub-categories per main category
+const SUB_CATS = {
+  blazers: ['All', 'Formal', 'Casual'],
+  suits:   ['All'],
+  jackets: ['All'],
+  shirts:  ['All', 'Formal', 'Casual'],
+  tshirts: ['All'],
+  pants:   ['All', 'Denim', 'Chino', 'Casual'],
+  belts:   ['All'],
+  shoes:   ['All', 'Sneakers', 'Boots', 'Dress', 'Loafers'],
 };
 
 const catalog = {
   blazers: [
-    { file: "blazer_formal_charcoal_grey.png", name: "Charcoal Grey Blazer" },
-    { file: "blazer_formal_mid_blue.png", name: "Mid Blue Blazer" },
-    { file: "blazer_formal_navy.png", name: "Navy Blazer" },
-    { file: "blazer_formal_dark_charcoal_burgundy_lining.png", name: "Dark Charcoal Blazer" },
-    { file: "blazer_casual_blue_wool.png", name: "Blue Wool Blazer" },
-    { file: "blazer_casual_beige_linen.png", name: "Beige Linen Blazer" },
-    { file: "blazer_casual_grey_check.png", name: "Grey Check Blazer" },
+    { file: "blazer_formal_charcoal_grey.png", name: "Charcoal Grey Blazer", sub: "Formal" },
+    { file: "blazer_formal_mid_blue.png", name: "Mid Blue Blazer", sub: "Formal" },
+    { file: "blazer_formal_navy.png", name: "Navy Blazer", sub: "Formal" },
+    { file: "blazer_formal_dark_charcoal_burgundy_lining.png", name: "Dark Charcoal Blazer", sub: "Formal" },
+    { file: "blazer_casual_blue_wool.png", name: "Blue Wool Blazer", sub: "Casual" },
+    { file: "blazer_casual_beige_linen.png", name: "Beige Linen Blazer", sub: "Casual" },
+    { file: "blazer_casual_grey_check.png", name: "Grey Check Blazer", sub: "Casual" },
   ],
   suits: [],
   jackets: [],
   shirts: [
-    { file: "shirts_formal.png", name: "Formal Shirts" },
+    { file: "shirts_formal.png", name: "Formal Shirts", sub: "Formal" },
   ],
   tshirts: [],
   pants: [
-    { file: "pants_casual_levis_linen_olive.png", name: "Levi's Linen Olive" },
-    { file: "pants_casual_levis_nylon_khaki_utility.png", name: "Levi's Khaki Utility" },
-    { file: "pants_casual_olive_linen_elastic.png", name: "Olive Linen Elastic" },
-    { file: "pants_casual_cat_cotton_brown_work.png", name: "CAT Brown Work Pant" },
-    { file: "pants_chino_allensolly_black.png", name: "Allen Solly Black Chino" },
-    { file: "pants_chino_allensolly_dark_olive.png", name: "Allen Solly Dark Olive" },
-    { file: "pants_chino_allensolly_khaki.png", name: "Allen Solly Khaki" },
-    { file: "pants_chino_white_cotton.png", name: "White Cotton Chino" },
-    { file: "pants_chino_beige_cotton.png", name: "Beige Cotton Chino" },
-    { file: "pants_chino_wrangler_beige.png", name: "Wrangler Beige Chino" },
-    { file: "pants_denim_levis_dark_wash.png", name: "Levi's Dark Wash" },
-    { file: "pants_denim_levis_mid_blue.png", name: "Levi's Mid Blue" },
-    { file: "pants_denim_levis_light_wash.png", name: "Levi's Light Wash" },
-    { file: "pants_denim_westbay_dark_indigo.png", name: "Westbay Dark Indigo" },
-    { file: "pants_denim_lee_mid_blue_faded.png", name: "Lee Mid Blue Faded" },
-    { file: "pants_denim_levis_dark_blue.png", name: "Levi's Dark Blue" },
-    { file: "pants_denim_casualjeans_light_blue.png", name: "Light Blue Casual Jeans" },
+    { file: "pants_casual_levis_linen_olive.png", name: "Levi's Linen Olive", sub: "Casual" },
+    { file: "pants_casual_levis_nylon_khaki_utility.png", name: "Levi's Khaki Utility", sub: "Casual" },
+    { file: "pants_casual_olive_linen_elastic.png", name: "Olive Linen Elastic", sub: "Casual" },
+    { file: "pants_casual_cat_cotton_brown_work.png", name: "CAT Brown Work Pant", sub: "Casual" },
+    { file: "pants_chino_allensolly_black.png", name: "Allen Solly Black Chino", sub: "Chino" },
+    { file: "pants_chino_allensolly_dark_olive.png", name: "Allen Solly Dark Olive", sub: "Chino" },
+    { file: "pants_chino_allensolly_khaki.png", name: "Allen Solly Khaki", sub: "Chino" },
+    { file: "pants_chino_white_cotton.png", name: "White Cotton Chino", sub: "Chino" },
+    { file: "pants_chino_beige_cotton.png", name: "Beige Cotton Chino", sub: "Chino" },
+    { file: "pants_chino_wrangler_beige.png", name: "Wrangler Beige Chino", sub: "Chino" },
+    { file: "pants_denim_levis_dark_wash.png", name: "Levi's Dark Wash", sub: "Denim" },
+    { file: "pants_denim_levis_mid_blue.png", name: "Levi's Mid Blue", sub: "Denim" },
+    { file: "pants_denim_levis_light_wash.png", name: "Levi's Light Wash", sub: "Denim" },
+    { file: "pants_denim_westbay_dark_indigo.png", name: "Westbay Dark Indigo", sub: "Denim" },
+    { file: "pants_denim_lee_mid_blue_faded.png", name: "Lee Mid Blue Faded", sub: "Denim" },
+    { file: "pants_denim_levis_dark_blue.png", name: "Levi's Dark Blue", sub: "Denim" },
+    { file: "pants_denim_casualjeans_light_blue.png", name: "Light Blue Casual Jeans", sub: "Denim" },
   ],
   belts: [],
   shoes: [
-    { file: "shoes_sneaker_uspolo_white_red_navy.png", name: "US Polo White Sneaker" },
-    { file: "shoes_sneaker_uspolo_black_white_laces.png", name: "US Polo Black Sneaker" },
-    { file: "shoes_sneaker_wildrhino_brown_leather.png", name: "Wild Rhino Brown" },
-    { file: "shoes_boot_colorado_black_leather_chelsea.png", name: "Colorado Black Chelsea" },
-    { file: "shoes_sneaker_adidas_black_white.png", name: "Adidas Black & White" },
-    { file: "shoes_sneaker_wildrhino_olive.png", name: "Wild Rhino Olive" },
+    { file: "shoes_sneaker_uspolo_white_red_navy.png", name: "US Polo White Sneaker", sub: "Sneakers" },
+    { file: "shoes_sneaker_uspolo_black_white_laces.png", name: "US Polo Black Sneaker", sub: "Sneakers" },
+    { file: "shoes_sneaker_wildrhino_brown_leather.png", name: "Wild Rhino Brown", sub: "Sneakers" },
+    { file: "shoes_boot_colorado_black_leather_chelsea.png", name: "Colorado Black Chelsea", sub: "Boots" },
+    { file: "shoes_sneaker_adidas_black_white.png", name: "Adidas Black & White", sub: "Sneakers" },
+    { file: "shoes_sneaker_wildrhino_olive.png", name: "Wild Rhino Olive", sub: "Sneakers" },
   ]
 };
 
 // State
-let selected = {};   // slotKey -> { file, name, cat }
+let selected = {};
 let currentCat = 'blazers';
+let currentSub = 'All';
 
 function setCategory(el, cat) {
   document.querySelectorAll('.cat-tab').forEach(t => t.classList.remove('active'));
   el.classList.add('active');
   currentCat = cat;
-  renderCarousel(cat);
+  currentSub = 'All';
+  renderSubTabs(cat);
+  renderCarousel(cat, 'All');
 }
 
-function renderCarousel(cat) {
+function renderSubTabs(cat) {
+  const subTabs = document.getElementById('subTabs');
+  subTabs.innerHTML = '';
+  const subs = SUB_CATS[cat] || ['All'];
+  subs.forEach(sub => {
+    const btn = document.createElement('button');
+    btn.className = 'sub-tab' + (sub === currentSub ? ' active' : '');
+    btn.textContent = sub;
+    btn.onclick = () => {
+      document.querySelectorAll('.sub-tab').forEach(t => t.classList.remove('active'));
+      btn.classList.add('active');
+      currentSub = sub;
+      renderCarousel(currentCat, sub);
+    };
+    subTabs.appendChild(btn);
+  });
+}
+
+function renderCarousel(cat, sub) {
   const carousel = document.getElementById('carousel');
   carousel.innerHTML = '';
 
-  const items = catalog[cat] || [];
+  let items = catalog[cat] || [];
+  if (sub && sub !== 'All') {
+    items = items.filter(i => i.sub === sub);
+  }
+
   if (items.length === 0) {
     carousel.innerHTML = `<div class="empty-carousel">Coming soon!</div>`;
     return;
   }
 
   const slotKey = SLOT_MAP[cat];
-
   items.forEach(item => {
     const isSelected = selected[slotKey]?.file === item.file && selected[slotKey]?.cat === cat;
     const card = document.createElement('div');
