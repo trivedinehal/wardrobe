@@ -19,20 +19,39 @@
     position: absolute;
     top: 0; left: 0; right: 0;
     z-index: 50;
-    padding: 16px 20px;
+    padding: 10px 12px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: rgba(255,255,255,0.9);
+    gap: 8px;
+    background: rgba(255,255,255,0.95);
     backdrop-filter: blur(10px);
     border-bottom: 1px solid #e5e5ea;
   }
-  .header h1 { font-size: 20px; font-weight: 700; color: #1c1c1e; }
+
+  .scenario-pill {
+    flex: 1;
+    padding: 7px 4px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    border: none;
+    background: #f2f2f7;
+    color: #8e8e93;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+  .scenario-pill.active {
+    background: #1c1c1e;
+    color: #fff;
+  }
 
   /* ── OUTFIT PREVIEW ── */
   .preview-area {
     position: absolute;
-    top: 57px; left: 0; right: 0;
+    top: 50px; left: 0; right: 0;
     bottom: 270px;
     background: #fff;
     padding: 12px;
@@ -236,9 +255,13 @@
 </head>
 <body>
 
-<!-- HEADER -->
+<!-- HEADER — Scenario selector -->
 <div class="header">
-  <h1>My Wardrobe</h1>
+  <button class="scenario-pill active" onclick="setScenario(this,'office')">Office</button>
+  <button class="scenario-pill" onclick="setScenario(this,'casual')">Casual</button>
+  <button class="scenario-pill" onclick="setScenario(this,'casual-friday')">Casual Friday</button>
+  <button class="scenario-pill" onclick="setScenario(this,'formal')">Formal</button>
+  <button class="scenario-pill" onclick="setScenario(this,'weekend')">Weekend</button>
 </div>
 
 <!-- OUTFIT PREVIEW -->
@@ -344,6 +367,15 @@ const catalog = {
 let selected = {};
 let currentCat = 'blazers';
 let currentSub = 'All';
+let currentScenario = 'office';
+
+function setScenario(el, scenario) {
+  document.querySelectorAll('.scenario-pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  currentScenario = scenario;
+  // Hint strip will use this — placeholder for now
+  renderCarousel(currentCat, currentSub);
+}
 
 function setCategory(el, cat) {
   document.querySelectorAll('.cat-tab').forEach(t => t.classList.remove('active'));
