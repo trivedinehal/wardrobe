@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>My Wardrobe</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: #f2f2f7;
+    color: #1c1c1e;
+    min-height: 100vh;
+  }
+
+  /* HEADER */
+  .header {
+    background: #fff;
+    padding: 16px 20px 12px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    border-bottom: 1px solid #e5e5ea;
+  }
+  .header h1 { font-size: 22px; font-weight: 700; }
+  .header p { font-size: 13px; color: #8e8e93; margin-top: 2px; }
+
+  /* OUTFIT PREVIEW */
+  .preview-bar {
+    background: #1c1c1e;
+    padding: 14px 16px;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    overflow-x: auto;
+    min-height: 110px;
+  }
+  .preview-bar::-webkit-scrollbar { display: none; }
+
+  .preview-slot {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 72px;
+  }
+  .preview-slot .slot-img {
+    width: 64px;
+    height: 72px;
+    border-radius: 10px;
+    background: #2c2c2e;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border: 2px solid #3a3a3c;
+  }
+  .preview-slot .slot-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .preview-slot .slot-img.empty::after {
+    content: '+';
+    font-size: 24px;
+    color: #48484a;
+  }
+  .preview-slot .slot-label {
+    font-size: 9px;
+    color: #8e8e93;
+    margin-top: 4px;
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .preview-divider {
+    color: #48484a;
+    font-size: 18px;
+    flex-shrink: 0;
+    align-self: center;
+    margin-bottom: 16px;
+  }
+
+  /* OCCASION PILLS */
+  .occasion-bar {
+    padding: 12px 16px;
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    background: #fff;
+    border-bottom: 1px solid #e5e5ea;
+  }
+  .occasion-bar::-webkit-scrollbar { display: none; }
+  .pill {
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 500;
+    border: 1.5px solid #e5e5ea;
+    background: #fff;
+    color: #1c1c1e;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .pill.active {
+    background: #1c1c1e;
+    color: #fff;
+    border-color: #1c1c1e;
+  }
+
+  /* CATEGORY SECTIONS */
+  .section {
+    margin-top: 12px;
+    background: #fff;
+    border-radius: 16px;
+    margin-left: 12px;
+    margin-right: 12px;
+    overflow: hidden;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  }
+
+  .section-header {
+    padding: 14px 16px 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .section-header h2 {
+    font-size: 16px;
+    font-weight: 600;
+  }
+  .section-header .count {
+    font-size: 12px;
+    color: #8e8e93;
+  }
+
+  .items-row {
+    display: flex;
+    gap: 10px;
+    padding: 0 16px 16px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+  }
+  .items-row::-webkit-scrollbar { display: none; }
+
+  .item-card {
+    flex-shrink: 0;
+    width: 130px;
+    border-radius: 12px;
+    background: #f8f8f8;
+    border: 2px solid transparent;
+    cursor: pointer;
+    scroll-snap-align: start;
+    transition: all 0.2s;
+    overflow: hidden;
+  }
+  .item-card.selected {
+    border-color: #1c1c1e;
+    background: #fff;
+  }
+  .item-card img {
+    width: 100%;
+    height: 140px;
+    object-fit: cover;
+    display: block;
+  }
+  .item-card .item-name {
+    padding: 6px 8px 8px;
+    font-size: 11px;
+    font-weight: 500;
+    color: #3a3a3c;
+    line-height: 1.3;
+  }
+
+  /* BOTTOM SPACER */
+  .spacer { height: 30px; }
+
+  /* AI SUGGEST BUTTON */
+  .ai-btn {
+    position: fixed;
+    bottom: 24px;
+    right: 20px;
+    background: #1c1c1e;
+    color: #fff;
+    border: none;
+    border-radius: 24px;
+    padding: 14px 22px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    z-index: 200;
+  }
+
+  /* CLEAR BTN */
+  .clear-btn {
+    background: none;
+    border: none;
+    color: #ff3b30;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    padding: 4px 0;
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <h1>👔 My Wardrobe</h1>
+  <p>Tap items to build your outfit</p>
+</div>
+
+<!-- OUTFIT PREVIEW -->
+<div class="preview-bar" id="previewBar">
+  <div class="preview-slot">
+    <div class="slot-img empty" id="preview-blazers"></div>
+    <div class="slot-label">Blazer</div>
+  </div>
+  <div class="preview-divider">+</div>
+  <div class="preview-slot">
+    <div class="slot-img empty" id="preview-shirts"></div>
+    <div class="slot-label">Shirt</div>
+  </div>
+  <div class="preview-divider">+</div>
+  <div class="preview-slot">
+    <div class="slot-img empty" id="preview-pants"></div>
+    <div class="slot-label">Pants</div>
+  </div>
+  <div class="preview-divider">+</div>
+  <div class="preview-slot">
+    <div class="slot-img empty" id="preview-shoes"></div>
+    <div class="slot-label">Shoes</div>
+  </div>
+</div>
+
+<!-- OCCASION PILLS -->
+<div class="occasion-bar">
+  <div class="pill active" onclick="setOccasion(this, 'all')">All</div>
+  <div class="pill" onclick="setOccasion(this, 'casual')">Casual</div>
+  <div class="pill" onclick="setOccasion(this, 'office')">Office</div>
+  <div class="pill" onclick="setOccasion(this, 'formal')">Formal</div>
+  <div class="pill" onclick="setOccasion(this, 'weekend')">Weekend</div>
+</div>
+
+<!-- CATALOG -->
+<div id="catalog"></div>
+
+<div class="spacer"></div>
+
+<!-- AI SUGGEST BTN -->
+<button class="ai-btn" onclick="aiSuggest()">✨ AI Suggest</button>
+
+<script>
+const CATALOG_BASE = "catalog";
+
+const catalog = {
+  blazers: [
+    { file: "blazer_formal_charcoal_grey.png", name: "Charcoal Grey Blazer", tags: ["formal","office"] },
+    { file: "blazer_formal_mid_blue.png", name: "Mid Blue Blazer", tags: ["formal","office"] },
+    { file: "blazer_formal_navy.png", name: "Navy Blazer", tags: ["formal","office"] },
+    { file: "blazer_formal_dark_charcoal_burgundy_lining.png", name: "Dark Charcoal Blazer", tags: ["formal"] },
+    { file: "blazer_casual_blue_wool.png", name: "Blue Wool Blazer", tags: ["casual","office"] },
+    { file: "blazer_casual_beige_linen.png", name: "Beige Linen Blazer", tags: ["casual","weekend"] },
+    { file: "blazer_casual_grey_check.png", name: "Grey Check Blazer", tags: ["casual","office","weekend"] },
+  ],
+  pants: [
+    { file: "pants_casual_levis_linen_olive.png", name: "Levi's Linen Olive", tags: ["casual","weekend"] },
+    { file: "pants_casual_levis_nylon_khaki_utility.png", name: "Levi's Khaki Utility", tags: ["casual","weekend"] },
+    { file: "pants_casual_olive_linen_elastic.png", name: "Olive Linen Elastic", tags: ["casual","weekend"] },
+    { file: "pants_casual_cat_cotton_brown_work.png", name: "CAT Brown Work Pant", tags: ["casual","weekend"] },
+    { file: "pants_chino_allensolly_black.png", name: "Allen Solly Black Chino", tags: ["office","casual"] },
+    { file: "pants_chino_allensolly_dark_olive.png", name: "Allen Solly Dark Olive", tags: ["office","casual"] },
+    { file: "pants_chino_allensolly_khaki.png", name: "Allen Solly Khaki", tags: ["office","casual"] },
+    { file: "pants_chino_white_cotton.png", name: "White Cotton Chino", tags: ["casual","weekend"] },
+    { file: "pants_chino_beige_cotton.png", name: "Beige Cotton Chino", tags: ["casual","office"] },
+    { file: "pants_chino_wrangler_beige.png", name: "Wrangler Beige Chino", tags: ["casual","weekend"] },
+    { file: "pants_denim_levis_dark_wash.png", name: "Levi's Dark Wash", tags: ["casual","weekend","office"] },
+    { file: "pants_denim_levis_mid_blue.png", name: "Levi's Mid Blue", tags: ["casual","weekend","office"] },
+    { file: "pants_denim_levis_light_wash.png", name: "Levi's Light Wash", tags: ["casual","weekend"] },
+    { file: "pants_denim_westbay_dark_indigo.png", name: "Westbay Dark Indigo", tags: ["casual","office"] },
+    { file: "pants_denim_lee_mid_blue_faded.png", name: "Lee Mid Blue Faded", tags: ["casual","weekend"] },
+    { file: "pants_denim_levis_dark_blue.png", name: "Levi's Dark Blue", tags: ["casual","office"] },
+    { file: "pants_denim_casualjeans_light_blue.png", name: "Light Blue Casual Jeans", tags: ["casual","weekend"] },
+  ],
+  shoes: [
+    { file: "shoes_sneaker_uspolo_white_red_navy.png", name: "US Polo White Sneaker", tags: ["casual","weekend"] },
+    { file: "shoes_sneaker_uspolo_black_white_laces.png", name: "US Polo Black Sneaker", tags: ["casual","weekend"] },
+    { file: "shoes_sneaker_wildrhino_brown_leather.png", name: "Wild Rhino Brown Sneaker", tags: ["casual","office","weekend"] },
+    { file: "shoes_boot_colorado_black_leather_chelsea.png", name: "Colorado Black Chelsea Boot", tags: ["formal","office"] },
+    { file: "shoes_sneaker_adidas_black_white.png", name: "Adidas Black & White", tags: ["casual","weekend"] },
+    { file: "shoes_sneaker_wildrhino_olive.png", name: "Wild Rhino Olive Sneaker", tags: ["casual","weekend"] },
+  ]
+};
+
+const categoryLabels = {
+  blazers: "Blazers",
+  pants: "Pants",
+  shoes: "Shoes"
+};
+
+let selected = {};
+let currentOccasion = "all";
+
+function setOccasion(el, occ) {
+  document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  currentOccasion = occ;
+  renderCatalog();
+}
+
+function renderCatalog() {
+  const container = document.getElementById('catalog');
+  container.innerHTML = '';
+
+  for (const [cat, items] of Object.entries(catalog)) {
+    const filtered = currentOccasion === 'all'
+      ? items
+      : items.filter(i => i.tags.includes(currentOccasion));
+
+    if (filtered.length === 0) continue;
+
+    const section = document.createElement('div');
+    section.className = 'section';
+    section.innerHTML = `
+      <div class="section-header">
+        <h2>${categoryLabels[cat] || cat}</h2>
+        <span class="count">${filtered.length} items</span>
+      </div>
+      <div class="items-row" id="row-${cat}"></div>
+    `;
+    container.appendChild(section);
+
+    const row = section.querySelector(`#row-${cat}`);
+    filtered.forEach(item => {
+      const card = document.createElement('div');
+      card.className = 'item-card' + (selected[cat]?.file === item.file ? ' selected' : '');
+      card.innerHTML = `
+        <img src="${CATALOG_BASE}/${cat}/${item.file}" alt="${item.name}" loading="lazy">
+        <div class="item-name">${item.name}</div>
+      `;
+      card.onclick = () => selectItem(cat, item, card);
+      row.appendChild(card);
+    });
+  }
+}
+
+function selectItem(cat, item, card) {
+  // Deselect if already selected
+  if (selected[cat]?.file === item.file) {
+    delete selected[cat];
+    card.classList.remove('selected');
+    updatePreview(cat, null);
+    return;
+  }
+
+  // Deselect previous in same category
+  document.querySelectorAll(`#row-${cat} .item-card`).forEach(c => c.classList.remove('selected'));
+  selected[cat] = item;
+  card.classList.add('selected');
+  updatePreview(cat, item);
+}
+
+function updatePreview(cat, item) {
+  const slot = document.getElementById(`preview-${cat}`);
+  if (!slot) return;
+  if (item) {
+    slot.innerHTML = `<img src="${CATALOG_BASE}/${cat}/${item.file}" alt="${item.name}">`;
+    slot.classList.remove('empty');
+  } else {
+    slot.innerHTML = '';
+    slot.classList.add('empty');
+  }
+}
+
+function aiSuggest() {
+  const picked = Object.entries(selected);
+  if (picked.length === 0) {
+    alert("Tap an item first, then let me suggest the rest!");
+    return;
+  }
+  const desc = picked.map(([cat, item]) => `${cat}: ${item.name}`).join(', ');
+  alert(`You've selected:\n${desc}\n\nAI suggestions coming soon — this will connect to Claude to complete your outfit!`);
+}
+
+// Initial render
+renderCatalog();
+</script>
+</body>
+</html>
