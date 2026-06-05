@@ -663,6 +663,20 @@ function renderCarousel(cat, sub, subsub) {
   if (sub && sub !== 'All') items = items.filter(i => i.sub === sub);
   if (subsub && subsub !== 'All') items = items.filter(i => i.subsub === subsub);
 
+  // Sort by sub order, then subsub order, then alphabetical
+  const subOrder = SUB_CATS[cat] || [];
+  const subsubOrder = SUBSUB_CATS[cat] || {};
+  items = [...items].sort((a, b) => {
+    const subA = subOrder.indexOf(a.sub);
+    const subB = subOrder.indexOf(b.sub);
+    if (subA !== subB) return subA - subB;
+    const ssOrder = subsubOrder[a.sub] || [];
+    const ssA = ssOrder.indexOf(a.subsub) ?? -1;
+    const ssB = ssOrder.indexOf(b.subsub) ?? -1;
+    if (ssA !== ssB) return ssA - ssB;
+    return a.name.localeCompare(b.name);
+  });
+
   if (items.length === 0) {
     carousel.innerHTML = `<div class="empty-carousel">Coming soon!</div>`;
     return;
