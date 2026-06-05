@@ -331,6 +331,7 @@
 </div>
 
 <script>
+const VERSION = Date.now();
 const CATALOG_BASE = "catalog";
 
 const SLOT_MAP = {
@@ -581,7 +582,7 @@ function renderCarousel(cat, sub) {
     card.className = 'car-item' + (isSelected ? ' selected' : '');
     card.innerHTML = `
       ${aiMatch ? '<div class="match-badge">⭐</div>' : ''}
-      <img src="${CATALOG_BASE}/${cat}/${item.file}" alt="${item.name}" loading="lazy">
+      <img src="${CATALOG_BASE}/${cat}/${item.file}?v=${VERSION}" alt="${item.name}" loading="lazy">
       <div class="car-name">${item.name}</div>
     `;
     card.onclick = () => selectItem(cat, item, card);
@@ -615,7 +616,7 @@ function fillSlot(slotKey, cat, item) {
   if (!slot) return;
   slot.classList.add('filled');
   slot.innerHTML = `
-    <img src="${CATALOG_BASE}/${cat}/${item.file}" alt="${item.name}">
+    <img src="${CATALOG_BASE}/${cat}/${item.file}?v=${VERSION}" alt="${item.name}">
     <div class="slot-name">${item.name}</div>
     <button class="remove-btn" onclick="removeItem('${slotKey}')">✕</button>
   `;
