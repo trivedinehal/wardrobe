@@ -45,8 +45,16 @@ A personal mobile-first outfit planning app for Nehal. Pure HTML/CSS/JS, no back
 - All 3 files pushed to GitHub, live at trivedinehal.github.io/wardrobe/
 - wardrobe-config.html fully reviewed — categories, subcategories, order all finalised
 - wardrobe.html updated to match config exactly
-- catalog-view.html — next task: build out classification review functionality
+- catalog-view.html — style column removed, classifications aligned, order fixed
 - Dress Trousers category added to Pants but items are "coming soon" — Nehal will photograph ~10 standalone formal trousers
+
+## Next steps (do in order)
+1. **Session 1** — Create shared `catalog.js`, wire wardrobe.html to use it. Test + push.
+2. **Session 2** — Wire catalog-view.html to catalog.js. Test + push.
+3. **Session 3** — Wire wardrobe-config.html to catalog.js. Test + push.
+4. **After migration** — Do classification review in catalog-view (go through every item, verify sub/sub-sub).
+
+Do NOT do the classification review before catalog.js is wired to catalog-view — otherwise corrections won't carry through to wardrobe.html.
 
 ## What to update here
 At the end of any session where something meaningful changed — new feature, key decision, or shift in direction — update this file before closing the chat.
