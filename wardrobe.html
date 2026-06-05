@@ -146,20 +146,33 @@
   }
 
 
-  /* Hint strip — below carousel */
-  .hint-strip {
-    display: none;
-    padding: 5px 16px;
+  /* Sub-sub-category tabs */
+  .subsub-tabs {
+    display: flex;
+    gap: 6px;
+    padding: 3px 16px 4px;
+    overflow-x: auto;
     flex-shrink: 0;
-    border-top: 1px solid #e5e5ea;
   }
-  .hint-strip.visible { display: block; }
-  .hint-strip p {
-    font-size: 11px;
-    color: #636366;
-    line-height: 1.4;
+  .subsub-tabs::-webkit-scrollbar { display: none; }
+  .subsub-tab {
+    padding: 2px 10px;
+    border-radius: 20px;
+    font-size: 10px;
+    font-weight: 500;
+    border: 1.5px solid #e5e5ea;
+    background: transparent;
+    color: #aeaeb2;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s;
+    flex-shrink: 0;
   }
-  .hint-strip strong { color: #1c1c1e; }
+  .subsub-tab.active {
+    background: #f2f2f7;
+    color: #1c1c1e;
+    border-color: #8e8e93;
+  }
 
   /* Main category tabs */
   .cat-tabs {
@@ -257,8 +270,11 @@
     font-weight: 500;
     color: #3a3a3c;
     line-height: 1.3;
-    display: flex;
-    align-items: center;
+    height: 28px;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
   }
 
   /* AI match badge */
@@ -355,10 +371,8 @@
     <button class="cat-tab" onclick="setCategory(this,'shoes')">Shoes</button>
   </div>
   <div class="sub-tabs" id="subTabs"></div>
+  <div class="subsub-tabs" id="subsubTabs"></div>
   <div class="carousel" id="carousel"></div>
-  <div class="hint-strip" id="hintStrip">
-    <p id="hintText"></p>
-  </div>
 </div>
 
 <script>
@@ -375,6 +389,28 @@ const SLOT_LABELS = {
   outer: 'Blazer / Suit', top: 'Shirt / T-Shirt',
   pants: 'Pants', belts: 'Belt', shoes: 'Shoes',
 };
+
+// Sub-sub-categories: cat -> sub -> [subsubs]
+const SUBSUB_CATS = {
+  pants: {
+    'Denim':  ['All', 'Formal', 'Casual'],
+    'Chino':  ['All', 'Formal', 'Casual'],
+    'Casual': ['All'],
+  },
+  shoes: {
+    'Sneakers': ['All', 'Casual', 'Athletic'],
+    'Boots':    ['All', 'Chelsea', 'Casual'],
+    'Dress':    ['All', 'Lace-Up', 'Slip-On'],
+    'Loafers':  ['All'],
+    'Athletic': ['All'],
+  },
+};
+
+// Sub-sub tags on items
+// pants denims
+// formal dark wash, dark blue, dark indigo
+// casual light wash, mid blue, lee faded, light blue casual
+// We'll use subsub field on items
 
 // Sub-categories per main category
 const SUB_CATS = {
@@ -437,13 +473,13 @@ const catalog = {
     { file: "pants_chino_white_cotton.png", name: "White Cotton Chino", sub: "Chino" },
     { file: "pants_chino_beige_cotton.png", name: "Beige Cotton Chino", sub: "Chino" },
     { file: "pants_chino_wrangler_beige.png", name: "Wrangler Beige Chino", sub: "Chino" },
-    { file: "pants_denim_levis_dark_wash.png", name: "Levi's Dark Wash", sub: "Denim" },
-    { file: "pants_denim_levis_mid_blue.png", name: "Levi's Mid Blue", sub: "Denim" },
-    { file: "pants_denim_levis_light_wash.png", name: "Levi's Light Wash", sub: "Denim" },
-    { file: "pants_denim_westbay_dark_indigo.png", name: "Westbay Dark Indigo", sub: "Denim" },
-    { file: "pants_denim_lee_mid_blue_faded.png", name: "Lee Mid Blue Faded", sub: "Denim" },
-    { file: "pants_denim_levis_dark_blue.png", name: "Levi's Dark Blue", sub: "Denim" },
-    { file: "pants_denim_casualjeans_light_blue.png", name: "Light Blue Casual Jeans", sub: "Denim" },
+    { file: "pants_denim_levis_dark_wash.png", name: "Levi's Dark Wash", sub: "Denim", subsub: "Formal" },
+    { file: "pants_denim_levis_mid_blue.png", name: "Levi's Mid Blue", sub: "Denim", subsub: "Casual" },
+    { file: "pants_denim_levis_light_wash.png", name: "Levi's Light Wash", sub: "Denim", subsub: "Casual" },
+    { file: "pants_denim_westbay_dark_indigo.png", name: "Westbay Dark Indigo", sub: "Denim", subsub: "Formal" },
+    { file: "pants_denim_lee_mid_blue_faded.png", name: "Lee Mid Blue Faded", sub: "Denim", subsub: "Casual" },
+    { file: "pants_denim_levis_dark_blue.png", name: "Levi's Dark Blue", sub: "Denim", subsub: "Formal" },
+    { file: "pants_denim_casualjeans_light_blue.png", name: "Light Blue Casual Jeans", sub: "Denim", subsub: "Casual" },
   ],
   belts: [
     { file: "belt_leather_black_silver_plain.png", name: "Black Leather Plain", sub: "Formal" },
@@ -463,15 +499,15 @@ const catalog = {
     { file: "shoes_sneaker_uspolo_black_whitelaces.png", name: "US Polo Black", sub: "Sneakers" },
     { file: "shoes_athletic_colorado_white_blue.png", name: "Colorado White & Blue", sub: "Athletic" },
     { file: "shoes_athletic_reebok_grey_teal.png", name: "Reebok Grey & Teal", sub: "Athletic" },
-    { file: "shoes_boots_chelsea_florsheim_brown.png", name: "Florsheim Brown Chelsea", sub: "Boots" },
-    { file: "shoes_boots_chelsea_hushpuppies_black.png", name: "Hush Puppies Black Chelsea", sub: "Boots" },
-    { file: "shoes_boots_chelsea_hushpuppies_black_elastic.png", name: "Hush Puppies Black (Elastic)", sub: "Boots" },
-    { file: "shoes_boots_chelsea_hushpuppies_black_zip.png", name: "Hush Puppies Black (Zip)", sub: "Boots" },
-    { file: "shoes_boots_casual_colorado_black.png", name: "Colorado Black Casual Boot", sub: "Boots" },
-    { file: "shoes_dress_laceup_florsheim_brown.png", name: "Florsheim Brown Lace-Up", sub: "Dress" },
-    { file: "shoes_dress_laceup_florsheim_black.png", name: "Florsheim Black Lace-Up", sub: "Dress" },
-    { file: "shoes_dress_slipon_colorado_black.png", name: "Colorado Black Slip-On", sub: "Dress" },
-    { file: "shoes_dress_slipon_florsheim_black.png", name: "Florsheim Black Slip-On", sub: "Dress" },
+    { file: "shoes_boots_chelsea_florsheim_brown.png", name: "Florsheim Brown Chelsea", sub: "Boots", subsub: "Chelsea" },
+    { file: "shoes_boots_chelsea_hushpuppies_black.png", name: "Hush Puppies Black Chelsea", sub: "Boots", subsub: "Chelsea" },
+    { file: "shoes_boots_chelsea_hushpuppies_black_elastic.png", name: "Hush Puppies Black (Elastic)", sub: "Boots", subsub: "Chelsea" },
+    { file: "shoes_boots_chelsea_hushpuppies_black_zip.png", name: "Hush Puppies Black (Zip)", sub: "Boots", subsub: "Chelsea" },
+    { file: "shoes_boots_casual_colorado_black.png", name: "Colorado Black Casual Boot", sub: "Boots", subsub: "Casual" },
+    { file: "shoes_dress_laceup_florsheim_brown.png", name: "Florsheim Brown Lace-Up", sub: "Dress", subsub: "Lace-Up" },
+    { file: "shoes_dress_laceup_florsheim_black.png", name: "Florsheim Black Lace-Up", sub: "Dress", subsub: "Lace-Up" },
+    { file: "shoes_dress_slipon_colorado_black.png", name: "Colorado Black Slip-On", sub: "Dress", subsub: "Slip-On" },
+    { file: "shoes_dress_slipon_florsheim_black.png", name: "Florsheim Black Slip-On", sub: "Dress", subsub: "Slip-On" },
     { file: "shoes_loafer_modaitaliano_tan_brown.png", name: "Moda Italiano Tan Loafer", sub: "Loafers" },
     { file: "shoes_loafer_hushpuppies_blue.png", name: "Hush Puppies Blue Loafer", sub: "Loafers" },
     { file: "shoes_loafer_hushpuppies_brown.png", name: "Hush Puppies Brown Loafer", sub: "Loafers" },
@@ -503,6 +539,7 @@ function isAIMatch(cat, itemFile) {
 let selected = {};
 let currentCat = 'blazers';
 let currentSub = 'All';
+let currentSubSub = 'All';
 let currentScenario = 'office';
 
 // Hint messages per scenario + what's been selected
@@ -574,8 +611,7 @@ function setScenario(el, scenario) {
   document.querySelectorAll('.scenario-pill').forEach(p => p.classList.remove('active'));
   el.classList.add('active');
   currentScenario = scenario;
-  updateHintStrip();
-  renderCarousel(currentCat, currentSub);
+  renderCarousel(currentCat, currentSub, currentSubSub);
 }
 
 function setCategory(el, cat) {
@@ -583,8 +619,10 @@ function setCategory(el, cat) {
   el.classList.add('active');
   currentCat = cat;
   currentSub = 'All';
+  currentSubSub = 'All';
   renderSubTabs(cat);
-  renderCarousel(cat, 'All');
+  renderSubSubTabs(cat, 'All');
+  renderCarousel(cat, 'All', 'All');
 }
 
 function renderSubTabs(cat) {
@@ -599,20 +637,40 @@ function renderSubTabs(cat) {
       document.querySelectorAll('.sub-tab').forEach(t => t.classList.remove('active'));
       btn.classList.add('active');
       currentSub = sub;
-      renderCarousel(currentCat, sub);
+      currentSubSub = 'All';
+      renderSubSubTabs(currentCat, sub);
+      renderCarousel(currentCat, sub, 'All');
     };
     subTabs.appendChild(btn);
   });
 }
 
-function renderCarousel(cat, sub) {
+function renderSubSubTabs(cat, sub) {
+  const subsubTabs = document.getElementById('subsubTabs');
+  subsubTabs.innerHTML = '';
+  const subsubs = SUBSUB_CATS[cat]?.[sub];
+  if (!subsubs) return; // hide row if no subsubs
+  subsubs.forEach(ss => {
+    const btn = document.createElement('button');
+    btn.className = 'subsub-tab' + (ss === currentSubSub ? ' active' : '');
+    btn.textContent = ss;
+    btn.onclick = () => {
+      document.querySelectorAll('.subsub-tab').forEach(t => t.classList.remove('active'));
+      btn.classList.add('active');
+      currentSubSub = ss;
+      renderCarousel(currentCat, currentSub, ss);
+    };
+    subsubTabs.appendChild(btn);
+  });
+}
+
+function renderCarousel(cat, sub, subsub) {
   const carousel = document.getElementById('carousel');
   carousel.innerHTML = '';
 
   let items = catalog[cat] || [];
-  if (sub && sub !== 'All') {
-    items = items.filter(i => i.sub === sub);
-  }
+  if (sub && sub !== 'All') items = items.filter(i => i.sub === sub);
+  if (subsub && subsub !== 'All') items = items.filter(i => i.subsub === subsub);
 
   if (items.length === 0) {
     carousel.innerHTML = `<div class="empty-carousel">Coming soon!</div>`;
@@ -667,7 +725,7 @@ function selectItem(cat, item, card) {
   card.classList.add('selected');
   fillSlot(slotKey, cat, item);
   updateSuitMode();
-  updateHintStrip();
+
 }
 
 function selectSwatch(cat, item, card) {
@@ -676,14 +734,14 @@ function selectSwatch(cat, item, card) {
     delete selected[slotKey];
     card.classList.remove('selected');
     clearSlot(slotKey);
-    updateHintStrip();
+  
     return;
   }
   document.querySelectorAll('.swatch-item').forEach(c => c.classList.remove('selected'));
   selected[slotKey] = { ...item, cat };
   card.classList.add('selected');
   fillSwatchSlot(slotKey, item);
-  updateHintStrip();
+
 }
 
 function fillSwatchSlot(slotKey, item) {
@@ -720,8 +778,8 @@ function removeItem(slotKey) {
   delete selected[slotKey];
   clearSlot(slotKey);
   updateSuitMode();
-  updateHintStrip();
-  renderCarousel(currentCat, currentSub);
+
+  renderCarousel(currentCat, currentSub, currentSubSub);
 }
 
 function updateSuitMode() {
@@ -736,8 +794,8 @@ function updateSuitMode() {
 
 // Init
 renderSubTabs('blazers');
-renderCarousel('blazers', 'All');
-updateHintStrip();
+renderSubSubTabs('blazers', 'All');
+renderCarousel('blazers', 'All', 'All');
 </script>
 </body>
 </html>
