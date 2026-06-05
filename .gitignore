@@ -1,0 +1,9 @@
+# Local reference files - not for GitHub
+memory/
+.claude/
+
+mockup_*.png
+mockup_*.jpg
+outfit_layout_example*
+test_outfit_layout*
+layouts/

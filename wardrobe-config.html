@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wardrobe Styles Config</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: #f2f2f7;
+    color: #1c1c1e;
+    padding: 24px;
+  }
+
+  h1 {
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .subtitle {
+    font-size: 13px;
+    color: #8e8e93;
+    margin-bottom: 28px;
+  }
+
+  /* Section */
+  .section {
+    background: #fff;
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  }
+  .section-title {
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: #8e8e93;
+    margin-bottom: 16px;
+  }
+
+  /* Scenarios */
+  .scenario-card {
+    border: 1.5px solid #e5e5ea;
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin-bottom: 12px;
+  }
+  .scenario-card:last-child { margin-bottom: 0; }
+  .scenario-name {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+  .scenario-desc {
+    font-size: 13px;
+    color: #636366;
+    margin-bottom: 10px;
+    line-height: 1.5;
+  }
+  .scenario-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .tag {
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 500;
+    background: #f2f2f7;
+    color: #3a3a3c;
+  }
+  .tag.formal { background: #1c1c1e; color: #fff; }
+  .tag.smart { background: #3a6ea5; color: #fff; }
+  .tag.casual { background: #34c759; color: #fff; }
+
+  /* Category tree */
+  .cat-block {
+    margin-bottom: 4px;
+  }
+  .cat-block:last-child { margin-bottom: 0; }
+  .cat-name {
+    font-size: 15px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px;
+    background: #f8f8f8;
+    border-radius: 10px;
+    cursor: pointer;
+    user-select: none;
+  }
+  .cat-name:hover { background: #f0f0f0; }
+  .cat-arrow { margin-left: auto; font-size: 11px; color: #8e8e93; transition: transform 0.2s; }
+  .cat-block.collapsed .cat-arrow { transform: rotate(-90deg); }
+  .cat-block.collapsed .cat-body { display: none; }
+  .cat-body { padding: 8px 0 4px 8px; }
+  .cat-count {
+    font-size: 11px;
+    color: #8e8e93;
+    font-weight: 400;
+  }
+  .sub-row {
+    margin-left: 16px;
+    margin-bottom: 6px;
+  }
+  .sub-name {
+    font-size: 13px;
+    font-weight: 500;
+    color: #3a3a3c;
+    margin-bottom: 4px;
+  }
+  .subsub-row {
+    margin-left: 16px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 4px;
+  }
+  .subsub-tag {
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-size: 10px;
+    border: 1px solid #d1d1d6;
+    color: #636366;
+  }
+  .divider {
+    height: 1px;
+    background: #f2f2f7;
+    margin: 14px 0;
+  }
+
+  /* Items listing */
+  .items-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 6px;
+  }
+  .item-chip {
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    background: #f2f2f7;
+    color: #3a3a3c;
+    border: 1px solid #e5e5ea;
+  }
+  .item-chip.formal { border-color: #1c1c1e; }
+  .item-chip.smart  { border-color: #3a6ea5; }
+  .item-chip.casual { border-color: #34c759; }
+</style>
+</head>
+<body>
+
+<h1>Wardrobe Config</h1>
+<p class="subtitle">Planning page — styles, categories, subcategories and mappings</p>
+
+<!-- SCENARIOS -->
+<div class="section">
+  <div class="section-title">Styles</div>
+
+  <div class="scenario-card">
+    <div class="scenario-name">🎩 Formal</div>
+    <div class="scenario-desc">Full formal office look. Suits, dress shirts, formal shoes. Important meetings, events, formal occasions.</div>
+    <div class="scenario-tags">
+      <span class="tag formal">Suits</span>
+      <span class="tag formal">Dress Shirts</span>
+      <span class="tag formal">Formal Trousers</span>
+      <span class="tag formal">Dress Shoes</span>
+      <span class="tag formal">Formal Belts</span>
+    </div>
+  </div>
+
+  <div class="scenario-card">
+    <div class="scenario-name">👔 Smart Casual</div>
+    <div class="scenario-desc">Blazer with formal denim or chinos, collared shirt, smart shoes or loafers. Typical semi-formal office day.</div>
+    <div class="scenario-tags">
+      <span class="tag smart">Blazers</span>
+      <span class="tag smart">Formal Denim</span>
+      <span class="tag smart">Chinos</span>
+      <span class="tag smart">Shirts</span>
+      <span class="tag smart">Loafers</span>
+      <span class="tag smart">Chelsea Boots</span>
+      <span class="tag smart">Leather Belts</span>
+    </div>
+  </div>
+
+  <div class="scenario-card">
+    <div class="scenario-name">👕 Casual</div>
+    <div class="scenario-desc">Relaxed look. T-shirts or casual shirts, casual denim, sneakers. Casual Friday, weekends, relaxed days.</div>
+    <div class="scenario-tags">
+      <span class="tag casual">T-Shirts</span>
+      <span class="tag casual">Casual Shirts</span>
+      <span class="tag casual">Casual Denim</span>
+      <span class="tag casual">Sneakers</span>
+      <span class="tag casual">Casual Belts</span>
+      <span class="tag casual">Casual Boots</span>
+    </div>
+  </div>
+</div>
+
+<!-- CATEGORIES -->
+<div class="section">
+  <div class="section-title">Categories & Subcategories</div>
+
+  <!-- Blazers -->
+  <div class="cat-block collapsed">
+    <div class="cat-name" onclick="this.parentElement.classList.toggle('collapsed')">🧥 Blazers <span class="cat-count">7 items</span><span class="cat-arrow">▼</span></div>
+    <div class="cat-body">
+      <div class="sub-row"><div class="sub-name">Formal</div><div class="items-grid"><span class="item-chip">Charcoal Grey</span><span class="item-chip">Mid Blue</span><span class="item-chip">Navy</span><span class="item-chip">Dark Charcoal (Burgundy Lining)</span></div></div>
+      <div class="sub-row"><div class="sub-name">Casual</div><div class="items-grid"><span class="item-chip">Blue Wool</span><span class="item-chip">Beige Linen</span><span class="item-chip">Grey Check</span></div></div>
+    </div>
+  </div>
+
+  <!-- Suits -->
+  <div class="cat-block collapsed">
+    <div class="cat-name" onclick="this.parentElement.classList.toggle('collapsed')">🤵 Suits <span class="cat-count">7 items</span><span class="cat-arrow">▼</span></div>
+    <div class="cat-body">
+      <div class="sub-row"><div class="sub-name">Formal (Wool)</div><div class="items-grid"><span class="item-chip">Mid Blue</span><span class="item-chip">Light Blue</span><span class="item-chip">Blue Grey Check</span><span class="item-chip">Dark Charcoal (Purple Lining)</span><span class="item-chip">Light Grey</span><span class="item-chip">Mid Grey</span></div></div>
+      <div class="sub-row"><div class="sub-name">Casual (Linen)</div><div class="items-grid"><span class="item-chip">Beige Linen</span></div></div>
+    </div>
+  </div>
+
+  <!-- Jackets -->
+  <div class="cat-block collapsed">
+    <div class="cat-name" onclick="this.parentElement.classList.toggle('collapsed')">🧤 Jackets <span class="cat-count">0 items</span><span class="cat-arrow">▼</span></div>
+    <div class="cat-body">
+      <div class="sub-row"><div class="sub-name">Casual</div><div class="items-grid"><span class="item-chip" style="color:#c7c7cc;border-color:#e5e5ea">Coming soon</span></div></div>
+    </div>
+  </div>
+
+  <!-- Tops -->
+  <div class="cat-block collapsed">
+    <div class="cat-name" onclick="this.parentElement.classList.toggle('collapsed')">👕 Tops <span class="cat-count">Color swatches</span><span class="cat-arrow">▼</span></div>
+    <div class="cat-body">
+      <div class="sub-row"><div class="sub-name">Shirts</div><div class="subsub-row"><span class="subsub-tag">Plain</span><span class="subsub-tag">Patterned</span></div><div class="items-grid"><span class="item-chip">White</span><span class="item-chip">Light Blue</span><span class="item-chip">Pale Pink</span><span class="item-chip">Mid Pink</span><span class="item-chip">Sage Green</span><span class="item-chip">Navy Stripe</span><span class="item-chip">Blue Gingham</span><span class="item-chip">Plaid</span></div></div>
+      <div class="sub-row"><div class="sub-name">T-Shirts</div><div class="subsub-row"><span class="subsub-tag">Plain</span></div><div class="items-grid"><span class="item-chip">White</span><span class="item-chip">Black</span><span class="item-chip">Grey</span><span class="item-chip">Navy</span><span class="item-chip">Olive</span><span class="item-chip">Beige</span></div></div>
+    </div>
+  </div>
+
+  <!-- Pants -->
+  <div class="cat-block collapsed">
+    <div class="cat-name" onclick="this.parentElement.classList.toggle('collapsed')">👖 Pants <span class="cat-count">17 items</span><span class="cat-arrow">▼</span></div>
+    <div class="cat-body">
+      <div class="sub-row"><div class="sub-name">Denim</div><div class="subsub-row"><span class="subsub-tag">Formal</span><span class="subsub-tag">Casual</span></div><div class="items-grid"><span class="item-chip formal">Dark Wash (F)</span><span class="item-chip formal">Dark Blue (F)</span><span class="item-chip formal">Dark Indigo (F)</span><span class="item-chip casual">Mid Blue (C)</span><span class="item-chip casual">Light Wash (C)</span><span class="item-chip casual">Lee Mid Blue Faded (C)</span><span class="item-chip casual">Light Blue Casual (C)</span></div></div>
+      <div class="sub-row"><div class="sub-name">Chino</div><div class="items-grid"><span class="item-chip">Allen Solly Black</span><span class="item-chip">Allen Solly Dark Olive</span><span class="item-chip">Allen Solly Khaki</span><span class="item-chip">White Cotton</span><span class="item-chip">Beige Cotton</span><span class="item-chip">Wrangler Beige</span></div></div>
+      <div class="sub-row"><div class="sub-name">Casual</div><div class="items-grid"><span class="item-chip">Levi's Linen Olive</span><span class="item-chip">Levi's Khaki Utility</span><span class="item-chip">Olive Linen Elastic</span><span class="item-chip">CAT Brown Work Pant</span></div></div>
+    </div>
+  </div>
+
+  <!-- Belts -->
+  <div class="cat-block collapsed">
+    <div class="cat-name" onclick="this.parentElement.classList.toggle('collapsed')">🪢 Belts <span class="cat-count">8 items</span><span class="cat-arrow">▼</span></div>
+    <div class="cat-body">
+      <div class="sub-row"><div class="sub-name">Formal</div><div class="items-grid"><span class="item-chip">Black Leather Plain</span><span class="item-chip">Black Leather Stitched</span><span class="item-chip">Dark Brown Leather</span><span class="item-chip">Black Plate Buckle</span></div></div>
+      <div class="sub-row"><div class="sub-name">Casual</div><div class="items-grid"><span class="item-chip">Black Leather Diesel</span><span class="item-chip">Navy Woven Tommy Hilfiger</span><span class="item-chip">Stripe Canvas Tommy Hilfiger</span><span class="item-chip">Tan Leather Gunmetal</span></div></div>
+    </div>
+  </div>
+
+  <!-- Shoes -->
+  <div class="cat-block collapsed">
+    <div class="cat-name" onclick="this.parentElement.classList.toggle('collapsed')">👟 Shoes <span class="cat-count">19 items</span><span class="cat-arrow">▼</span></div>
+    <div class="cat-body">
+      <div class="sub-row"><div class="sub-name">Sneakers</div><div class="items-grid"><span class="item-chip">Wild Rhino Brown Leather</span><span class="item-chip">Wild Rhino Olive</span><span class="item-chip">Adidas Black & White</span><span class="item-chip">US Polo White (Red/Navy)</span><span class="item-chip">US Polo Black</span></div></div>
+      <div class="sub-row"><div class="sub-name">Athletic</div><div class="items-grid"><span class="item-chip">Colorado White & Blue</span><span class="item-chip">Reebok Grey & Teal</span></div></div>
+      <div class="sub-row"><div class="sub-name">Boots</div><div class="subsub-row"><span class="subsub-tag">Chelsea</span><span class="subsub-tag">Casual</span></div><div class="items-grid"><span class="item-chip">Florsheim Brown Chelsea</span><span class="item-chip">Hush Puppies Black Chelsea</span><span class="item-chip">Hush Puppies Black (Elastic)</span><span class="item-chip">Hush Puppies Black (Zip)</span><span class="item-chip">Colorado Black Casual</span></div></div>
+      <div class="sub-row"><div class="sub-name">Dress</div><div class="subsub-row"><span class="subsub-tag">Lace-Up</span><span class="subsub-tag">Slip-On</span></div><div class="items-grid"><span class="item-chip">Florsheim Brown Lace-Up</span><span class="item-chip">Florsheim Black Lace-Up</span><span class="item-chip">Colorado Black Slip-On</span><span class="item-chip">Florsheim Black Slip-On</span></div></div>
+      <div class="sub-row"><div class="sub-name">Loafers</div><div class="items-grid"><span class="item-chip">Moda Italiano Tan</span><span class="item-chip">Hush Puppies Blue</span><span class="item-chip">Hush Puppies Brown</span></div></div>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>
