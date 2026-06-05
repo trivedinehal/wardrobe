@@ -41,10 +41,12 @@ A personal mobile-first outfit planning app for Nehal. Pure HTML/CSS/JS, no back
 - GitHub repo: https://github.com/trivedinehal/wardrobe (for version history/backup)
 - No framework, no npm, no build step — just edit HTML and refresh browser
 
-## Current status (as of 2026-06-05)
-- Main app is functional with full clothing catalog
-- catalog-view.html and wardrobe-config.html are new (not yet pushed to GitHub)
-- GitHub auth needs to be set up on home laptop before pushing
+## Current status (as of 2026-06-06)
+- All 3 files pushed to GitHub, live at trivedinehal.github.io/wardrobe/
+- wardrobe-config.html fully reviewed — categories, subcategories, order all finalised
+- wardrobe.html updated to match config exactly
+- catalog-view.html — next task: build out classification review functionality
+- Dress Trousers category added to Pants but items are "coming soon" — Nehal will photograph ~10 standalone formal trousers
 
 ## What to update here
 At the end of any session where something meaningful changed — new feature, key decision, or shift in direction — update this file before closing the chat.
