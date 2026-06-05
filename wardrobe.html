@@ -347,12 +347,12 @@ const SLOT_LABELS = {
 // Sub-categories per main category
 const SUB_CATS = {
   blazers: ['All', 'Formal', 'Casual'],
-  suits:   ['All'],
+  suits:   ['All', 'Formal'],
   jackets: ['All'],
   shirts:  ['All', 'Formal', 'Casual'],
   tshirts: ['All'],
   pants:   ['All', 'Denim', 'Chino', 'Casual'],
-  belts:   ['All'],
+  belts:   ['All', 'Formal', 'Casual'],
   shoes:   ['All', 'Sneakers', 'Boots', 'Dress', 'Loafers'],
 };
 
@@ -366,7 +366,11 @@ const catalog = {
     { file: "blazer_casual_beige_linen.png", name: "Beige Linen Blazer", sub: "Casual" },
     { file: "blazer_casual_grey_check.png", name: "Grey Check Blazer", sub: "Casual" },
   ],
-  suits: [],
+  suits: [
+    { file: "suit_wool_mid_blue.png", name: "Mid Blue Wool Suit", sub: "Formal" },
+    { file: "suit_wool_light_blue.png", name: "Light Blue Wool Suit", sub: "Formal" },
+    { file: "suit_wool_blue_grey_check.png", name: "Blue Grey Check Suit", sub: "Formal" },
+  ],
   jackets: [],
   shirts: [
     { file: "shirts_formal.png", name: "Formal Shirts", sub: "Formal" },
@@ -391,7 +395,16 @@ const catalog = {
     { file: "pants_denim_levis_dark_blue.png", name: "Levi's Dark Blue", sub: "Denim" },
     { file: "pants_denim_casualjeans_light_blue.png", name: "Light Blue Casual Jeans", sub: "Denim" },
   ],
-  belts: [],
+  belts: [
+    { file: "belt_leather_black_silver_plain.png", name: "Black Leather Plain", sub: "Formal" },
+    { file: "belt_leather_black_silver_diesel.png", name: "Black Leather Diesel", sub: "Casual" },
+    { file: "belt_woven_navy_tommyhilfiger.png", name: "Navy Woven Tommy Hilfiger", sub: "Casual" },
+    { file: "belt_canvas_stripe_navyredwhite_tommyhilfiger.png", name: "Stripe Canvas Tommy Hilfiger", sub: "Casual" },
+    { file: "belt_leather_tan_gunmetal.png", name: "Tan Leather Gunmetal", sub: "Casual" },
+    { file: "belt_leather_black_silver_stitched.png", name: "Black Leather Stitched", sub: "Formal" },
+    { file: "belt_leather_darkbrown_silver.png", name: "Dark Brown Leather", sub: "Formal" },
+    { file: "belt_leather_black_platebuckle.png", name: "Black Leather Plate Buckle", sub: "Formal" },
+  ],
   shoes: [
     { file: "shoes_sneaker_uspolo_white_red_navy.png", name: "US Polo White Sneaker", sub: "Sneakers" },
     { file: "shoes_sneaker_uspolo_black_white_laces.png", name: "US Polo Black Sneaker", sub: "Sneakers" },
