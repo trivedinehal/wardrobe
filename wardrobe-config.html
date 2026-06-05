@@ -79,7 +79,7 @@
 
   /* Category tree */
   .cat-block {
-    margin-bottom: 4px;
+    margin-bottom: 6px;
   }
   .cat-block:last-child { margin-bottom: 0; }
   .cat-name {
@@ -98,36 +98,47 @@
   .cat-arrow { margin-left: auto; font-size: 11px; color: #8e8e93; transition: transform 0.2s; }
   .cat-block.collapsed .cat-arrow { transform: rotate(-90deg); }
   .cat-block.collapsed .cat-body { display: none; }
-  .cat-body { padding: 8px 0 4px 8px; }
+  .cat-body { padding: 10px 0 4px 0; display: flex; flex-direction: column; gap: 8px; }
   .cat-count {
     font-size: 11px;
     color: #8e8e93;
     font-weight: 400;
   }
+
+  /* Sub-category row */
   .sub-row {
-    margin-left: 16px;
-    margin-bottom: 6px;
+    background: #fff;
+    border-radius: 10px;
+    border-left: 3px solid #d1d1d6;
+    padding: 10px 12px;
   }
   .sub-name {
     font-size: 13px;
-    font-weight: 500;
-    color: #3a3a3c;
-    margin-bottom: 4px;
+    font-weight: 700;
+    color: #1c1c1e;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
   }
-  .subsub-row {
-    margin-left: 16px;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-    margin-bottom: 4px;
+
+  /* Sub-sub block — each sub-sub gets its own labeled section */
+  .subsub-block {
+    margin-bottom: 8px;
   }
-  .subsub-tag {
-    padding: 2px 8px;
-    border-radius: 20px;
+  .subsub-block:last-child { margin-bottom: 0; }
+  .subsub-label {
     font-size: 10px;
-    border: 1px solid #d1d1d6;
-    color: #636366;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #fff;
+    background: #3a3a3c;
+    display: inline-block;
+    padding: 2px 9px;
+    border-radius: 20px;
+    margin-bottom: 6px;
   }
+
   .divider {
     height: 1px;
     background: #f2f2f7;
@@ -139,7 +150,6 @@
     display: flex;
     flex-wrap: wrap;
     gap: 6px;
-    margin-top: 6px;
   }
   .item-chip {
     padding: 4px 10px;
@@ -207,6 +217,47 @@
 <div class="section">
   <div class="section-title">Categories & Subcategories</div>
 
+  <!-- Tops -->
+  <div class="cat-block collapsed">
+    <div class="cat-name" onclick="this.parentElement.classList.toggle('collapsed')">👕 Tops <span class="cat-count">Color swatches</span><span class="cat-arrow">▼</span></div>
+    <div class="cat-body">
+      <div class="sub-row"><div class="sub-name">Shirts</div><div class="items-grid"><span class="item-chip" style="color:#c7c7cc;border-color:#e5e5ea">Managed in wardrobe app</span></div></div>
+      <div class="sub-row"><div class="sub-name">T-Shirts</div><div class="items-grid"><span class="item-chip" style="color:#c7c7cc;border-color:#e5e5ea">Managed in wardrobe app</span></div></div>
+    </div>
+  </div>
+
+  <!-- Pants -->
+  <div class="cat-block collapsed">
+    <div class="cat-name" onclick="this.parentElement.classList.toggle('collapsed')">👖 Pants <span class="cat-count">17 items</span><span class="cat-arrow">▼</span></div>
+    <div class="cat-body">
+      <div class="sub-row"><div class="sub-name">Dress Trousers</div><div class="items-grid"><span class="item-chip" style="color:#c7c7cc;border-color:#e5e5ea">Coming soon</span></div></div>
+      <div class="sub-row"><div class="sub-name">Denim</div><div class="subsub-block"><div class="subsub-label">Formal</div><div class="items-grid"><span class="item-chip">Dark Wash</span><span class="item-chip">Dark Blue</span><span class="item-chip">Dark Indigo</span></div></div><div class="subsub-block"><div class="subsub-label">Casual</div><div class="items-grid"><span class="item-chip">Mid Blue</span><span class="item-chip">Light Wash</span><span class="item-chip">Lee Mid Blue Faded</span><span class="item-chip">Light Blue Casual</span></div></div></div>
+      <div class="sub-row"><div class="sub-name">Chinos</div><div class="items-grid"><span class="item-chip">Allen Solly Black</span><span class="item-chip">Allen Solly Dark Olive</span><span class="item-chip">Allen Solly Khaki</span><span class="item-chip">White Cotton</span><span class="item-chip">Beige Cotton</span><span class="item-chip">Wrangler Beige</span></div></div>
+      <div class="sub-row"><div class="sub-name">Linen & Utility</div><div class="items-grid"><span class="item-chip">Levi's Linen Olive</span><span class="item-chip">Levi's Khaki Utility</span><span class="item-chip">Olive Linen Elastic</span><span class="item-chip">CAT Brown Work Pant</span></div></div>
+    </div>
+  </div>
+
+  <!-- Belts -->
+  <div class="cat-block collapsed">
+    <div class="cat-name" onclick="this.parentElement.classList.toggle('collapsed')">🪢 Belts <span class="cat-count">8 items</span><span class="cat-arrow">▼</span></div>
+    <div class="cat-body">
+      <div class="sub-row"><div class="sub-name">Formal</div><div class="items-grid"><span class="item-chip">Black Leather Plain</span><span class="item-chip">Black Leather Stitched</span><span class="item-chip">Dark Brown Leather</span><span class="item-chip">Black Plate Buckle</span></div></div>
+      <div class="sub-row"><div class="sub-name">Smart Casual</div><div class="items-grid"><span class="item-chip">Black Leather Diesel</span><span class="item-chip">Tan Leather Gunmetal</span></div></div>
+      <div class="sub-row"><div class="sub-name">Casual</div><div class="items-grid"><span class="item-chip">Navy Woven Tommy Hilfiger</span><span class="item-chip">Stripe Canvas Tommy Hilfiger</span></div></div>
+    </div>
+  </div>
+
+  <!-- Shoes -->
+  <div class="cat-block collapsed">
+    <div class="cat-name" onclick="this.parentElement.classList.toggle('collapsed')">👟 Shoes <span class="cat-count">19 items</span><span class="cat-arrow">▼</span></div>
+    <div class="cat-body">
+      <div class="sub-row"><div class="sub-name">Formal</div><div class="subsub-block"><div class="subsub-label">Dress Shoes</div><div class="items-grid"><span class="item-chip">Florsheim Brown Lace-Up</span><span class="item-chip">Florsheim Black Lace-Up</span><span class="item-chip">Colorado Black Slip-On</span><span class="item-chip">Florsheim Black Slip-On</span></div></div><div class="subsub-block"><div class="subsub-label">Boots</div><div class="items-grid"><span class="item-chip">Florsheim Brown Chelsea</span><span class="item-chip">Hush Puppies Black Chelsea</span><span class="item-chip">Hush Puppies Black (Elastic)</span><span class="item-chip">Hush Puppies Black (Zip)</span></div></div></div>
+      <div class="sub-row"><div class="sub-name">Smart Casual</div><div class="subsub-block"><div class="subsub-label">Loafers</div><div class="items-grid"><span class="item-chip">Moda Italiano Tan</span><span class="item-chip">Hush Puppies Blue</span><span class="item-chip">Hush Puppies Brown</span></div></div><div class="subsub-block"><div class="subsub-label">Sneakers</div><div class="items-grid"><span class="item-chip">Wild Rhino Brown Leather</span><span class="item-chip">Wild Rhino Olive</span></div></div></div>
+      <div class="sub-row"><div class="sub-name">Casual</div><div class="subsub-block"><div class="subsub-label">Sneakers</div><div class="items-grid"><span class="item-chip">Adidas Black & White</span><span class="item-chip">US Polo White (Red/Navy)</span><span class="item-chip">US Polo Black</span></div></div><div class="subsub-block"><div class="subsub-label">Boots</div><div class="items-grid"><span class="item-chip">Colorado Black Casual</span></div></div></div>
+      <div class="sub-row"><div class="sub-name">Athletic</div><div class="items-grid"><span class="item-chip">Colorado White & Blue</span><span class="item-chip">Reebok Grey & Teal</span></div></div>
+    </div>
+  </div>
+
   <!-- Blazers -->
   <div class="cat-block collapsed">
     <div class="cat-name" onclick="this.parentElement.classList.toggle('collapsed')">🧥 Blazers <span class="cat-count">7 items</span><span class="cat-arrow">▼</span></div>
@@ -230,46 +281,6 @@
     <div class="cat-name" onclick="this.parentElement.classList.toggle('collapsed')">🧤 Jackets <span class="cat-count">0 items</span><span class="cat-arrow">▼</span></div>
     <div class="cat-body">
       <div class="sub-row"><div class="sub-name">Casual</div><div class="items-grid"><span class="item-chip" style="color:#c7c7cc;border-color:#e5e5ea">Coming soon</span></div></div>
-    </div>
-  </div>
-
-  <!-- Tops -->
-  <div class="cat-block collapsed">
-    <div class="cat-name" onclick="this.parentElement.classList.toggle('collapsed')">👕 Tops <span class="cat-count">Color swatches</span><span class="cat-arrow">▼</span></div>
-    <div class="cat-body">
-      <div class="sub-row"><div class="sub-name">Shirts</div><div class="subsub-row"><span class="subsub-tag">Plain</span><span class="subsub-tag">Patterned</span></div><div class="items-grid"><span class="item-chip">White</span><span class="item-chip">Light Blue</span><span class="item-chip">Pale Pink</span><span class="item-chip">Mid Pink</span><span class="item-chip">Sage Green</span><span class="item-chip">Navy Stripe</span><span class="item-chip">Blue Gingham</span><span class="item-chip">Plaid</span></div></div>
-      <div class="sub-row"><div class="sub-name">T-Shirts</div><div class="subsub-row"><span class="subsub-tag">Plain</span></div><div class="items-grid"><span class="item-chip">White</span><span class="item-chip">Black</span><span class="item-chip">Grey</span><span class="item-chip">Navy</span><span class="item-chip">Olive</span><span class="item-chip">Beige</span></div></div>
-    </div>
-  </div>
-
-  <!-- Pants -->
-  <div class="cat-block collapsed">
-    <div class="cat-name" onclick="this.parentElement.classList.toggle('collapsed')">👖 Pants <span class="cat-count">17 items</span><span class="cat-arrow">▼</span></div>
-    <div class="cat-body">
-      <div class="sub-row"><div class="sub-name">Denim</div><div class="subsub-row"><span class="subsub-tag">Formal</span><span class="subsub-tag">Casual</span></div><div class="items-grid"><span class="item-chip formal">Dark Wash (F)</span><span class="item-chip formal">Dark Blue (F)</span><span class="item-chip formal">Dark Indigo (F)</span><span class="item-chip casual">Mid Blue (C)</span><span class="item-chip casual">Light Wash (C)</span><span class="item-chip casual">Lee Mid Blue Faded (C)</span><span class="item-chip casual">Light Blue Casual (C)</span></div></div>
-      <div class="sub-row"><div class="sub-name">Chino</div><div class="items-grid"><span class="item-chip">Allen Solly Black</span><span class="item-chip">Allen Solly Dark Olive</span><span class="item-chip">Allen Solly Khaki</span><span class="item-chip">White Cotton</span><span class="item-chip">Beige Cotton</span><span class="item-chip">Wrangler Beige</span></div></div>
-      <div class="sub-row"><div class="sub-name">Casual</div><div class="items-grid"><span class="item-chip">Levi's Linen Olive</span><span class="item-chip">Levi's Khaki Utility</span><span class="item-chip">Olive Linen Elastic</span><span class="item-chip">CAT Brown Work Pant</span></div></div>
-    </div>
-  </div>
-
-  <!-- Belts -->
-  <div class="cat-block collapsed">
-    <div class="cat-name" onclick="this.parentElement.classList.toggle('collapsed')">🪢 Belts <span class="cat-count">8 items</span><span class="cat-arrow">▼</span></div>
-    <div class="cat-body">
-      <div class="sub-row"><div class="sub-name">Formal</div><div class="items-grid"><span class="item-chip">Black Leather Plain</span><span class="item-chip">Black Leather Stitched</span><span class="item-chip">Dark Brown Leather</span><span class="item-chip">Black Plate Buckle</span></div></div>
-      <div class="sub-row"><div class="sub-name">Casual</div><div class="items-grid"><span class="item-chip">Black Leather Diesel</span><span class="item-chip">Navy Woven Tommy Hilfiger</span><span class="item-chip">Stripe Canvas Tommy Hilfiger</span><span class="item-chip">Tan Leather Gunmetal</span></div></div>
-    </div>
-  </div>
-
-  <!-- Shoes -->
-  <div class="cat-block collapsed">
-    <div class="cat-name" onclick="this.parentElement.classList.toggle('collapsed')">👟 Shoes <span class="cat-count">19 items</span><span class="cat-arrow">▼</span></div>
-    <div class="cat-body">
-      <div class="sub-row"><div class="sub-name">Sneakers</div><div class="items-grid"><span class="item-chip">Wild Rhino Brown Leather</span><span class="item-chip">Wild Rhino Olive</span><span class="item-chip">Adidas Black & White</span><span class="item-chip">US Polo White (Red/Navy)</span><span class="item-chip">US Polo Black</span></div></div>
-      <div class="sub-row"><div class="sub-name">Athletic</div><div class="items-grid"><span class="item-chip">Colorado White & Blue</span><span class="item-chip">Reebok Grey & Teal</span></div></div>
-      <div class="sub-row"><div class="sub-name">Boots</div><div class="subsub-row"><span class="subsub-tag">Chelsea</span><span class="subsub-tag">Casual</span></div><div class="items-grid"><span class="item-chip">Florsheim Brown Chelsea</span><span class="item-chip">Hush Puppies Black Chelsea</span><span class="item-chip">Hush Puppies Black (Elastic)</span><span class="item-chip">Hush Puppies Black (Zip)</span><span class="item-chip">Colorado Black Casual</span></div></div>
-      <div class="sub-row"><div class="sub-name">Dress</div><div class="subsub-row"><span class="subsub-tag">Lace-Up</span><span class="subsub-tag">Slip-On</span></div><div class="items-grid"><span class="item-chip">Florsheim Brown Lace-Up</span><span class="item-chip">Florsheim Black Lace-Up</span><span class="item-chip">Colorado Black Slip-On</span><span class="item-chip">Florsheim Black Slip-On</span></div></div>
-      <div class="sub-row"><div class="sub-name">Loafers</div><div class="items-grid"><span class="item-chip">Moda Italiano Tan</span><span class="item-chip">Hush Puppies Blue</span><span class="item-chip">Hush Puppies Brown</span></div></div>
     </div>
   </div>
 
