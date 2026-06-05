@@ -62,7 +62,7 @@
   /* Column headers */
   .table-head {
     display: grid;
-    grid-template-columns: 80px 1fr 100px 100px 160px;
+    grid-template-columns: 80px 1fr 100px 100px;
     padding: 8px 12px;
     background: #f8f8f8;
     border-bottom: 1px solid #e5e5ea;
@@ -78,7 +78,7 @@
   /* Item row */
   .item-row {
     display: grid;
-    grid-template-columns: 80px 1fr 100px 100px 160px;
+    grid-template-columns: 80px 1fr 100px 100px;
     align-items: center;
     padding: 10px 12px;
     border-bottom: 1px solid #f2f2f7;
@@ -138,7 +138,7 @@
 
 <div class="header">
   <h1>Catalog View</h1>
-  <p>Review item categorisation — sub, sub-sub and style assignments</p>
+  <p>Review and verify item classification — category, sub and sub-sub</p>
 </div>
 
 <div class="content" id="content"></div>
@@ -162,91 +162,95 @@ const catalog = {
   suits: {
     label: "Suits", icon: "🤵",
     items: [
-      { file: "suit_wool_mid_blue.png", name: "Mid Blue Wool Suit", sub: "Formal", subsub: "Wool", styles: ["formal"] },
-      { file: "suit_wool_light_blue.png", name: "Light Blue Wool Suit", sub: "Formal", subsub: "Wool", styles: ["formal"] },
-      { file: "suit_wool_blue_grey_check.png", name: "Blue Grey Check Suit", sub: "Formal", subsub: "Wool", styles: ["formal"] },
-      { file: "suit_wool_dark_charcoal_purple_lining.png", name: "Dark Charcoal Suit", sub: "Formal", subsub: "Wool", styles: ["formal"] },
-      { file: "suit_linen_beige.png", name: "Beige Linen Suit", sub: "Casual", subsub: "Linen", styles: ["smart","casual"] },
-      { file: "suit_wool_light_grey.png", name: "Light Grey Suit", sub: "Formal", subsub: "Wool", styles: ["formal"] },
-      { file: "suit_wool_mid_grey.png", name: "Mid Grey Suit", sub: "Formal", subsub: "Wool", styles: ["formal"] },
+      { file: "suit_wool_mid_blue.png", name: "Mid Blue Wool Suit", sub: "Formal (Wool)", subsub: "—" },
+      { file: "suit_wool_light_blue.png", name: "Light Blue Wool Suit", sub: "Formal (Wool)", subsub: "—" },
+      { file: "suit_wool_blue_grey_check.png", name: "Blue Grey Check Suit", sub: "Formal (Wool)", subsub: "—" },
+      { file: "suit_wool_dark_charcoal_purple_lining.png", name: "Dark Charcoal Suit", sub: "Formal (Wool)", subsub: "—" },
+      { file: "suit_linen_beige.png", name: "Beige Linen Suit", sub: "Casual (Linen)", subsub: "—" },
+      { file: "suit_wool_light_grey.png", name: "Light Grey Suit", sub: "Formal (Wool)", subsub: "—" },
+      { file: "suit_wool_mid_grey.png", name: "Mid Grey Suit", sub: "Formal (Wool)", subsub: "—" },
     ]
   },
   tops: {
     label: "Tops", icon: "👕",
     items: [
-      { swatch: "#FFFFFF", name: "White Shirt", sub: "Shirts", subsub: "Plain", styles: ["formal","smart"] },
-      { swatch: "#AEC6CF", name: "Light Blue Shirt", sub: "Shirts", subsub: "Plain", styles: ["formal","smart"] },
-      { swatch: "#F4C2C2", name: "Pale Pink Shirt", sub: "Shirts", subsub: "Plain", styles: ["formal","smart"] },
-      { swatch: "#E8A0A0", name: "Mid Pink Shirt", sub: "Shirts", subsub: "Plain", styles: ["formal","smart"] },
-      { swatch: "#B2C9B2", name: "Sage Green Shirt", sub: "Shirts", subsub: "Plain", styles: ["smart"] },
-      { swatch: "#6B8CAE", name: "Navy Stripe Shirt", sub: "Shirts", subsub: "Patterned", styles: ["smart"] },
-      { swatch: "#89CFF0", name: "Blue Gingham Shirt", sub: "Shirts", subsub: "Patterned", styles: ["smart","casual"] },
-      { swatch: "#8B4513", name: "Plaid Shirt", sub: "Shirts", subsub: "Patterned", styles: ["casual"] },
-      { swatch: "#FFFFFF", name: "White T-Shirt", sub: "T-Shirts", subsub: "Plain", styles: ["casual"] },
-      { swatch: "#1c1c1e", name: "Black T-Shirt", sub: "T-Shirts", subsub: "Plain", styles: ["casual"] },
-      { swatch: "#9E9E9E", name: "Grey T-Shirt", sub: "T-Shirts", subsub: "Plain", styles: ["casual"] },
-      { swatch: "#1B3A6B", name: "Navy T-Shirt", sub: "T-Shirts", subsub: "Plain", styles: ["casual"] },
-      { swatch: "#6B7C4A", name: "Olive T-Shirt", sub: "T-Shirts", subsub: "Plain", styles: ["casual"] },
-      { swatch: "#D2B48C", name: "Beige T-Shirt", sub: "T-Shirts", subsub: "Plain", styles: ["casual"] },
+      { swatch: "#FFFFFF", name: "White Shirt", sub: "Shirts", subsub: "—" },
+      { swatch: "#AEC6CF", name: "Light Blue Shirt", sub: "Shirts", subsub: "—" },
+      { swatch: "#F4C2C2", name: "Pale Pink Shirt", sub: "Shirts", subsub: "—" },
+      { swatch: "#E8A0A0", name: "Mid Pink Shirt", sub: "Shirts", subsub: "—" },
+      { swatch: "#B2C9B2", name: "Sage Green Shirt", sub: "Shirts", subsub: "—" },
+      { swatch: "#6B8CAE", name: "Navy Stripe Shirt", sub: "Shirts", subsub: "—" },
+      { swatch: "#89CFF0", name: "Blue Gingham Shirt", sub: "Shirts", subsub: "—" },
+      { swatch: "#8B4513", name: "Plaid Shirt", sub: "Shirts", subsub: "—" },
+      { swatch: "#FFFFFF", name: "White T-Shirt", sub: "T-Shirts", subsub: "—" },
+      { swatch: "#1c1c1e", name: "Black T-Shirt", sub: "T-Shirts", subsub: "—" },
+      { swatch: "#9E9E9E", name: "Grey T-Shirt", sub: "T-Shirts", subsub: "—" },
+      { swatch: "#1B3A6B", name: "Navy T-Shirt", sub: "T-Shirts", subsub: "—" },
+      { swatch: "#6B7C4A", name: "Olive T-Shirt", sub: "T-Shirts", subsub: "—" },
+      { swatch: "#D2B48C", name: "Beige T-Shirt", sub: "T-Shirts", subsub: "—" },
     ]
   },
   pants: {
     label: "Pants", icon: "👖",
     items: [
-      { file: "pants_denim_levis_dark_wash.png", name: "Levi's Dark Wash", sub: "Denim", subsub: "Formal", styles: ["smart"] },
-      { file: "pants_denim_westbay_dark_indigo.png", name: "Westbay Dark Indigo", sub: "Denim", subsub: "Formal", styles: ["smart"] },
-      { file: "pants_denim_levis_dark_blue.png", name: "Levi's Dark Blue", sub: "Denim", subsub: "Formal", styles: ["smart"] },
-      { file: "pants_denim_levis_mid_blue.png", name: "Levi's Mid Blue", sub: "Denim", subsub: "Casual", styles: ["smart","casual"] },
-      { file: "pants_denim_levis_light_wash.png", name: "Levi's Light Wash", sub: "Denim", subsub: "Casual", styles: ["casual"] },
-      { file: "pants_denim_lee_mid_blue_faded.png", name: "Lee Mid Blue Faded", sub: "Denim", subsub: "Casual", styles: ["casual"] },
-      { file: "pants_denim_casualjeans_light_blue.png", name: "Light Blue Casual Jeans", sub: "Denim", subsub: "Casual", styles: ["casual"] },
-      { file: "pants_chino_allensolly_black.png", name: "Allen Solly Black Chino", sub: "Chino", subsub: "—", styles: ["smart"] },
-      { file: "pants_chino_allensolly_dark_olive.png", name: "Allen Solly Dark Olive", sub: "Chino", subsub: "—", styles: ["smart","casual"] },
-      { file: "pants_chino_allensolly_khaki.png", name: "Allen Solly Khaki", sub: "Chino", subsub: "—", styles: ["smart"] },
-      { file: "pants_chino_white_cotton.png", name: "White Cotton Chino", sub: "Chino", subsub: "—", styles: ["smart","casual"] },
-      { file: "pants_chino_beige_cotton.png", name: "Beige Cotton Chino", sub: "Chino", subsub: "—", styles: ["smart"] },
-      { file: "pants_chino_wrangler_beige.png", name: "Wrangler Beige Chino", sub: "Chino", subsub: "—", styles: ["smart","casual"] },
-      { file: "pants_casual_levis_linen_olive.png", name: "Levi's Linen Olive", sub: "Casual", subsub: "—", styles: ["casual"] },
-      { file: "pants_casual_levis_nylon_khaki_utility.png", name: "Levi's Khaki Utility", sub: "Casual", subsub: "—", styles: ["casual"] },
-      { file: "pants_casual_olive_linen_elastic.png", name: "Olive Linen Elastic", sub: "Casual", subsub: "—", styles: ["casual"] },
-      { file: "pants_casual_cat_cotton_brown_work.png", name: "CAT Brown Work Pant", sub: "Casual", subsub: "—", styles: ["casual"] },
+      { file: "pants_denim_levis_dark_wash.png", name: "Levi's Dark Wash", sub: "Denim", subsub: "Formal" },
+      { file: "pants_denim_westbay_dark_indigo.png", name: "Westbay Dark Indigo", sub: "Denim", subsub: "Formal" },
+      { file: "pants_denim_levis_dark_blue.png", name: "Levi's Dark Blue", sub: "Denim", subsub: "Formal" },
+      { file: "pants_denim_levis_mid_blue.png", name: "Levi's Mid Blue", sub: "Denim", subsub: "Casual" },
+      { file: "pants_denim_levis_light_wash.png", name: "Levi's Light Wash", sub: "Denim", subsub: "Casual" },
+      { file: "pants_denim_lee_mid_blue_faded.png", name: "Lee Mid Blue Faded", sub: "Denim", subsub: "Casual" },
+      { file: "pants_denim_casualjeans_light_blue.png", name: "Light Blue Casual Jeans", sub: "Denim", subsub: "Casual" },
+      { file: "pants_chino_allensolly_black.png", name: "Allen Solly Black Chino", sub: "Chinos", subsub: "—" },
+      { file: "pants_chino_allensolly_dark_olive.png", name: "Allen Solly Dark Olive", sub: "Chinos", subsub: "—" },
+      { file: "pants_chino_allensolly_khaki.png", name: "Allen Solly Khaki", sub: "Chinos", subsub: "—" },
+      { file: "pants_chino_white_cotton.png", name: "White Cotton Chino", sub: "Chinos", subsub: "—" },
+      { file: "pants_chino_beige_cotton.png", name: "Beige Cotton Chino", sub: "Chinos", subsub: "—" },
+      { file: "pants_chino_wrangler_beige.png", name: "Wrangler Beige Chino", sub: "Chinos", subsub: "—" },
+      { file: "pants_casual_levis_linen_olive.png", name: "Levi's Linen Olive", sub: "Linen & Utility", subsub: "—" },
+      { file: "pants_casual_levis_nylon_khaki_utility.png", name: "Levi's Khaki Utility", sub: "Linen & Utility", subsub: "—" },
+      { file: "pants_casual_olive_linen_elastic.png", name: "Olive Linen Elastic", sub: "Linen & Utility", subsub: "—" },
+      { file: "pants_casual_cat_cotton_brown_work.png", name: "CAT Brown Work Pant", sub: "Linen & Utility", subsub: "—" },
     ]
   },
   belts: {
     label: "Belts", icon: "🪢",
     items: [
-      { file: "belt_leather_black_silver_plain.png", name: "Black Leather Plain", sub: "Formal", subsub: "—", styles: ["formal","smart"] },
-      { file: "belt_leather_black_silver_stitched.png", name: "Black Leather Stitched", sub: "Formal", subsub: "—", styles: ["formal","smart"] },
-      { file: "belt_leather_darkbrown_silver.png", name: "Dark Brown Leather", sub: "Formal", subsub: "—", styles: ["formal","smart"] },
-      { file: "belt_leather_black_platebuckle.png", name: "Black Plate Buckle", sub: "Formal", subsub: "—", styles: ["formal"] },
-      { file: "belt_leather_black_silver_diesel.png", name: "Black Leather Diesel", sub: "Casual", subsub: "—", styles: ["smart","casual"] },
-      { file: "belt_woven_navy_tommyhilfiger.png", name: "Navy Woven Tommy Hilfiger", sub: "Casual", subsub: "—", styles: ["smart","casual"] },
-      { file: "belt_canvas_stripe_navyredwhite_tommyhilfiger.png", name: "Stripe Canvas Tommy Hilfiger", sub: "Casual", subsub: "—", styles: ["casual"] },
-      { file: "belt_leather_tan_gunmetal.png", name: "Tan Leather Gunmetal", sub: "Casual", subsub: "—", styles: ["smart","casual"] },
+      { file: "belt_leather_black_silver_plain.png", name: "Black Leather Plain", sub: "Formal", subsub: "—" },
+      { file: "belt_leather_black_silver_stitched.png", name: "Black Leather Stitched", sub: "Formal", subsub: "—" },
+      { file: "belt_leather_darkbrown_silver.png", name: "Dark Brown Leather", sub: "Formal", subsub: "—" },
+      { file: "belt_leather_black_platebuckle.png", name: "Black Plate Buckle", sub: "Formal", subsub: "—" },
+      { file: "belt_leather_black_silver_diesel.png", name: "Black Leather Diesel", sub: "Smart Casual", subsub: "—" },
+      { file: "belt_woven_navy_tommyhilfiger.png", name: "Navy Woven Tommy Hilfiger", sub: "Casual", subsub: "—" },
+      { file: "belt_canvas_stripe_navyredwhite_tommyhilfiger.png", name: "Stripe Canvas Tommy Hilfiger", sub: "Casual", subsub: "—" },
+      { file: "belt_leather_tan_gunmetal.png", name: "Tan Leather Gunmetal", sub: "Smart Casual", subsub: "—" },
     ]
+  },
+  jackets: {
+    label: "Jackets", icon: "🧤",
+    items: []
   },
   shoes: {
     label: "Shoes", icon: "👟",
     items: [
-      { file: "shoes_sneaker_wildrhino_brown_leather_whitesole.png", name: "Wild Rhino Brown Leather", sub: "Sneakers", subsub: "—", styles: ["smart","casual"] },
-      { file: "shoes_sneaker_wildrhino_olive.png", name: "Wild Rhino Olive", sub: "Sneakers", subsub: "—", styles: ["casual"] },
-      { file: "shoes_sneaker_adidas_black_white.png", name: "Adidas Black & White", sub: "Sneakers", subsub: "—", styles: ["casual"] },
-      { file: "shoes_sneaker_uspolo_white_rednavy.png", name: "US Polo White (Red/Navy)", sub: "Sneakers", subsub: "—", styles: ["casual"] },
-      { file: "shoes_sneaker_uspolo_black_whitelaces.png", name: "US Polo Black", sub: "Sneakers", subsub: "—", styles: ["casual"] },
-      { file: "shoes_athletic_colorado_white_blue.png", name: "Colorado White & Blue", sub: "Athletic", subsub: "—", styles: ["casual"] },
-      { file: "shoes_athletic_reebok_grey_teal.png", name: "Reebok Grey & Teal", sub: "Athletic", subsub: "—", styles: ["casual"] },
-      { file: "shoes_boots_chelsea_florsheim_brown.png", name: "Florsheim Brown Chelsea", sub: "Boots", subsub: "Chelsea", styles: ["formal","smart"] },
-      { file: "shoes_boots_chelsea_hushpuppies_black.png", name: "Hush Puppies Black Chelsea", sub: "Boots", subsub: "Chelsea", styles: ["formal","smart"] },
-      { file: "shoes_boots_chelsea_hushpuppies_black_elastic.png", name: "Hush Puppies Black (Elastic)", sub: "Boots", subsub: "Chelsea", styles: ["formal","smart"] },
-      { file: "shoes_boots_chelsea_hushpuppies_black_zip.png", name: "Hush Puppies Black (Zip)", sub: "Boots", subsub: "Chelsea", styles: ["formal","smart"] },
-      { file: "shoes_boots_casual_colorado_black.png", name: "Colorado Black Casual Boot", sub: "Boots", subsub: "Casual", styles: ["casual"] },
-      { file: "shoes_dress_laceup_florsheim_brown.png", name: "Florsheim Brown Lace-Up", sub: "Dress", subsub: "Lace-Up", styles: ["formal","smart"] },
-      { file: "shoes_dress_laceup_florsheim_black.png", name: "Florsheim Black Lace-Up", sub: "Dress", subsub: "Lace-Up", styles: ["formal","smart"] },
-      { file: "shoes_dress_slipon_colorado_black.png", name: "Colorado Black Slip-On", sub: "Dress", subsub: "Slip-On", styles: ["formal","smart"] },
-      { file: "shoes_dress_slipon_florsheim_black.png", name: "Florsheim Black Slip-On", sub: "Dress", subsub: "Slip-On", styles: ["formal","smart"] },
-      { file: "shoes_loafer_modaitaliano_tan_brown.png", name: "Moda Italiano Tan Loafer", sub: "Loafers", subsub: "—", styles: ["smart","casual"] },
-      { file: "shoes_loafer_hushpuppies_blue.png", name: "Hush Puppies Blue Loafer", sub: "Loafers", subsub: "—", styles: ["smart","casual"] },
-      { file: "shoes_loafer_hushpuppies_brown.png", name: "Hush Puppies Brown Loafer", sub: "Loafers", subsub: "—", styles: ["smart","casual"] },
+      { file: "shoes_dress_laceup_florsheim_brown.png", name: "Florsheim Brown Lace-Up", sub: "Formal", subsub: "Dress Shoes" },
+      { file: "shoes_dress_laceup_florsheim_black.png", name: "Florsheim Black Lace-Up", sub: "Formal", subsub: "Dress Shoes" },
+      { file: "shoes_dress_slipon_colorado_black.png", name: "Colorado Black Slip-On", sub: "Formal", subsub: "Dress Shoes" },
+      { file: "shoes_dress_slipon_florsheim_black.png", name: "Florsheim Black Slip-On", sub: "Formal", subsub: "Dress Shoes" },
+      { file: "shoes_boots_chelsea_florsheim_brown.png", name: "Florsheim Brown Chelsea", sub: "Formal", subsub: "Boots" },
+      { file: "shoes_boots_chelsea_hushpuppies_black.png", name: "Hush Puppies Black Chelsea", sub: "Formal", subsub: "Boots" },
+      { file: "shoes_boots_chelsea_hushpuppies_black_elastic.png", name: "Hush Puppies Black (Elastic)", sub: "Formal", subsub: "Boots" },
+      { file: "shoes_boots_chelsea_hushpuppies_black_zip.png", name: "Hush Puppies Black (Zip)", sub: "Formal", subsub: "Boots" },
+      { file: "shoes_loafer_modaitaliano_tan_brown.png", name: "Moda Italiano Tan Loafer", sub: "Smart Casual", subsub: "Loafers" },
+      { file: "shoes_loafer_hushpuppies_blue.png", name: "Hush Puppies Blue Loafer", sub: "Smart Casual", subsub: "Loafers" },
+      { file: "shoes_loafer_hushpuppies_brown.png", name: "Hush Puppies Brown Loafer", sub: "Smart Casual", subsub: "Loafers" },
+      { file: "shoes_sneaker_wildrhino_brown_leather_whitesole.png", name: "Wild Rhino Brown Leather", sub: "Smart Casual", subsub: "Sneakers" },
+      { file: "shoes_sneaker_wildrhino_olive.png", name: "Wild Rhino Olive", sub: "Smart Casual", subsub: "Sneakers" },
+      { file: "shoes_sneaker_adidas_black_white.png", name: "Adidas Black & White", sub: "Casual", subsub: "Sneakers" },
+      { file: "shoes_sneaker_uspolo_white_rednavy.png", name: "US Polo White (Red/Navy)", sub: "Casual", subsub: "Sneakers" },
+      { file: "shoes_sneaker_uspolo_black_whitelaces.png", name: "US Polo Black", sub: "Casual", subsub: "Sneakers" },
+      { file: "shoes_boots_casual_colorado_black.png", name: "Colorado Black Casual Boot", sub: "Casual", subsub: "Boots" },
+      { file: "shoes_athletic_colorado_white_blue.png", name: "Colorado White & Blue", sub: "Athletic", subsub: "—" },
+      { file: "shoes_athletic_reebok_grey_teal.png", name: "Reebok Grey & Teal", sub: "Athletic", subsub: "—" },
     ]
   }
 };
@@ -257,10 +261,14 @@ const styleLabels = {
   casual: "Casual"
 };
 
+const CAT_ORDER = ['tops', 'pants', 'belts', 'shoes', 'blazers', 'suits', 'jackets'];
+
 function buildPage() {
   const content = document.getElementById('content');
 
-  for (const [key, cat] of Object.entries(catalog)) {
+  for (const key of CAT_ORDER) {
+    const cat = catalog[key];
+    if (!cat) continue;
     const group = document.createElement('div');
     group.className = 'cat-group';
     group.innerHTML = `
@@ -276,7 +284,6 @@ function buildPage() {
           <span>Name</span>
           <span>Sub</span>
           <span>Sub-Sub</span>
-          <span>Style</span>
         </div>
         <div class="table-body" id="body-${key}"></div>
       </div>
@@ -296,17 +303,11 @@ function buildPage() {
         imgHTML = `<img class="item-img" src="${CATALOG_BASE}/${key}/${item.file}" alt="${item.name}" loading="lazy">`;
       }
 
-      // Style tags
-      const tagsHTML = item.styles.map(s =>
-        `<span class="style-tag ${s}">${styleLabels[s]}</span>`
-      ).join('');
-
       row.innerHTML = `
         ${imgHTML}
         <div class="item-name">${item.name}</div>
         <div class="item-sub">${item.sub}</div>
         <div class="item-subsub">${item.subsub}</div>
-        <div class="style-tags">${tagsHTML}</div>
       `;
       body.appendChild(row);
     });
