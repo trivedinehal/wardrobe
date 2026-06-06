@@ -302,7 +302,7 @@ const CATALOG_BASE = "catalog";
 
 const CAT_EXTRA_COLS = {
   tops:    ['fabric', 'pattern', 'collar', 'tuck'],
-  pants:   ['fabric', 'pattern', 'cut', 'hem'],
+  pants:   ['fabric', 'pattern', 'cut', 'hem', 'beltLoop'],
   belts:   ['buckleStyle', 'width'],
   shoes:   ['closure', 'sole'],
   blazers: ['fabric', 'pattern', 'cut'],
@@ -311,7 +311,7 @@ const CAT_EXTRA_COLS = {
 };
 
 const COL_LABELS = {
-  fabric: 'Fabric', pattern: 'Pattern', cut: 'Cut', hem: 'Hem',
+  fabric: 'Fabric', pattern: 'Pattern', cut: 'Cut', hem: 'Hem', beltLoop: 'Belt Loop',
   collar: 'Collar', tuck: 'Tuck',
   buckleStyle: 'Buckle', width: 'Width',
   closure: 'Closure', sole: 'Sole',
@@ -326,9 +326,12 @@ function attr(val) {
   return `<span class="attr filled">${val}</span>`;
 }
 function formalityAttr(val) {
-  if (!val) return `<span class="attr empty">—</span>`;
-  const cls = val === 'Formal' ? 'formal' : val === 'Smart Casual' ? 'smart-casual' : 'casual';
-  return `<span class="attr ${cls}">${val}</span>`;
+  if (!val || (Array.isArray(val) && val.length === 0)) return `<span class="attr empty">—</span>`;
+  const values = Array.isArray(val) ? val : [val];
+  return values.map(v => {
+    const cls = v === 'Formal' ? 'formal' : v === 'Smart Casual' ? 'smart-casual' : 'casual';
+    return `<span class="attr ${cls}">${v}</span>`;
+  }).join(' ');
 }
 function toneAttr(val) {
   if (!val) return `<span class="attr empty">—</span>`;
