@@ -12,23 +12,50 @@
     color: #1c1c1e;
   }
 
-  /* Header */
+  /* ── HEADER ── */
   .header {
     background: #fff;
-    padding: 16px 24px;
+    padding: 14px 24px;
     border-bottom: 1px solid #e5e5ea;
     position: sticky;
     top: 0;
     z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
   }
-  .header h1 { font-size: 20px; font-weight: 700; margin-bottom: 2px; }
-  .header p { font-size: 12px; color: #8e8e93; }
+  .header-left h1 { font-size: 18px; font-weight: 700; }
+  .header-left p  { font-size: 11px; color: #8e8e93; }
 
-  .content { padding: 20px 24px; }
+  /* View toggle */
+  .view-toggle {
+    display: flex;
+    gap: 4px;
+    background: #f2f2f7;
+    border-radius: 10px;
+    padding: 3px;
+  }
+  .view-btn {
+    padding: 6px 14px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    border: none;
+    background: transparent;
+    color: #8e8e93;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .view-btn.active {
+    background: #fff;
+    color: #1c1c1e;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  }
 
-  /* Category group */
+  /* ── LIST VIEW ── */
+  #list-view { padding: 20px 24px; }
+
   .cat-group { margin-bottom: 20px; }
-
   .cat-header {
     display: flex;
     align-items: center;
@@ -46,7 +73,6 @@
   .cat-header-arrow { font-size: 12px; transition: transform 0.2s; }
   .cat-group.collapsed .cat-header-arrow { transform: rotate(-90deg); }
 
-  /* Table wrapper — scrollable horizontally */
   .cat-table-wrap {
     overflow-x: auto;
     background: #fff;
@@ -56,13 +82,7 @@
   }
   .cat-group.collapsed .cat-table-wrap { display: none; }
 
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 12px;
-    min-width: 900px;
-  }
-
+  table { width: 100%; border-collapse: collapse; font-size: 12px; min-width: 900px; }
   thead th {
     padding: 8px 12px;
     background: #f8f8f8;
@@ -75,80 +95,211 @@
     text-align: left;
     white-space: nowrap;
   }
-
-  tbody tr {
-    border-bottom: 1px solid #f2f2f7;
-  }
+  tbody tr { border-bottom: 1px solid #f2f2f7; cursor: pointer; }
   tbody tr:last-child { border-bottom: none; }
-  tbody tr:hover { background: #fafafa; }
+  tbody tr:hover { background: #f5f5f7; }
+  td { padding: 10px 12px; vertical-align: middle; }
 
-  td {
-    padding: 10px 12px;
-    vertical-align: middle;
-  }
-
-  .item-img {
-    width: 60px;
-    height: 60px;
-    object-fit: contain;
-    border-radius: 8px;
-    background: #f2f2f7;
-  }
-  .item-swatch {
-    width: 60px;
-    height: 60px;
-    border-radius: 8px;
-  }
-
+  .item-img-sm { width: 60px; height: 60px; object-fit: contain; border-radius: 8px; background: #f2f2f7; }
+  .item-swatch-sm { width: 60px; height: 60px; border-radius: 8px; }
   .item-name { font-weight: 600; font-size: 12px; min-width: 160px; }
   .item-sub  { color: #636366; font-size: 11px; white-space: nowrap; }
+  .desc { font-size: 11px; color: #636366; font-style: italic; min-width: 200px; max-width: 300px; }
+  .desc.empty { color: #c7c7cc; }
 
-  /* Attribute pill */
-  .attr {
-    display: inline-block;
-    padding: 2px 8px;
-    border-radius: 20px;
-    font-size: 10px;
-    font-weight: 500;
-    white-space: nowrap;
+  /* ── DETAIL VIEW ── */
+  #detail-view { display: none; }
+
+  .detail-top {
+    background: #fff;
+    border-bottom: 1px solid #e5e5ea;
+    padding: 12px 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
   }
+  .cat-select {
+    padding: 7px 12px;
+    border-radius: 10px;
+    border: 1.5px solid #e5e5ea;
+    font-size: 13px;
+    font-weight: 600;
+    background: #fff;
+    color: #1c1c1e;
+    cursor: pointer;
+  }
+  .item-counter {
+    font-size: 12px;
+    color: #8e8e93;
+    margin-left: auto;
+  }
+
+  .detail-body {
+    display: flex;
+    height: calc(100vh - 110px);
+  }
+
+  /* Image panel */
+  .detail-img-panel {
+    flex: 0 0 45%;
+    background: #fff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 30px;
+    border-right: 1px solid #e5e5ea;
+    position: relative;
+  }
+  .detail-img {
+    max-width: 100%;
+    max-height: calc(100vh - 240px);
+    object-fit: contain;
+    border-radius: 12px;
+  }
+  .detail-swatch {
+    width: 200px;
+    height: 200px;
+    border-radius: 20px;
+  }
+  .detail-item-name {
+    margin-top: 16px;
+    font-size: 16px;
+    font-weight: 700;
+    text-align: center;
+  }
+  .detail-item-sub {
+    font-size: 12px;
+    color: #8e8e93;
+    margin-top: 4px;
+    text-align: center;
+  }
+
+  /* Nav arrows */
+  .nav-arrows {
+    display: flex;
+    gap: 12px;
+    margin-top: 20px;
+  }
+  .nav-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: #1c1c1e;
+    color: #fff;
+    font-size: 18px;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+  }
+  .nav-btn:disabled { background: #e5e5ea; color: #c7c7cc; cursor: default; }
+  .nav-btn:not(:disabled):hover { background: #3a3a3c; }
+
+  /* Attributes panel */
+  .detail-attrs-panel {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px;
+    background: #f2f2f7;
+  }
+
+  .attr-section {
+    background: #fff;
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin-bottom: 12px;
+  }
+  .attr-section-title {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: #8e8e93;
+    margin-bottom: 12px;
+  }
+  .attr-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .attr-row {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+  .attr-label {
+    font-size: 10px;
+    color: #8e8e93;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .attr-description {
+    font-size: 13px;
+    color: #636366;
+    font-style: italic;
+    line-height: 1.5;
+  }
+  .attr-description.empty { color: #c7c7cc; }
+
+  /* Shared attribute pills */
+  .attr { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 500; white-space: nowrap; }
   .attr.filled { background: #1c1c1e; color: #fff; }
   .attr.empty  { background: #f2f2f7; color: #c7c7cc; border: 1px dashed #d1d1d6; }
-
-  /* Tone colors */
   .tone-light  { background: #f5f5f5; color: #3a3a3c; border: 1px solid #e5e5ea; }
   .tone-medium { background: #8e8e93; color: #fff; }
   .tone-dark   { background: #1c1c1e; color: #fff; }
-
-  /* Color family */
   .family-warm    { background: #f5deb3; color: #5c3d0e; }
   .family-cool    { background: #cce0f5; color: #0a3d6b; }
   .family-neutral { background: #e5e5ea; color: #3a3a3c; }
-
-  /* Formality */
   .formal       { background: #1c1c1e; color: #fff; }
   .smart-casual { background: #3a6ea5; color: #fff; }
   .casual       { background: #34c759; color: #fff; }
-
-  /* Description cell */
-  .desc { font-size: 11px; color: #636366; font-style: italic; min-width: 200px; max-width: 300px; }
-  .desc.empty { color: #c7c7cc; }
 </style>
 </head>
 <body>
 
 <div class="header">
-  <h1>Catalog Attributes</h1>
-  <p>Review item attributes — formality, color, fabric, and matching properties</p>
+  <div class="header-left">
+    <h1>Catalog Attributes</h1>
+    <p>Review item attributes — formality, color, fabric, and matching properties</p>
+  </div>
+  <div class="view-toggle">
+    <button class="view-btn active" onclick="setView('list')">☰ List</button>
+    <button class="view-btn" onclick="setView('detail')">⊞ Detail</button>
+  </div>
 </div>
 
-<div class="content" id="content"></div>
+<!-- LIST VIEW -->
+<div id="list-view"></div>
+
+<!-- DETAIL VIEW -->
+<div id="detail-view">
+  <div class="detail-top">
+    <select class="cat-select" id="catSelect" onchange="loadCategory()"></select>
+    <span class="item-counter" id="itemCounter"></span>
+  </div>
+  <div class="detail-body">
+    <div class="detail-img-panel">
+      <div id="detailImgWrap"></div>
+      <div class="detail-item-name" id="detailName"></div>
+      <div class="detail-item-sub" id="detailSub"></div>
+      <div class="nav-arrows">
+        <button class="nav-btn" id="prevBtn" onclick="navigate(-1)">‹</button>
+        <button class="nav-btn" id="nextBtn" onclick="navigate(1)">›</button>
+      </div>
+    </div>
+    <div class="detail-attrs-panel" id="detailAttrs"></div>
+  </div>
+</div>
 
 <script src="catalog.js"></script>
 <script>
 const CATALOG_BASE = "catalog";
 
-// Which extra columns each category gets
 const CAT_EXTRA_COLS = {
   tops:    ['fabric', 'pattern', 'collar', 'tuck'],
   pants:   ['fabric', 'pattern', 'cut', 'hem'],
@@ -166,33 +317,41 @@ const COL_LABELS = {
   closure: 'Closure', sole: 'Sole',
 };
 
-function attr(val, extraClass) {
-  if (!val) return `<span class="attr empty">—</span>`;
-  return `<span class="attr filled ${extraClass || ''}">${val}</span>`;
-}
+let currentView = 'list';
+let currentCatKey = '';
+let currentItemIndex = 0;
 
+function attr(val) {
+  if (!val) return `<span class="attr empty">—</span>`;
+  return `<span class="attr filled">${val}</span>`;
+}
 function formalityAttr(val) {
   if (!val) return `<span class="attr empty">—</span>`;
   const cls = val === 'Formal' ? 'formal' : val === 'Smart Casual' ? 'smart-casual' : 'casual';
   return `<span class="attr ${cls}">${val}</span>`;
 }
-
 function toneAttr(val) {
   if (!val) return `<span class="attr empty">—</span>`;
   const cls = val === 'light' ? 'tone-light' : val === 'medium' ? 'tone-medium' : 'tone-dark';
   return `<span class="attr ${cls}">${val}</span>`;
 }
-
 function familyAttr(val) {
   if (!val) return `<span class="attr empty">—</span>`;
-  const cls = `family-${val}`;
-  return `<span class="attr ${cls}">${val}</span>`;
+  return `<span class="attr family-${val}">${val}</span>`;
 }
 
-function toggle(el) { el.parentElement.classList.toggle('collapsed'); }
+function setView(v) {
+  currentView = v;
+  document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
+  document.querySelector(`.view-btn[onclick="setView('${v}')"]`).classList.add('active');
+  document.getElementById('list-view').style.display = v === 'list' ? 'block' : 'none';
+  document.getElementById('detail-view').style.display = v === 'detail' ? 'block' : 'none';
+}
 
-function buildPage() {
-  const content = document.getElementById('content');
+// ── LIST VIEW ──
+function buildListView() {
+  const content = document.getElementById('list-view');
+  content.style.padding = '20px 24px';
 
   CAT_ORDER.forEach(key => {
     const meta = CAT_META[key];
@@ -200,15 +359,12 @@ function buildPage() {
     if (items.length === 0) return;
 
     const extraCols = CAT_EXTRA_COLS[key] || [];
-
-    // Build header row
     const extraHeaders = extraCols.map(c => `<th>${COL_LABELS[c]}</th>`).join('');
 
-    // Build rows
-    const rows = items.map(item => {
+    const rows = items.map((item, idx) => {
       const imgCell = item.swatch
-        ? `<td><div class="item-swatch" style="background:${item.color}; border:1px solid ${item.border};"></div></td>`
-        : `<td><img class="item-img" src="${CATALOG_BASE}/${key}/${item.file}" alt="${item.name}" loading="lazy"></td>`;
+        ? `<td><div class="item-swatch-sm" style="background:${item.color}; border:1px solid ${item.border};"></div></td>`
+        : `<td><img class="item-img-sm" src="${CATALOG_BASE}/${key}/${item.file}" alt="${item.name}" loading="lazy"></td>`;
 
       const subText = item.subsub ? `${item.sub} › ${item.subsub}` : item.sub;
       const extraCells = extraCols.map(c => `<td>${attr(item[c])}</td>`).join('');
@@ -217,11 +373,11 @@ function buildPage() {
         : `<td class="desc empty">Not filled in yet</td>`;
 
       return `
-        <tr>
+        <tr onclick="openDetail('${key}', ${idx})">
           ${imgCell}
           <td><div class="item-name">${item.name}</div><div class="item-sub">${subText}</div></td>
           <td>${formalityAttr(item.formality)}</td>
-          <td>${attr(item.color)}</td>
+          <td>${attr(item.swatch ? item.name : item.color)}</td>
           <td>${familyAttr(item.colorFamily)}</td>
           <td>${toneAttr(item.tone)}</td>
           <td>${attr(item.season)}</td>
@@ -232,7 +388,7 @@ function buildPage() {
 
     content.innerHTML += `
       <div class="cat-group collapsed">
-        <div class="cat-header" onclick="toggle(this)">
+        <div class="cat-header" onclick="this.parentElement.classList.toggle('collapsed')">
           <span>${meta.icon}</span>
           <span class="cat-header-title">${meta.label}</span>
           <span class="cat-header-count">${items.length} items</span>
@@ -240,19 +396,7 @@ function buildPage() {
         </div>
         <div class="cat-table-wrap">
           <table>
-            <thead>
-              <tr>
-                <th>Image</th>
-                <th>Name</th>
-                <th>Formality</th>
-                <th>Color</th>
-                <th>Family</th>
-                <th>Tone</th>
-                <th>Season</th>
-                ${extraHeaders}
-                <th>Description</th>
-              </tr>
-            </thead>
+            <thead><tr><th>Image</th><th>Name</th><th>Formality</th><th>Color</th><th>Family</th><th>Tone</th><th>Season</th>${extraHeaders}<th>Description</th></tr></thead>
             <tbody>${rows}</tbody>
           </table>
         </div>
@@ -260,7 +404,97 @@ function buildPage() {
   });
 }
 
-buildPage();
+// ── DETAIL VIEW ──
+function buildDetailNav() {
+  const select = document.getElementById('catSelect');
+  CAT_ORDER.forEach(key => {
+    const meta = CAT_META[key];
+    const items = catalog[key] || [];
+    if (items.length === 0) return;
+    const opt = document.createElement('option');
+    opt.value = key;
+    opt.textContent = `${meta.icon} ${meta.label} (${items.length})`;
+    select.appendChild(opt);
+  });
+  currentCatKey = select.value;
+  renderDetailItem();
+}
+
+function loadCategory() {
+  currentCatKey = document.getElementById('catSelect').value;
+  currentItemIndex = 0;
+  renderDetailItem();
+}
+
+function navigate(dir) {
+  const items = catalog[currentCatKey] || [];
+  currentItemIndex = Math.max(0, Math.min(items.length - 1, currentItemIndex + dir));
+  renderDetailItem();
+}
+
+function openDetail(catKey, idx) {
+  currentCatKey = catKey;
+  currentItemIndex = idx;
+  document.getElementById('catSelect').value = catKey;
+  setView('detail');
+  renderDetailItem();
+}
+
+function renderDetailItem() {
+  const items = catalog[currentCatKey] || [];
+  const item = items[currentItemIndex];
+  if (!item) return;
+
+  const total = items.length;
+  document.getElementById('itemCounter').textContent = `${currentItemIndex + 1} of ${total}`;
+  document.getElementById('prevBtn').disabled = currentItemIndex === 0;
+  document.getElementById('nextBtn').disabled = currentItemIndex === total - 1;
+
+  // Image
+  const imgWrap = document.getElementById('detailImgWrap');
+  if (item.swatch) {
+    imgWrap.innerHTML = `<div class="detail-swatch" style="background:${item.color}; border:2px solid ${item.border};"></div>`;
+  } else {
+    imgWrap.innerHTML = `<img class="detail-img" src="${CATALOG_BASE}/${currentCatKey}/${item.file}" alt="${item.name}">`;
+  }
+
+  document.getElementById('detailName').textContent = item.name;
+  const subText = item.subsub ? `${item.sub} › ${item.subsub}` : item.sub;
+  document.getElementById('detailSub').textContent = subText;
+
+  // Attributes
+  const extraCols = CAT_EXTRA_COLS[currentCatKey] || [];
+  const extraRows = extraCols.map(c => `
+    <div class="attr-row">
+      <div class="attr-label">${COL_LABELS[c]}</div>
+      <div>${attr(item[c])}</div>
+    </div>`).join('');
+
+  document.getElementById('detailAttrs').innerHTML = `
+    <div class="attr-section">
+      <div class="attr-section-title">Core Attributes</div>
+      <div class="attr-grid">
+        <div class="attr-row"><div class="attr-label">Formality</div><div>${formalityAttr(item.formality)}</div></div>
+        <div class="attr-row"><div class="attr-label">Color</div><div>${attr(item.swatch ? item.name : item.color)}</div></div>
+        <div class="attr-row"><div class="attr-label">Color Family</div><div>${familyAttr(item.colorFamily)}</div></div>
+        <div class="attr-row"><div class="attr-label">Tone</div><div>${toneAttr(item.tone)}</div></div>
+        <div class="attr-row"><div class="attr-label">Season</div><div>${attr(item.season)}</div></div>
+      </div>
+    </div>
+    ${extraCols.length > 0 ? `
+    <div class="attr-section">
+      <div class="attr-section-title">Category Attributes</div>
+      <div class="attr-grid">${extraRows}</div>
+    </div>` : ''}
+    <div class="attr-section">
+      <div class="attr-section-title">Description</div>
+      <div class="attr-description ${item.description ? '' : 'empty'}">${item.description || 'Not filled in yet'}</div>
+    </div>
+  `;
+}
+
+buildListView();
+buildDetailNav();
 </script>
 </body>
 </html>
