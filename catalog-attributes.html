@@ -301,10 +301,10 @@
 const CATALOG_BASE = "catalog";
 
 const CAT_EXTRA_COLS = {
-  tops:    ['fabric', 'pattern', 'collar', 'tuck'],
+  tops:    ['fabric', 'pattern', 'collar', 'tuck', 'sleeve'],
   pants:   ['fabric', 'pattern', 'cut', 'hem', 'beltLoop'],
-  belts:   ['buckleStyle', 'width'],
-  shoes:   ['closure', 'sole'],
+  belts:   ['material', 'buckleStyle', 'width'],
+  shoes:   ['style', 'closure', 'sole'],
   blazers: ['fabric', 'pattern', 'cut'],
   suits:   ['fabric', 'pattern', 'cut'],
   jackets: [],
@@ -312,9 +312,9 @@ const CAT_EXTRA_COLS = {
 
 const COL_LABELS = {
   fabric: 'Fabric', pattern: 'Pattern', cut: 'Cut', hem: 'Hem', beltLoop: 'Belt Loop',
-  collar: 'Collar', tuck: 'Tuck',
-  buckleStyle: 'Buckle', width: 'Width',
-  closure: 'Closure', sole: 'Sole',
+  collar: 'Collar', tuck: 'Tuck', sleeve: 'Sleeve',
+  material: 'Material', buckleStyle: 'Buckle', width: 'Width',
+  style: 'Style', closure: 'Closure', sole: 'Sole',
 };
 
 let currentView = 'list';
