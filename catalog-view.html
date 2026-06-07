@@ -62,7 +62,7 @@
   /* Column headers */
   .table-head {
     display: grid;
-    grid-template-columns: 80px 1fr 100px 100px;
+    grid-template-columns: 80px 1fr 120px 100px 100px;
     padding: 8px 12px;
     background: #f8f8f8;
     border-bottom: 1px solid #e5e5ea;
@@ -78,7 +78,7 @@
   /* Item row */
   .item-row {
     display: grid;
-    grid-template-columns: 80px 1fr 100px 100px;
+    grid-template-columns: 80px 1fr 120px 100px 100px;
     align-items: center;
     padding: 10px 12px;
     border-bottom: 1px solid #f2f2f7;
@@ -170,6 +170,7 @@ function buildPage() {
         <div class="table-head">
           <span>Image</span>
           <span>Name</span>
+          <span>Brand</span>
           <span>Sub</span>
           <span>Sub-Sub</span>
         </div>
@@ -194,6 +195,7 @@ function buildPage() {
       row.innerHTML = `
         ${imgHTML}
         <div class="item-name">${item.name}</div>
+        <div class="item-sub">${item.brand || '—'}</div>
         <div class="item-sub">${item.sub}</div>
         <div class="item-subsub">${item.subsub || '—'}</div>
       `;
