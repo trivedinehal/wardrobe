@@ -477,6 +477,7 @@ function renderDetailItem() {
     <div class="attr-section">
       <div class="attr-section-title">Core Attributes</div>
       <div class="attr-grid">
+        <div class="attr-row"><div class="attr-label">Brand</div><div>${attr(item.brand)}</div></div>
         <div class="attr-row"><div class="attr-label">Formality</div><div>${formalityAttr(item.formality)}</div></div>
         <div class="attr-row"><div class="attr-label">Color</div><div>${attr(item.swatch ? item.name : item.color)}</div></div>
         <div class="attr-row"><div class="attr-label">Color Family</div><div>${familyAttr(item.colorFamily)}</div></div>
