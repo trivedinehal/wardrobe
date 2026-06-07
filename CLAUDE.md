@@ -50,10 +50,17 @@ A personal mobile-first outfit planning app for Nehal. Pure HTML/CSS/JS, no back
 
 ## Next steps (do in order)
 1. ✅ Create shared `catalog.js`, wire all 3 files to use it. Done.
-2. **Next** — Design item attributes schema (formality, color, fabric etc) for matching intelligence.
-3. Fill in attributes for every item in catalog.js.
-4. Build catalog-view classification review UI (editable sub/subsub per item).
-5. Build matching logic in wardrobe.html using attributes.
+2. ✅ Design item attributes schema (formality, color, fabric etc) for matching intelligence. Done.
+3. ✅ Fill in attributes for every item in catalog.js. Done — all 72 items complete.
+4. **Next** — Build matching logic in wardrobe.html using attributes.
+5. Photograph dress trousers (~10 items) and add to catalog.
+
+## Key decisions made
+- `formality` is an array — items can work across multiple styles e.g. ["Formal", "Smart Casual"]
+- `beltLoop` added to pants — "wide", "narrow", or "none" (elastic waist)
+- Belt `width` determines what pants it fits — thin (formal trousers), wide (jeans/chinos)
+- Denim subcategory renamed to Jeans
+- catalog-attributes.html created for reviewing item attributes with list + detail views
 
 ## What to update here
 At the end of any session where something meaningful changed — new feature, key decision, or shift in direction — update this file before closing the chat.
