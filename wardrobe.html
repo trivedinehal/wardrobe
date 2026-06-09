@@ -822,9 +822,11 @@ function bestForSlot(cats, excludeKey) {
   return bestItem ? { item: bestItem, cat: bestCat } : null;
 }
 
-// Outer categories based on style
+// Outer categories based on style and locked slots
 function outerCats() {
-  if (currentStyle === 'casual') return ['blazers'];
+  // If pants are locked, never pick a suit — would conflict with locked pants
+  if (lockedSlots['pants'] && selected['pants']) return ['blazers', 'jackets'];
+  if (currentStyle === 'casual') return ['blazers', 'jackets'];
   if (currentStyle === 'formal') return ['suits', 'blazers'];
   return ['blazers', 'suits']; // smart casual — blazers preferred
 }
@@ -832,7 +834,9 @@ function outerCats() {
 // Fill a single slot with the best available item
 function fillBestForSlot(slot, cats, excludeKey) {
   if (lockedSlots[slot]) return;            // locked — skip
-  if (slot === 'pants' && selected['outer']?.cat === 'suits') return; // suit mode
+  // If outer is locked as a suit, never fill pants
+  if (slot === 'pants' && selected['outer']?.cat === 'suits') return;
+  // If outer slot is being filled and pants are locked, outerCats() already excludes suits
 
   const best = bestForSlot(cats, excludeKey);
   if (!best) return;
