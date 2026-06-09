@@ -175,6 +175,15 @@
   .outfit-slot .lock-btn.locked {
     background: #007aff;
   }
+  .slot-stars {
+    position: absolute;
+    bottom: 18px;
+    right: 4px;
+    font-size: 8px;
+    line-height: 1;
+    z-index: 10;
+    color: #f5a623;
+  }
 
   /* Grid placement — BLAZER mode */
   #slot-outer  { grid-column: 1; grid-row: 1 / 3; }
@@ -483,6 +492,27 @@ function buildCanvas() {
   };
 }
 
+// Star rating HTML for canvas slots
+function slotStarsHTML(item, cat) {
+  if (!window.scoreItem) return '';
+  const canvas = buildCanvas();
+  const result = window.scoreItem(item, cat, canvas, currentStyle);
+  if (!result || result.stars === null) return '';
+  if (result.excluded) return '<div class="slot-stars" style="color:#ff3b30">✕</div>';
+  const stars = '⭐'.repeat(result.stars);
+  return stars ? `<div class="slot-stars">${stars}</div>` : '';
+}
+
+// Refresh stars on all filled slots (call after canvas changes)
+function refreshAllSlotStars() {
+  ['outer', 'top', 'pants', 'belts', 'shoes'].forEach(slot => {
+    const item = selected[slot];
+    if (!item) return;
+    if (item.swatch) fillSwatchSlot(slot, item);
+    else fillSlot(slot, item.cat, item);
+  });
+}
+
 // Convert match result to badge HTML
 function matchBadgeHTML(result) {
   if (!result || result.stars === null) return '';
@@ -726,6 +756,7 @@ function selectItem(cat, item, card) {
   selected[slotKey] = { ...item, cat };
   fillSlot(slotKey, cat, item);
   updateSuitMode();
+  refreshAllSlotStars();
   renderCarousel(currentCat, currentSub, currentSubSub);
 
 }
@@ -741,6 +772,7 @@ function selectSwatch(cat, item, card) {
   }
   selected[slotKey] = { ...item, cat };
   fillSwatchSlot(slotKey, item);
+  refreshAllSlotStars();
   renderCarousel(currentCat, currentSub, currentSubSub);
 
 }
@@ -750,10 +782,12 @@ function fillSwatchSlot(slotKey, item) {
   if (!slot) return;
   slot.classList.add('filled');
   const locked = lockedSlots[slotKey];
+  const stars = slotStarsHTML(item, item.cat || 'tops');
   slot.innerHTML = `
     <div style="width:100%;height:100%;background:${item.color};border-radius:10px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:6px;">
       <div style="font-size:12px;font-weight:600;color:${item.color === '#FFFFFF' ? '#1c1c1e' : '#fff'}">${item.name}</div>
     </div>
+    ${stars}
     <button class="remove-btn" onclick="removeItem('${slotKey}')">✕</button>
     <button class="lock-btn ${locked ? 'locked' : ''}" onclick="toggleLock('${slotKey}')">🔒</button>
   `;
@@ -764,9 +798,11 @@ function fillSlot(slotKey, cat, item) {
   if (!slot) return;
   slot.classList.add('filled');
   const locked = lockedSlots[slotKey];
+  const stars = slotStarsHTML(item, cat);
   slot.innerHTML = `
     <img src="${CATALOG_BASE}/${cat}/${item.file}?v=${VERSION}" alt="${item.name}">
     <div class="slot-name">${item.name}</div>
+    ${stars}
     <button class="remove-btn" onclick="removeItem('${slotKey}')">✕</button>
     <button class="lock-btn ${locked ? 'locked' : ''}" onclick="toggleLock('${slotKey}')">🔒</button>
   `;
@@ -852,6 +888,7 @@ function completeOutfit() {
   fillBestForSlot('top',   ['tops']);
   fillBestForSlot('shoes', ['shoes']);
   fillBestForSlot('belts', ['belts']);
+  refreshAllSlotStars();
   renderCarousel(currentCat, currentSub, currentSubSub);
 }
 
@@ -873,6 +910,7 @@ function shuffleOutfit() {
   fillBestForSlot('top',   ['tops'],     prev['top']);
   fillBestForSlot('shoes', ['shoes'],    prev['shoes']);
   fillBestForSlot('belts', ['belts'],    prev['belts']);
+  refreshAllSlotStars();
   renderCarousel(currentCat, currentSub, currentSubSub);
 }
 
