@@ -329,8 +329,8 @@
         break;
     }
 
-    if (excluded) return { stars: 0, excluded: true };
-    if (scores.length === 0) return { stars: null, excluded: false };
+    if (excluded) return { stars: 0, score: -1, excluded: true };
+    if (scores.length === 0) return { stars: null, score: null, excluded: false };
 
     // Average all pairwise scores — more canvas items = more refined rating
     let avg = scores.reduce((a, b) => a + b, 0) / scores.length;
@@ -349,7 +349,7 @@
       }
     }
 
-    return { stars: toStars(avg), excluded: false };
+    return { stars: toStars(avg), score: avg, excluded: false };
   };
 
 })();

@@ -157,6 +157,24 @@
     align-items: center;
     justify-content: center;
   }
+  .outfit-slot .lock-btn {
+    position: absolute;
+    top: 4px; left: 4px;
+    width: 22px; height: 22px;
+    background: rgba(0,0,0,0.2);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    font-size: 11px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+  }
+  .outfit-slot .lock-btn.locked {
+    background: #007aff;
+  }
 
   /* Grid placement — BLAZER mode */
   #slot-outer  { grid-column: 1; grid-row: 1 / 3; }
@@ -432,9 +450,9 @@
 <!-- BOTTOM PANEL -->
 <div class="bottom-panel">
   <div class="action-row">
-    <button class="action-btn">✨ Complete Outfit</button>
-    <button class="action-btn">🔀 Shuffle</button>
-    <button class="action-btn">✕ Clear</button>
+    <button class="action-btn" onclick="completeOutfit()">✨ Complete Outfit</button>
+    <button class="action-btn" onclick="shuffleOutfit()">🔀 Shuffle</button>
+    <button class="action-btn" onclick="clearOutfit()">✕ Clear</button>
   </div>
   <div class="cat-tabs" id="catTabs">
     <button class="cat-tab active" onclick="setCategory(this,'tops')">Tops</button>
@@ -481,6 +499,7 @@ function matchBadgeHTML(result) {
 
 // State
 let selected = {};
+let lockedSlots = {};
 let currentCat = 'tops';
 let currentSub = 'All';
 let currentSubSub = 'All';
@@ -734,11 +753,13 @@ function fillSwatchSlot(slotKey, item) {
   const slot = document.getElementById(`slot-${slotKey}`);
   if (!slot) return;
   slot.classList.add('filled');
+  const locked = lockedSlots[slotKey];
   slot.innerHTML = `
     <div style="width:100%;height:100%;background:${item.color};border-radius:10px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:6px;">
       <div style="font-size:12px;font-weight:600;color:${item.color === '#FFFFFF' ? '#1c1c1e' : '#fff'}">${item.name}</div>
     </div>
     <button class="remove-btn" onclick="removeItem('${slotKey}')">✕</button>
+    <button class="lock-btn ${locked ? 'locked' : ''}" onclick="toggleLock('${slotKey}')">🔒</button>
   `;
 }
 
@@ -746,10 +767,12 @@ function fillSlot(slotKey, cat, item) {
   const slot = document.getElementById(`slot-${slotKey}`);
   if (!slot) return;
   slot.classList.add('filled');
+  const locked = lockedSlots[slotKey];
   slot.innerHTML = `
     <img src="${CATALOG_BASE}/${cat}/${item.file}?v=${VERSION}" alt="${item.name}">
     <div class="slot-name">${item.name}</div>
     <button class="remove-btn" onclick="removeItem('${slotKey}')">✕</button>
+    <button class="lock-btn ${locked ? 'locked' : ''}" onclick="toggleLock('${slotKey}')">🔒</button>
   `;
 }
 
@@ -762,9 +785,104 @@ function clearSlot(slotKey) {
 
 function removeItem(slotKey) {
   delete selected[slotKey];
+  delete lockedSlots[slotKey];
   clearSlot(slotKey);
   updateSuitMode();
+  renderCarousel(currentCat, currentSub, currentSubSub);
+}
 
+function toggleLock(slotKey) {
+  lockedSlots[slotKey] = !lockedSlots[slotKey];
+  const item = selected[slotKey];
+  if (!item) return;
+  if (item.swatch) fillSwatchSlot(slotKey, item);
+  else fillSlot(slotKey, item.cat, item);
+}
+
+// ── Auto-complete helpers ──────────────────────────────────────────────────
+
+// Find best item for a slot across given categories, optionally excluding a file/name
+function bestForSlot(cats, excludeKey) {
+  const canvas = buildCanvas();
+  let bestItem = null, bestCat = null, bestScore = -Infinity;
+
+  cats.forEach(cat => {
+    (catalog[cat] || []).forEach(item => {
+      // Skip excluded (previously selected) item
+      const key = item.file || item.name;
+      if (excludeKey && key === excludeKey) return;
+
+      const result = window.scoreItem ? window.scoreItem(item, cat, canvas, currentStyle) : null;
+      if (!result || result.excluded) return;
+      const s = result.score ?? result.stars ?? 0;
+      if (s > bestScore) { bestScore = s; bestItem = item; bestCat = cat; }
+    });
+  });
+
+  return bestItem ? { item: bestItem, cat: bestCat } : null;
+}
+
+// Outer categories based on style
+function outerCats() {
+  if (currentStyle === 'casual') return ['blazers'];
+  if (currentStyle === 'formal') return ['suits', 'blazers'];
+  return ['blazers', 'suits']; // smart casual — blazers preferred
+}
+
+// Fill a single slot with the best available item
+function fillBestForSlot(slot, cats, excludeKey) {
+  if (lockedSlots[slot]) return;            // locked — skip
+  if (slot === 'pants' && selected['outer']?.cat === 'suits') return; // suit mode
+
+  const best = bestForSlot(cats, excludeKey);
+  if (!best) return;
+
+  selected[slot] = { ...best.item, cat: best.cat };
+  if (best.item.swatch) fillSwatchSlot(slot, best.item);
+  else fillSlot(slot, best.cat, best.item);
+  updateSuitMode();
+}
+
+// ── Action buttons ─────────────────────────────────────────────────────────
+
+function completeOutfit() {
+  // Fill in order so each slot scores against already-filled ones
+  fillBestForSlot('outer', outerCats());
+  fillBestForSlot('pants', ['pants']);
+  fillBestForSlot('top',   ['tops']);
+  fillBestForSlot('shoes', ['shoes']);
+  fillBestForSlot('belts', ['belts']);
+  renderCarousel(currentCat, currentSub, currentSubSub);
+}
+
+function shuffleOutfit() {
+  // Remember what's in each unlocked slot, clear it, then refill excluding previous
+  const prev = {};
+  ['outer', 'pants', 'top', 'shoes', 'belts'].forEach(slot => {
+    if (!lockedSlots[slot] && selected[slot]) {
+      const item = selected[slot];
+      prev[slot] = item.file || item.name;
+      delete selected[slot];
+      clearSlot(slot);
+    }
+  });
+
+  updateSuitMode();
+  fillBestForSlot('outer', outerCats(),  prev['outer']);
+  fillBestForSlot('pants', ['pants'],    prev['pants']);
+  fillBestForSlot('top',   ['tops'],     prev['top']);
+  fillBestForSlot('shoes', ['shoes'],    prev['shoes']);
+  fillBestForSlot('belts', ['belts'],    prev['belts']);
+  renderCarousel(currentCat, currentSub, currentSubSub);
+}
+
+function clearOutfit() {
+  ['outer', 'pants', 'top', 'shoes', 'belts'].forEach(slot => {
+    delete selected[slot];
+    delete lockedSlots[slot];
+    clearSlot(slot);
+  });
+  updateSuitMode();
   renderCarousel(currentCat, currentSub, currentSubSub);
 }
 
