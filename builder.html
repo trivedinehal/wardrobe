@@ -676,15 +676,15 @@ function shuffleCategory(cat) {
   const cats = [cat];
 
   if (selected[slotKey]) {
-    // Item exists — swap for next best alternative
+    // Item exists — randomly pick from top tier excluding current
     const excludeKey = selected[slotKey].file || selected[slotKey].name;
     delete selected[slotKey];
     clearSlot(slotKey);
     updateSuitMode();
-    fillBestForSlot(slotKey, cats, excludeKey);
+    fillBestForSlot(slotKey, cats, excludeKey, true);
   } else {
     // Nothing selected — autofill with best item
-    fillBestForSlot(slotKey, cats);
+    fillBestForSlot(slotKey, cats, null, false);
   }
 
   refreshAllSlotStars();
@@ -881,25 +881,42 @@ function toggleLock(slotKey) {
 
 // ── Auto-complete helpers ──────────────────────────────────────────────────
 
-// Find best item for a slot across given categories, optionally excluding a file/name
-function bestForSlot(cats, excludeKey) {
+// Find best item for a slot across given categories
+// random=false → always pick highest scorer (for initial fill)
+// random=true  → pick randomly from top star tier (for shuffle variety)
+function bestForSlot(cats, excludeKey, random = false) {
   const canvas = buildCanvas();
-  let bestItem = null, bestCat = null, bestScore = -Infinity;
+  const scored = [];
 
   cats.forEach(cat => {
     (catalog[cat] || []).forEach(item => {
-      // Skip excluded (previously selected) item
       const key = item.file || item.name;
       if (excludeKey && key === excludeKey) return;
 
       const result = window.scoreItem ? window.scoreItem(item, cat, canvas, currentStyle) : null;
       if (!result || result.excluded) return;
-      const s = result.score ?? result.stars ?? 0;
-      if (s > bestScore) { bestScore = s; bestItem = item; bestCat = cat; }
+      scored.push({ item, cat, stars: result.stars ?? 0, score: result.score ?? 0 });
     });
   });
 
-  return bestItem ? { item: bestItem, cat: bestCat } : null;
+  if (scored.length === 0) return null;
+
+  if (random) {
+    // Pick randomly from top available star tier
+    for (const minStars of [3, 2, 1, 0]) {
+      const tier = scored.filter(s => s.stars >= minStars);
+      if (tier.length > 0) {
+        const pick = tier[Math.floor(Math.random() * tier.length)];
+        return { item: pick.item, cat: pick.cat };
+      }
+    }
+  } else {
+    // Pick deterministically — highest score
+    scored.sort((a, b) => b.score - a.score);
+    return { item: scored[0].item, cat: scored[0].cat };
+  }
+
+  return null;
 }
 
 // Outer categories based on style and locked slots
@@ -912,13 +929,11 @@ function outerCats() {
 }
 
 // Fill a single slot with the best available item
-function fillBestForSlot(slot, cats, excludeKey) {
+function fillBestForSlot(slot, cats, excludeKey, random = false) {
   if (lockedSlots[slot]) return;            // locked — skip
-  // If outer is locked as a suit, never fill pants
   if (slot === 'pants' && selected['outer']?.cat === 'suits') return;
-  // If outer slot is being filled and pants are locked, outerCats() already excludes suits
 
-  const best = bestForSlot(cats, excludeKey);
+  const best = bestForSlot(cats, excludeKey, random);
   if (!best) return;
 
   selected[slot] = { ...best.item, cat: best.cat };
@@ -937,7 +952,7 @@ function completeOutfit() {
   const allFilled = slots.every(slot => selected[slot] || lockedSlots[slot]);
 
   if (allFilled) {
-    // Scenario 3: canvas full — shuffle all unlocked slots
+    // Scenario 3: canvas full — randomly pick from top tier for each unlocked slot
     const prev = {};
     slots.forEach(slot => {
       if (!lockedSlots[slot] && selected[slot]) {
@@ -947,10 +962,10 @@ function completeOutfit() {
       }
     });
     updateSuitMode();
-    slots.forEach(slot => fillBestForSlot(slot, cats[slot], prev[slot]));
+    slots.forEach(slot => fillBestForSlot(slot, cats[slot], prev[slot], true));
   } else {
-    // Scenario 1 & 2: fill empty slots in order
-    slots.forEach(slot => fillBestForSlot(slot, cats[slot]));
+    // Scenario 1 & 2: fill empty slots deterministically (best match)
+    slots.forEach(slot => fillBestForSlot(slot, cats[slot], null, false));
   }
 
   refreshAllSlotStars();
