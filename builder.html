@@ -473,7 +473,6 @@
 <div class="bottom-panel">
   <div class="action-row">
     <button class="action-btn" onclick="completeOutfit()">✨ Complete Outfit</button>
-    <button class="action-btn" onclick="shuffleOutfit()">🔀 Shuffle</button>
     <button class="action-btn" onclick="clearOutfit()">✕ Clear</button>
   </div>
   <div class="cat-tabs" id="catTabs">
@@ -931,12 +930,29 @@ function fillBestForSlot(slot, cats, excludeKey) {
 // ── Action buttons ─────────────────────────────────────────────────────────
 
 function completeOutfit() {
-  // Fill in order so each slot scores against already-filled ones
-  fillBestForSlot('outer', outerCats());
-  fillBestForSlot('pants', ['pants']);
-  fillBestForSlot('top',   ['tops']);
-  fillBestForSlot('shoes', ['shoes']);
-  fillBestForSlot('belts', ['belts']);
+  const slots = ['outer', 'pants', 'top', 'shoes', 'belts'];
+  const cats  = { outer: outerCats(), pants: ['pants'], top: ['tops'], shoes: ['shoes'], belts: ['belts'] };
+
+  // Check if canvas is fully filled (all non-locked slots have items)
+  const allFilled = slots.every(slot => selected[slot] || lockedSlots[slot]);
+
+  if (allFilled) {
+    // Scenario 3: canvas full — shuffle all unlocked slots
+    const prev = {};
+    slots.forEach(slot => {
+      if (!lockedSlots[slot] && selected[slot]) {
+        prev[slot] = selected[slot].file || selected[slot].name;
+        delete selected[slot];
+        clearSlot(slot);
+      }
+    });
+    updateSuitMode();
+    slots.forEach(slot => fillBestForSlot(slot, cats[slot], prev[slot]));
+  } else {
+    // Scenario 1 & 2: fill empty slots in order
+    slots.forEach(slot => fillBestForSlot(slot, cats[slot]));
+  }
+
   refreshAllSlotStars();
   renderCarousel(currentCat, currentSub, currentSubSub);
 }
