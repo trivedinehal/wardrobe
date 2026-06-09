@@ -1,0 +1,942 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>My Wardrobe</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: #f0f0f0;
+    height: 100dvh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ── HEADER ── */
+  .header {
+    flex-shrink: 0;
+    z-index: 50;
+    padding: 8px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    background: rgba(255,255,255,0.95);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid #e5e5ea;
+  }
+
+  .pill-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .pill-label {
+    font-size: 10px;
+    font-weight: 600;
+    color: #aeaeb2;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    min-width: 36px;
+    flex-shrink: 0;
+  }
+
+  /* Scenario pills — dark active */
+  .scenario-pill {
+    flex: 1;
+    padding: 6px 4px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    border: none;
+    background: #f2f2f7;
+    color: #8e8e93;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+  .scenario-pill.active {
+    background: #1c1c1e;
+    color: #fff;
+  }
+
+  /* Style pills — blue active */
+  .style-pill {
+    flex: 1;
+    padding: 6px 4px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    border: none;
+    background: #f2f2f7;
+    color: #8e8e93;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+  .style-pill.active {
+    background: #007aff;
+    color: #fff;
+  }
+
+  /* ── OUTFIT PREVIEW ── */
+  .preview-area {
+    flex: 1;
+    min-height: 0;
+    background: #fff;
+    padding: 12px;
+  }
+
+  /* 2-column x 4-row grid */
+  .outfit-canvas {
+    width: 100%;
+    height: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr 1fr 1fr;
+    gap: 8px;
+  }
+
+  /* Slot base */
+  .outfit-slot {
+    border-radius: 12px;
+    background: #f2f2f7;
+    border: 2px dashed #d1d1d6;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    position: relative;
+    transition: all 0.3s ease;
+    min-height: 0;
+  }
+  .outfit-slot.filled {
+    border: 2px solid #e5e5ea;
+    background: #fff;
+  }
+  .outfit-slot img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+  .outfit-slot .empty-label {
+    font-size: 11px;
+    color: #c7c7cc;
+    text-align: center;
+  }
+  .outfit-slot .slot-name {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    background: rgba(0,0,0,0.45);
+    color: white;
+    font-size: 9px;
+    padding: 3px 6px;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .outfit-slot .remove-btn {
+    position: absolute;
+    top: 4px; right: 4px;
+    width: 22px; height: 22px;
+    background: rgba(0,0,0,0.5);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    font-size: 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .outfit-slot .lock-btn {
+    position: absolute;
+    top: 4px; left: 4px;
+    width: 22px; height: 22px;
+    background: rgba(0,0,0,0.2);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    font-size: 11px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+  }
+  .outfit-slot .lock-btn.locked {
+    background: #007aff;
+  }
+  .slot-stars {
+    position: absolute;
+    bottom: 20px;
+    right: 4px;
+    font-size: 8px;
+    line-height: 1;
+    z-index: 10;
+    color: #f5a623;
+  }
+
+  /* Grid placement — BLAZER mode */
+  #slot-outer  { grid-column: 1; grid-row: 1 / 3; }
+  #slot-top    { grid-column: 2; grid-row: 1 / 3; }
+  #slot-pants  { grid-column: 1; grid-row: 3 / 5; }
+  #slot-belts  { grid-column: 2; grid-row: 3; }
+  #slot-shoes  { grid-column: 2; grid-row: 4; }
+
+  /* SUIT mode — outer spans full height */
+  .suit-mode #slot-outer { grid-row: 1 / 5; }
+  .suit-mode #slot-pants { display: none; }
+
+  /* ── BOTTOM PANEL ── */
+  .bottom-panel {
+    flex-shrink: 0;
+    background: #f2f2f7;
+    border-top: 1px solid #e5e5ea;
+    display: flex;
+    flex-direction: column;
+    z-index: 40;
+  }
+
+  /* Action button row */
+  .action-row {
+    display: flex;
+    gap: 8px;
+    padding: 6px 16px 4px;
+    flex-shrink: 0;
+  }
+  .action-btn {
+    flex: 1;
+    padding: 5px 8px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    border: none;
+    background: #e5e5ea;
+    color: #1c1c1e;
+    cursor: pointer;
+    text-align: center;
+    white-space: nowrap;
+  }
+
+
+  /* Sub-sub-category tabs */
+  .subsub-tabs {
+    display: flex;
+    gap: 6px;
+    padding: 3px 16px 4px;
+    overflow-x: auto;
+    flex-shrink: 0;
+    min-height: 28px;
+  }
+  .subsub-tabs::-webkit-scrollbar { display: none; }
+  .subsub-tab {
+    padding: 2px 10px;
+    border-radius: 20px;
+    font-size: 10px;
+    font-weight: 500;
+    border: 1.5px solid #e5e5ea;
+    background: transparent;
+    color: #aeaeb2;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s;
+    flex-shrink: 0;
+  }
+  .subsub-tab.active {
+    background: #f2f2f7;
+    color: #1c1c1e;
+    border-color: #8e8e93;
+  }
+
+  /* Main category tabs */
+  .cat-tabs {
+    display: flex;
+    gap: 8px;
+    padding: 10px 16px 6px;
+    overflow-x: auto;
+    flex-shrink: 0;
+  }
+  .cat-tabs::-webkit-scrollbar { display: none; }
+  .cat-tab {
+    padding: 5px 14px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    border: none;
+    background: #e5e5ea;
+    color: #8e8e93;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s;
+    flex-shrink: 0;
+  }
+  .cat-tab.active {
+    background: #1c1c1e;
+    color: #fff;
+  }
+
+  /* Sub-category tabs */
+  .sub-tabs {
+    display: flex;
+    gap: 6px;
+    padding: 4px 16px 6px;
+    overflow-x: auto;
+    flex-shrink: 0;
+  }
+  .sub-tabs::-webkit-scrollbar { display: none; }
+  .sub-tab {
+    padding: 3px 12px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 500;
+    border: 1.5px solid #d1d1d6;
+    background: transparent;
+    color: #8e8e93;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s;
+    flex-shrink: 0;
+  }
+  .sub-tab.active {
+    background: #fff;
+    color: #1c1c1e;
+    border-color: #1c1c1e;
+  }
+
+  /* Carousel */
+  .carousel {
+    flex: 1;
+    display: flex;
+    gap: 8px;
+    padding: 4px 16px 12px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x mandatory;
+    align-items: flex-start;
+    touch-action: pan-x;
+  }
+  .carousel::-webkit-scrollbar { display: none; }
+
+  .car-item {
+    flex-shrink: 0;
+    width: 80px;
+    border-radius: 12px;
+    background: #fff;
+    border: 2px solid transparent;
+    cursor: pointer;
+    scroll-snap-align: start;
+    transition: all 0.2s;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  .car-item.selected {
+    border-color: #1c1c1e;
+  }
+  .car-item img {
+    width: 100%;
+    height: 90px;
+    object-fit: contain;
+    background: #fff;
+    padding: 4px;
+  }
+  .car-item .car-name {
+    padding: 3px 6px 5px;
+    font-size: 9px;
+    font-weight: 500;
+    color: #3a3a3c;
+    line-height: 1.3;
+    height: 24px;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+  }
+
+  /* Match badge — stars and X */
+  .car-item, .swatch-item { position: relative; }
+  .match-badge {
+    position: absolute;
+    bottom: 22px;
+    right: 4px;
+    font-size: 8px;
+    line-height: 1;
+    z-index: 10;
+  }
+  .match-badge.s3 { color: #f5a623; }
+  .match-badge.s2 { color: #f5a623; }
+  .match-badge.s1 { color: #f5a623; }
+  .match-badge.s0 { color: #ccc; }
+  .match-badge.mx { color: #ff3b30; font-size: 10px; }
+
+  /* Greyed out — excluded or no-star items when canvas has selections */
+  .car-item.no-match  { opacity: 0.38; }
+  .swatch-item.no-match { opacity: 0.38; }
+
+  .empty-carousel {
+    color: #c7c7cc;
+    font-size: 13px;
+    padding: 20px;
+    align-self: center;
+  }
+
+  /* Swatch items */
+  .swatch-item {
+    flex-shrink: 0;
+    width: 80px;
+    border-radius: 12px;
+    background: #fff;
+    border: 2px solid transparent;
+    cursor: pointer;
+    scroll-snap-align: start;
+    transition: all 0.2s;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+  }
+  .swatch-item.selected { border-color: #1c1c1e; }
+  .swatch-color {
+    width: 100%;
+    height: 90px;
+    border-radius: 10px 10px 0 0;
+  }
+  .swatch-name {
+    padding: 4px 6px 6px;
+    font-size: 9px;
+    font-weight: 500;
+    color: #3a3a3c;
+    text-align: center;
+    line-height: 1.3;
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER — Scenario + Style -->
+<div class="header">
+  <div class="pill-row">
+    <span class="pill-label">Where</span>
+    <button class="scenario-pill active" onclick="setScenario(this,'office')">Office</button>
+    <button class="scenario-pill" onclick="setScenario(this,'dinner')">Dinner</button>
+    <button class="scenario-pill" onclick="setScenario(this,'event')">Event</button>
+    <button class="scenario-pill" onclick="setScenario(this,'weekend')">Weekend</button>
+    <button class="scenario-pill" onclick="setScenario(this,'travel')">Travel</button>
+  </div>
+  <div class="pill-row">
+    <span class="pill-label">Style</span>
+    <button class="style-pill" onclick="setStyle(this,'formal')">Formal</button>
+    <button class="style-pill active" onclick="setStyle(this,'smart-casual')">Smart Casual</button>
+    <button class="style-pill" onclick="setStyle(this,'casual')">Casual</button>
+  </div>
+</div>
+
+<!-- OUTFIT PREVIEW -->
+<div class="preview-area">
+  <div class="outfit-canvas" id="outfitCanvas">
+    <div class="outfit-slot" id="slot-outer"><div class="empty-label">Blazer</div></div>
+    <div class="outfit-slot" id="slot-top"><div class="empty-label">Shirt</div></div>
+    <div class="outfit-slot" id="slot-pants"><div class="empty-label">Pants</div></div>
+    <div class="outfit-slot" id="slot-belts"><div class="empty-label">Belt</div></div>
+    <div class="outfit-slot" id="slot-shoes"><div class="empty-label">Shoes</div></div>
+  </div>
+</div>
+
+<!-- BOTTOM PANEL -->
+<div class="bottom-panel">
+  <div class="action-row">
+    <button class="action-btn" onclick="completeOutfit()">✨ Complete Outfit</button>
+    <button class="action-btn" onclick="shuffleOutfit()">🔀 Shuffle</button>
+    <button class="action-btn" onclick="clearOutfit()">✕ Clear</button>
+  </div>
+  <div class="cat-tabs" id="catTabs">
+    <button class="cat-tab active" onclick="setCategory(this,'tops')">Tops</button>
+    <button class="cat-tab" onclick="setCategory(this,'pants')">Pants</button>
+    <button class="cat-tab" onclick="setCategory(this,'belts')">Belts</button>
+    <button class="cat-tab" onclick="setCategory(this,'shoes')">Shoes</button>
+    <button class="cat-tab" onclick="setCategory(this,'blazers')">Blazers</button>
+    <button class="cat-tab" onclick="setCategory(this,'suits')">Suits</button>
+    <button class="cat-tab" onclick="setCategory(this,'jackets')">Jackets</button>
+  </div>
+  <div class="sub-tabs" id="subTabs"></div>
+  <div class="subsub-tabs" id="subsubTabs"></div>
+  <div class="carousel" id="carousel"></div>
+</div>
+
+<script src="catalog.js"></script>
+<script src="matching.js"></script>
+<script>
+const VERSION = Date.now();
+const CATALOG_BASE = "catalog";
+
+// catalog, SUB_CATS, SUBSUB_CATS, SLOT_MAP, SLOT_LABELS, CAT_ORDER loaded from catalog.js
+
+// Build canvas object for matching engine from current selections
+function buildCanvas() {
+  return {
+    outer: selected['outer'] || null,
+    top:   selected['top']   || null,
+    pants: selected['pants'] || null,
+    belts: selected['belts'] || null,
+    shoes: selected['shoes'] || null,
+  };
+}
+
+// Star rating HTML for canvas slots
+function slotStarsHTML(item, cat) {
+  if (!window.scoreItem) return '';
+  const canvas = buildCanvas();
+  const result = window.scoreItem(item, cat, canvas, currentStyle);
+  if (!result || result.stars === null) return '';
+  if (result.excluded) return '<div class="slot-stars" style="color:#ff3b30">✕</div>';
+  const stars = '⭐'.repeat(result.stars);
+  return stars ? `<div class="slot-stars">${stars}</div>` : '';
+}
+
+// Refresh stars on all filled slots (call after canvas changes)
+function refreshAllSlotStars() {
+  ['outer', 'top', 'pants', 'belts', 'shoes'].forEach(slot => {
+    const item = selected[slot];
+    if (!item) return;
+    if (item.swatch) fillSwatchSlot(slot, item);
+    else fillSlot(slot, item.cat, item);
+  });
+}
+
+// Convert match result to badge HTML
+function matchBadgeHTML(result) {
+  if (!result || result.stars === null) return '';
+  if (result.excluded)    return '<div class="match-badge mx">✕</div>';
+  if (result.stars === 3) return '<div class="match-badge s3">⭐⭐⭐</div>';
+  if (result.stars === 2) return '<div class="match-badge s2">⭐⭐</div>';
+  if (result.stars === 1) return '<div class="match-badge s1">⭐</div>';
+  return '<div class="match-badge s0">–</div>';
+}
+
+// State
+let selected = {};
+let lockedSlots = {};
+let currentCat = 'tops';
+let currentSub = 'All';
+let currentSubSub = 'All';
+let currentScenario = 'office';
+let currentStyle = 'smart-casual';
+
+// Hint messages per scenario
+const HINTS = {
+  office: {
+    none:  "For <strong>Office</strong> — start by picking a blazer or suit",
+    outer: "Great start! Now pick a <strong>shirt</strong> to go with it",
+    top:   "Looking sharp! Now choose your <strong>pants</strong>",
+    pants: "Almost there — add a <strong>belt and shoes</strong> to finish",
+    done:  "Outfit complete! Looking office-ready 💼",
+  },
+  dinner: {
+    none:  "For <strong>Dinner</strong> — start with a blazer or smart top",
+    outer: "Nice choice! Now pick a <strong>shirt</strong>",
+    top:   "Now choose your <strong>pants</strong>",
+    pants: "Finish with <strong>shoes</strong> and a <strong>belt</strong>",
+    done:  "Dinner-ready! 🍽️",
+  },
+  event: {
+    none:  "For an <strong>Event</strong> — start with a suit or formal blazer",
+    outer: "Excellent! Now pick a <strong>formal shirt</strong>",
+    top:   "Choose your <strong>trousers or smart pants</strong>",
+    pants: "Complete with a <strong>belt and dress shoes</strong>",
+    done:  "Very sharp — event ready! 👔",
+  },
+  weekend: {
+    none:  "For the <strong>Weekend</strong> — keep it relaxed, start anywhere",
+    outer: "Laid back! Now pick a <strong>shirt or t-shirt</strong>",
+    top:   "Go for <strong>jeans or casual pants</strong>",
+    pants: "Finish with your favourite <strong>sneakers</strong>",
+    done:  "Perfect weekend look! 😎",
+  },
+  travel: {
+    none:  "For <strong>Travel</strong> — comfort first, start with pants",
+    outer: "Good call! Now pick a <strong>comfortable top</strong>",
+    top:   "Now choose <strong>easy pants or jeans</strong>",
+    pants: "Finish with <strong>comfortable shoes</strong>",
+    done:  "Travel-ready! ✈️",
+  },
+};
+
+function updateHintStrip() {
+  const hintStrip = document.getElementById('hintStrip');
+  const hintText  = document.getElementById('hintText');
+  const hints = HINTS[currentScenario];
+  if (!hints) return;
+
+  const hasOuter = !!selected['outer'];
+  const hasTop   = !!selected['top'];
+  const hasPants = !!selected['pants'];
+  const hasShoes = !!selected['shoes'];
+  const hasBelt  = !!selected['belts'];
+  const totalSelected = Object.keys(selected).length;
+
+  let key = 'none';
+  if (totalSelected === 0) key = 'none';
+  else if (!hasOuter && !hasTop) key = 'none';
+  else if (hasOuter && !hasTop) key = 'outer';
+  else if (hasTop && !hasPants) key = 'top';
+  else if (hasPants && (!hasShoes || !hasBelt)) key = 'pants';
+  else key = 'done';
+
+  hintText.innerHTML = hints[key];
+  hintStrip.classList.add('visible');
+}
+
+
+function setScenario(el, scenario) {
+  document.querySelectorAll('.scenario-pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  currentScenario = scenario;
+  renderCarousel(currentCat, currentSub, currentSubSub);
+}
+
+function setStyle(el, style) {
+  document.querySelectorAll('.style-pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  currentStyle = style;
+  renderCarousel(currentCat, currentSub, currentSubSub);
+}
+
+function setCategory(el, cat) {
+  document.querySelectorAll('.cat-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  currentCat = cat;
+  currentSub = 'All';
+  currentSubSub = 'All';
+  renderSubTabs(cat);
+  renderSubSubTabs(cat, 'All');
+  renderCarousel(cat, 'All', 'All');
+}
+
+function renderSubTabs(cat) {
+  const subTabs = document.getElementById('subTabs');
+  subTabs.innerHTML = '';
+  const subs = SUB_CATS[cat] || ['All'];
+  subs.forEach(sub => {
+    const btn = document.createElement('button');
+    btn.className = 'sub-tab' + (sub === currentSub ? ' active' : '');
+    btn.textContent = sub;
+    btn.onclick = () => {
+      document.querySelectorAll('.sub-tab').forEach(t => t.classList.remove('active'));
+      btn.classList.add('active');
+      currentSub = sub;
+      currentSubSub = 'All';
+      renderSubSubTabs(currentCat, sub);
+      renderCarousel(currentCat, sub, 'All');
+    };
+    subTabs.appendChild(btn);
+  });
+}
+
+function renderSubSubTabs(cat, sub) {
+  const subsubTabs = document.getElementById('subsubTabs');
+  subsubTabs.innerHTML = '';
+  const subsubs = SUBSUB_CATS[cat]?.[sub];
+  if (!subsubs) return; // hide row if no subsubs
+  subsubs.forEach(ss => {
+    const btn = document.createElement('button');
+    btn.className = 'subsub-tab' + (ss === currentSubSub ? ' active' : '');
+    btn.textContent = ss;
+    btn.onclick = () => {
+      document.querySelectorAll('.subsub-tab').forEach(t => t.classList.remove('active'));
+      btn.classList.add('active');
+      currentSubSub = ss;
+      renderCarousel(currentCat, currentSub, ss);
+    };
+    subsubTabs.appendChild(btn);
+  });
+}
+
+function renderCarousel(cat, sub, subsub) {
+  const carousel = document.getElementById('carousel');
+  carousel.innerHTML = '';
+
+  let items = catalog[cat] || [];
+  if (sub && sub !== 'All') items = items.filter(i => i.sub === sub);
+  if (subsub && subsub !== 'All') items = items.filter(i => i.subsub === subsub);
+
+  // Sort by sub order, then subsub order, then alphabetical
+  const subOrder = SUB_CATS[cat] || [];
+  const subsubOrder = SUBSUB_CATS[cat] || {};
+  items = [...items].sort((a, b) => {
+    const subA = subOrder.indexOf(a.sub);
+    const subB = subOrder.indexOf(b.sub);
+    if (subA !== subB) return subA - subB;
+    const ssOrder = subsubOrder[a.sub] || [];
+    const ssA = ssOrder.indexOf(a.subsub) ?? -1;
+    const ssB = ssOrder.indexOf(b.subsub) ?? -1;
+    if (ssA !== ssB) return ssA - ssB;
+    return a.name.localeCompare(b.name);
+  });
+
+  if (items.length === 0) {
+    carousel.innerHTML = `<div class="empty-carousel">Coming soon!</div>`;
+    return;
+  }
+
+  // Score every item against current canvas
+  const canvas = buildCanvas();
+  const scored = items.map(item => ({
+    item,
+    result: window.scoreItem ? window.scoreItem(item, cat, canvas, currentStyle) : { stars: null, excluded: false }
+  }));
+
+  // Sort by score when canvas has selections: 3★ first, excluded/0★ last
+  const hasSelections = Object.keys(selected).length > 0;
+  if (hasSelections) {
+    scored.sort((a, b) => {
+      // Same slot as what's already selected — keep default order
+      const aStars = a.result.excluded ? -1 : (a.result.stars ?? 0);
+      const bStars = b.result.excluded ? -1 : (b.result.stars ?? 0);
+      if (aStars !== bStars) return bStars - aStars; // higher stars first
+      // Within same star tier, keep original catalogue order (already sorted above)
+      return 0;
+    });
+  }
+
+  const slotKey = SLOT_MAP[cat];
+  scored.forEach(({ item, result }) => {
+    const isSelected = selected[slotKey]?.name === item.name && selected[slotKey]?.cat === cat;
+    const noMatch = hasSelections && result && (result.excluded || result.stars === 0);
+    const badge = hasSelections ? matchBadgeHTML(result) : '';
+
+    if (item.swatch) {
+      // Render color swatch card
+      const card = document.createElement('div');
+      card.className = 'swatch-item' + (isSelected ? ' selected' : '') + (noMatch ? ' no-match' : '');
+      card.innerHTML = `
+        ${badge}
+        <div class="swatch-color" style="background:${item.color}; border-bottom: 1px solid ${item.border};"></div>
+        <div class="swatch-name">${item.name}</div>
+      `;
+      card.onclick = () => selectSwatch(cat, item, card);
+      carousel.appendChild(card);
+    } else {
+      // Render image card
+      const card = document.createElement('div');
+      card.className = 'car-item' + (isSelected ? ' selected' : '') + (noMatch ? ' no-match' : '');
+      card.innerHTML = `
+        ${badge}
+        <img src="${CATALOG_BASE}/${cat}/${item.file}?v=${VERSION}" alt="${item.name}" loading="lazy">
+        <div class="car-name">${item.name}</div>
+      `;
+      card.onclick = () => selectItem(cat, item, card);
+      carousel.appendChild(card);
+    }
+  });
+}
+
+function selectItem(cat, item, card) {
+  const slotKey = SLOT_MAP[cat];
+
+  // Deselect if tapping same item
+  if (selected[slotKey]?.file === item.file && selected[slotKey]?.cat === cat) {
+    delete selected[slotKey];
+    card.classList.remove('selected');
+    clearSlot(slotKey);
+    updateSuitMode();
+    return;
+  }
+
+  // Select new item
+  selected[slotKey] = { ...item, cat };
+  fillSlot(slotKey, cat, item);
+  updateSuitMode();
+  refreshAllSlotStars();
+  renderCarousel(currentCat, currentSub, currentSubSub);
+
+}
+
+function selectSwatch(cat, item, card) {
+  const slotKey = SLOT_MAP[cat];
+  if (selected[slotKey]?.name === item.name && selected[slotKey]?.cat === cat) {
+    delete selected[slotKey];
+    card.classList.remove('selected');
+    clearSlot(slotKey);
+  
+    return;
+  }
+  selected[slotKey] = { ...item, cat };
+  fillSwatchSlot(slotKey, item);
+  refreshAllSlotStars();
+  renderCarousel(currentCat, currentSub, currentSubSub);
+
+}
+
+function fillSwatchSlot(slotKey, item) {
+  const slot = document.getElementById(`slot-${slotKey}`);
+  if (!slot) return;
+  slot.classList.add('filled');
+  const locked = lockedSlots[slotKey];
+  const stars = slotStarsHTML(item, item.cat || 'tops');
+  slot.innerHTML = `
+    <div style="width:100%;height:100%;background:${item.color};border-radius:10px;"></div>
+    <div class="slot-name">${item.name}</div>
+    ${stars}
+    <button class="remove-btn" onclick="removeItem('${slotKey}')">✕</button>
+    <button class="lock-btn ${locked ? 'locked' : ''}" onclick="toggleLock('${slotKey}')">🔒</button>
+  `;
+}
+
+function fillSlot(slotKey, cat, item) {
+  const slot = document.getElementById(`slot-${slotKey}`);
+  if (!slot) return;
+  slot.classList.add('filled');
+  const locked = lockedSlots[slotKey];
+  const stars = slotStarsHTML(item, cat);
+  slot.innerHTML = `
+    <img src="${CATALOG_BASE}/${cat}/${item.file}?v=${VERSION}" alt="${item.name}">
+    <div class="slot-name">${item.name}</div>
+    ${stars}
+    <button class="remove-btn" onclick="removeItem('${slotKey}')">✕</button>
+    <button class="lock-btn ${locked ? 'locked' : ''}" onclick="toggleLock('${slotKey}')">🔒</button>
+  `;
+}
+
+function clearSlot(slotKey) {
+  const slot = document.getElementById(`slot-${slotKey}`);
+  if (!slot) return;
+  slot.classList.remove('filled');
+  slot.innerHTML = `<div class="empty-label">${SLOT_LABELS[slotKey]}</div>`;
+}
+
+function removeItem(slotKey) {
+  delete selected[slotKey];
+  delete lockedSlots[slotKey];
+  clearSlot(slotKey);
+  updateSuitMode();
+  renderCarousel(currentCat, currentSub, currentSubSub);
+}
+
+function toggleLock(slotKey) {
+  lockedSlots[slotKey] = !lockedSlots[slotKey];
+  const item = selected[slotKey];
+  if (!item) return;
+  if (item.swatch) fillSwatchSlot(slotKey, item);
+  else fillSlot(slotKey, item.cat, item);
+}
+
+// ── Auto-complete helpers ──────────────────────────────────────────────────
+
+// Find best item for a slot across given categories, optionally excluding a file/name
+function bestForSlot(cats, excludeKey) {
+  const canvas = buildCanvas();
+  let bestItem = null, bestCat = null, bestScore = -Infinity;
+
+  cats.forEach(cat => {
+    (catalog[cat] || []).forEach(item => {
+      // Skip excluded (previously selected) item
+      const key = item.file || item.name;
+      if (excludeKey && key === excludeKey) return;
+
+      const result = window.scoreItem ? window.scoreItem(item, cat, canvas, currentStyle) : null;
+      if (!result || result.excluded) return;
+      const s = result.score ?? result.stars ?? 0;
+      if (s > bestScore) { bestScore = s; bestItem = item; bestCat = cat; }
+    });
+  });
+
+  return bestItem ? { item: bestItem, cat: bestCat } : null;
+}
+
+// Outer categories based on style and locked slots
+function outerCats() {
+  // If pants are locked, never pick a suit — would conflict with locked pants
+  if (lockedSlots['pants'] && selected['pants']) return ['blazers', 'jackets'];
+  if (currentStyle === 'casual') return ['blazers', 'jackets'];
+  if (currentStyle === 'formal') return ['suits', 'blazers'];
+  return ['blazers', 'suits']; // smart casual — blazers preferred
+}
+
+// Fill a single slot with the best available item
+function fillBestForSlot(slot, cats, excludeKey) {
+  if (lockedSlots[slot]) return;            // locked — skip
+  // If outer is locked as a suit, never fill pants
+  if (slot === 'pants' && selected['outer']?.cat === 'suits') return;
+  // If outer slot is being filled and pants are locked, outerCats() already excludes suits
+
+  const best = bestForSlot(cats, excludeKey);
+  if (!best) return;
+
+  selected[slot] = { ...best.item, cat: best.cat };
+  if (best.item.swatch) fillSwatchSlot(slot, best.item);
+  else fillSlot(slot, best.cat, best.item);
+  updateSuitMode();
+}
+
+// ── Action buttons ─────────────────────────────────────────────────────────
+
+function completeOutfit() {
+  // Fill in order so each slot scores against already-filled ones
+  fillBestForSlot('outer', outerCats());
+  fillBestForSlot('pants', ['pants']);
+  fillBestForSlot('top',   ['tops']);
+  fillBestForSlot('shoes', ['shoes']);
+  fillBestForSlot('belts', ['belts']);
+  refreshAllSlotStars();
+  renderCarousel(currentCat, currentSub, currentSubSub);
+}
+
+function shuffleOutfit() {
+  // Remember what's in each unlocked slot, clear it, then refill excluding previous
+  const prev = {};
+  ['outer', 'pants', 'top', 'shoes', 'belts'].forEach(slot => {
+    if (!lockedSlots[slot] && selected[slot]) {
+      const item = selected[slot];
+      prev[slot] = item.file || item.name;
+      delete selected[slot];
+      clearSlot(slot);
+    }
+  });
+
+  updateSuitMode();
+  fillBestForSlot('outer', outerCats(),  prev['outer']);
+  fillBestForSlot('pants', ['pants'],    prev['pants']);
+  fillBestForSlot('top',   ['tops'],     prev['top']);
+  fillBestForSlot('shoes', ['shoes'],    prev['shoes']);
+  fillBestForSlot('belts', ['belts'],    prev['belts']);
+  refreshAllSlotStars();
+  renderCarousel(currentCat, currentSub, currentSubSub);
+}
+
+function clearOutfit() {
+  ['outer', 'pants', 'top', 'shoes', 'belts'].forEach(slot => {
+    delete selected[slot];
+    delete lockedSlots[slot];
+    clearSlot(slot);
+  });
+  updateSuitMode();
+  renderCarousel(currentCat, currentSub, currentSubSub);
+}
+
+function updateSuitMode() {
+  const canvas = document.getElementById('outfitCanvas');
+  const outerItem = selected['outer'];
+  if (outerItem?.cat === 'suits') {
+    canvas.classList.add('suit-mode');
+  } else {
+    canvas.classList.remove('suit-mode');
+  }
+}
+
+// Init
+renderSubTabs('tops');
+renderSubSubTabs('tops', 'All');
+renderCarousel('tops', 'All', 'All');
+</script>
+</body>
+</html>
