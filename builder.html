@@ -643,15 +643,12 @@ function renderSubTabs(cat) {
   const subTabs = document.getElementById('subTabs');
   subTabs.innerHTML = '';
 
-  // Shuffle button — only show if this category has a filled slot on canvas
-  const slotKey = SLOT_MAP[cat];
-  if (slotKey && selected[slotKey]) {
-    const shuffleBtn = document.createElement('button');
-    shuffleBtn.className = 'shuffle-tab';
-    shuffleBtn.textContent = '🔀';
-    shuffleBtn.onclick = () => shuffleCategory(cat);
-    subTabs.appendChild(shuffleBtn);
-  }
+  // Shuffle button — always show
+  const shuffleBtn = document.createElement('button');
+  shuffleBtn.className = 'shuffle-tab';
+  shuffleBtn.textContent = '🔀';
+  shuffleBtn.onclick = () => shuffleCategory(cat);
+  subTabs.appendChild(shuffleBtn);
 
   const subs = SUB_CATS[cat] || ['All'];
   subs.forEach(sub => {
@@ -673,22 +670,23 @@ function renderSubTabs(cat) {
 // Shuffle just the current category's slot
 function shuffleCategory(cat) {
   const slotKey = SLOT_MAP[cat];
-  if (!slotKey || !selected[slotKey]) return;
+  if (!slotKey) return;
   if (lockedSlots[slotKey]) return; // respect lock
 
-  const currentItem = selected[slotKey];
-  const excludeKey = currentItem.file || currentItem.name;
-
-  // Determine cats to search based on slot
   const cats = slotKey === 'outer' ? outerCats() : [cat];
 
-  // Clear slot
-  delete selected[slotKey];
-  clearSlot(slotKey);
-  updateSuitMode();
+  if (selected[slotKey]) {
+    // Item exists — swap for next best alternative
+    const excludeKey = selected[slotKey].file || selected[slotKey].name;
+    delete selected[slotKey];
+    clearSlot(slotKey);
+    updateSuitMode();
+    fillBestForSlot(slotKey, cats, excludeKey);
+  } else {
+    // Nothing selected — autofill with best item
+    fillBestForSlot(slotKey, cats);
+  }
 
-  // Fill with next best, excluding current
-  fillBestForSlot(slotKey, cats, excludeKey);
   refreshAllSlotStars();
   renderCarousel(currentCat, currentSub, currentSubSub);
 }
