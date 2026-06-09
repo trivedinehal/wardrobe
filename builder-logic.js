@@ -93,9 +93,83 @@ function fillBestForSlot(slot, cats, excludeKey, random = false) {
   updateSuitMode();
 }
 
+// ── Swipe navigation ─────────────────────────────────────────────────────────
+
+const swipeSnapshots = {}; // slot → [{ item, cat }] ranked list
+const swipeIndex     = {}; // slot → current position in snapshot
+
+// Which catalog category to use for a given slot when swiping
+function catForSlot(slot) {
+  if (slot === 'outer') {
+    // Stay within whatever category is currently in the slot
+    return selected['outer']?.cat || outerCats()[0];
+  }
+  return { top: 'tops', pants: 'pants', belts: 'belts', shoes: 'shoes' }[slot];
+}
+
+// Build and freeze the ranked item list for a slot
+function buildSwipeSnapshot(slot) {
+  const cat = catForSlot(slot);
+  if (!cat || !catalog[cat]) return;
+
+  const canvas = buildCanvas();
+  const scored = (catalog[cat] || [])
+    .map(item => {
+      const result = window.scoreItem ? window.scoreItem(item, cat, canvas, currentStyle) : null;
+      return { item, cat, stars: result?.stars ?? 0, score: result?.score ?? 0, excluded: result?.excluded ?? false };
+    })
+    .filter(s => !s.excluded)
+    .sort((a, b) => b.score - a.score);
+
+  swipeSnapshots[slot] = scored.map(s => ({ item: s.item, cat: s.cat }));
+
+  // Set index to currently selected item
+  const currentKey = selected[slot] ? (selected[slot].file || selected[slot].name) : null;
+  const idx = currentKey
+    ? swipeSnapshots[slot].findIndex(s => (s.item.file || s.item.name) === currentKey)
+    : 0;
+  swipeIndex[slot] = idx >= 0 ? idx : 0;
+}
+
+// Swipe a slot forward (next) or backward (prev)
+function swipeSlot(slot, direction) {
+  if (lockedSlots[slot]) return;
+
+  // Build snapshot on first swipe
+  if (!swipeSnapshots[slot]) buildSwipeSnapshot(slot);
+
+  const snapshot = swipeSnapshots[slot];
+  if (!snapshot || snapshot.length === 0) return;
+
+  const len = snapshot.length;
+  const currentIdx = swipeIndex[slot] ?? 0;
+  const newIdx = direction === 'next'
+    ? (currentIdx + 1) % len
+    : (currentIdx - 1 + len) % len;
+
+  swipeIndex[slot] = newIdx;
+
+  const { item, cat } = snapshot[newIdx];
+  selected[slot] = { ...item, cat };
+
+  if (item.swatch) fillSwatchSlot(slot, item);
+  else fillSlot(slot, cat, item);
+
+  updateSuitMode();
+  refreshAllSlotStars();
+  // Deliberately don't re-render carousel — keep it stable while swiping
+}
+
+// Reset all snapshots (call when canvas context changes)
+function resetAllSwipeSnapshots() {
+  Object.keys(swipeSnapshots).forEach(k => delete swipeSnapshots[k]);
+  Object.keys(swipeIndex).forEach(k => delete swipeIndex[k]);
+}
+
 // ── Action functions ──────────────────────────────────────────────────────────
 
 function completeOutfit() {
+  resetAllSwipeSnapshots();
   const slots = ['outer', 'pants', 'top', 'shoes', 'belts'];
   const cats  = {
     outer: outerCats(),
@@ -155,6 +229,7 @@ function shuffleCategory(cat) {
 }
 
 function clearOutfit() {
+  resetAllSwipeSnapshots();
   ['outer', 'pants', 'top', 'shoes', 'belts'].forEach(slot => {
     delete selected[slot];
     delete lockedSlots[slot];

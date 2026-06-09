@@ -781,6 +781,7 @@ function selectItem(cat, item, card) {
   selected[slotKey] = { ...item, cat };
   fillSlot(slotKey, cat, item);
   updateSuitMode();
+  resetAllSwipeSnapshots();
   refreshAllSlotStars();
   renderCarousel(currentCat, currentSub, currentSubSub);
 
@@ -797,6 +798,7 @@ function selectSwatch(cat, item, card) {
   }
   selected[slotKey] = { ...item, cat };
   fillSwatchSlot(slotKey, item);
+  resetAllSwipeSnapshots();
   refreshAllSlotStars();
   renderCarousel(currentCat, currentSub, currentSubSub);
 
@@ -842,6 +844,7 @@ function clearSlot(slotKey) {
 function removeItem(slotKey) {
   delete selected[slotKey];
   delete lockedSlots[slotKey];
+  resetAllSwipeSnapshots();
   clearSlot(slotKey);
   updateSuitMode();
   renderCarousel(currentCat, currentSub, currentSubSub);
@@ -866,6 +869,28 @@ function updateSuitMode() {
     canvas.classList.remove('suit-mode');
   }
 }
+
+// ── Swipe listeners on canvas slots ─────────────────────────────────────────
+(function() {
+  const slots = ['outer', 'top', 'pants', 'belts', 'shoes'];
+  slots.forEach(slot => {
+    const el = document.getElementById(`slot-${slot}`);
+    if (!el) return;
+    let startX = 0, startY = 0;
+    el.addEventListener('touchstart', e => {
+      startX = e.touches[0].clientX;
+      startY = e.touches[0].clientY;
+    }, { passive: true });
+    el.addEventListener('touchend', e => {
+      const dx = e.changedTouches[0].clientX - startX;
+      const dy = e.changedTouches[0].clientY - startY;
+      if (Math.abs(dx) < 40) return;                // too short — ignore
+      if (Math.abs(dy) > Math.abs(dx)) return;      // more vertical than horizontal — ignore
+      if (!selected[slot]) return;                   // empty slot — nothing to swipe
+      swipeSlot(slot, dx < 0 ? 'next' : 'prev');
+    }, { passive: true });
+  });
+})();
 
 // Init
 renderSubTabs('tops');
