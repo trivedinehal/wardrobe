@@ -673,7 +673,8 @@ function shuffleCategory(cat) {
   if (!slotKey) return;
   if (lockedSlots[slotKey]) return; // respect lock
 
-  const cats = slotKey === 'outer' ? outerCats() : [cat];
+  // Use the current tab's category directly — don't let outerCats() override it
+  const cats = [cat];
 
   if (selected[slotKey]) {
     // Item exists — swap for next best alternative
