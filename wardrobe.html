@@ -278,25 +278,29 @@
     -webkit-box-orient: vertical;
   }
 
-  /* AI match badge */
-  .car-item {
-    position: relative;
-  }
+  /* Match badge — stars and X */
+  .car-item, .swatch-item { position: relative; }
   .match-badge {
     position: absolute;
     top: 5px;
     right: 5px;
-    width: 20px;
-    height: 20px;
-    background: #FFD700;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 11px;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+    padding: 2px 5px;
+    border-radius: 8px;
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 1.4;
     z-index: 10;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.18);
   }
+  .match-badge.s3 { background: #FFD700; color: #6b5000; }
+  .match-badge.s2 { background: #e0e0e0; color: #444; }
+  .match-badge.s1 { background: #f5f5f5; color: #999; }
+  .match-badge.s0 { background: #f5f5f5; color: #ccc; }
+  .match-badge.mx { background: #ff3b30; color: #fff; font-size: 12px; }
+
+  /* Greyed out — excluded or no-star items when canvas has selections */
+  .car-item.no-match  { opacity: 0.38; }
+  .swatch-item.no-match { opacity: 0.38; }
 
   .empty-carousel {
     color: #c7c7cc;
@@ -374,31 +378,32 @@
 </div>
 
 <script src="catalog.js"></script>
+<script src="matching.js"></script>
 <script>
 const VERSION = Date.now();
 const CATALOG_BASE = "catalog";
 
 // catalog, SUB_CATS, SUBSUB_CATS, SLOT_MAP, SLOT_LABELS, CAT_ORDER loaded from catalog.js
 
-// Basic pairing rules — file key -> what pairs well with it
-const PAIRINGS = {
-  // Blazers -> pants
-  "blazer_formal_charcoal_grey.png":            { pants: ["pants_chino_allensolly_black.png","pants_denim_levis_dark_wash.png","pants_denim_westbay_dark_indigo.png","pants_chino_allensolly_khaki.png"], shoes: ["shoes_boot_colorado_black_leather_chelsea.png","shoes_sneaker_wildrhino_brown_leather.png"] },
-  "blazer_formal_mid_blue.png":                 { pants: ["pants_chino_allensolly_khaki.png","pants_chino_beige_cotton.png","pants_denim_levis_dark_wash.png","pants_denim_levis_dark_blue.png"], shoes: ["shoes_boot_colorado_black_leather_chelsea.png","shoes_sneaker_wildrhino_brown_leather.png"] },
-  "blazer_formal_navy.png":                     { pants: ["pants_chino_allensolly_khaki.png","pants_chino_beige_cotton.png","pants_chino_white_cotton.png","pants_denim_levis_dark_wash.png"], shoes: ["shoes_boot_colorado_black_leather_chelsea.png","shoes_sneaker_wildrhino_brown_leather.png"] },
-  "blazer_formal_dark_charcoal_burgundy_lining.png": { pants: ["pants_chino_allensolly_black.png","pants_denim_levis_dark_wash.png","pants_denim_westbay_dark_indigo.png"], shoes: ["shoes_boot_colorado_black_leather_chelsea.png"] },
-  "blazer_casual_blue_wool.png":                { pants: ["pants_denim_levis_dark_wash.png","pants_denim_levis_mid_blue.png","pants_chino_allensolly_khaki.png","pants_chino_beige_cotton.png"], shoes: ["shoes_sneaker_wildrhino_brown_leather.png","shoes_sneaker_wildrhino_olive.png"] },
-  "blazer_casual_beige_linen.png":              { pants: ["pants_denim_levis_dark_wash.png","pants_denim_levis_mid_blue.png","pants_chino_allensolly_dark_olive.png","pants_casual_levis_linen_olive.png"], shoes: ["shoes_sneaker_wildrhino_brown_leather.png","shoes_sneaker_wildrhino_olive.png"] },
-  "blazer_casual_grey_check.png":               { pants: ["pants_denim_levis_mid_blue.png","pants_denim_levis_dark_wash.png","pants_chino_allensolly_khaki.png","pants_chino_beige_cotton.png"], shoes: ["shoes_sneaker_wildrhino_brown_leather.png","shoes_boot_colorado_black_leather_chelsea.png"] },
-};
+// Build canvas object for matching engine from current selections
+function buildCanvas() {
+  return {
+    outer: selected['outer'] || null,
+    top:   selected['top']   || null,
+    pants: selected['pants'] || null,
+    belts: selected['belts'] || null,
+    shoes: selected['shoes'] || null,
+  };
+}
 
-function isAIMatch(cat, itemFile) {
-  // Check if any selected item has a pairing rule that includes this item
-  for (const [slotKey, selItem] of Object.entries(selected)) {
-    const rules = PAIRINGS[selItem.file];
-    if (rules && rules[cat] && rules[cat].includes(itemFile)) return true;
-  }
-  return false;
+// Convert match result to badge HTML
+function matchBadgeHTML(result) {
+  if (!result || result.stars === null) return '';
+  if (result.excluded)    return '<div class="match-badge mx">✕</div>';
+  if (result.stars === 3) return '<div class="match-badge s3">⭐⭐⭐</div>';
+  if (result.stars === 2) return '<div class="match-badge s2">⭐⭐</div>';
+  if (result.stars === 1) return '<div class="match-badge s1">⭐</div>';
+  return '<div class="match-badge s0">–</div>';
 }
 
 // State
@@ -557,16 +562,38 @@ function renderCarousel(cat, sub, subsub) {
     return;
   }
 
+  // Score every item against current canvas
+  const canvas = buildCanvas();
+  const scored = items.map(item => ({
+    item,
+    result: window.scoreItem ? window.scoreItem(item, cat, canvas) : { stars: null, excluded: false }
+  }));
+
+  // Sort by score when canvas has selections: 3★ first, excluded/0★ last
+  const hasSelections = Object.keys(selected).length > 0;
+  if (hasSelections) {
+    scored.sort((a, b) => {
+      // Same slot as what's already selected — keep default order
+      const aStars = a.result.excluded ? -1 : (a.result.stars ?? 0);
+      const bStars = b.result.excluded ? -1 : (b.result.stars ?? 0);
+      if (aStars !== bStars) return bStars - aStars; // higher stars first
+      // Within same star tier, keep original catalogue order (already sorted above)
+      return 0;
+    });
+  }
+
   const slotKey = SLOT_MAP[cat];
-  items.forEach(item => {
+  scored.forEach(({ item, result }) => {
     const isSelected = selected[slotKey]?.name === item.name && selected[slotKey]?.cat === cat;
-    const aiMatch = Object.keys(selected).length > 0 && !item.swatch && isAIMatch(cat, item.file);
+    const noMatch = hasSelections && result && (result.excluded || result.stars === 0);
+    const badge = hasSelections ? matchBadgeHTML(result) : '';
 
     if (item.swatch) {
       // Render color swatch card
       const card = document.createElement('div');
-      card.className = 'swatch-item' + (isSelected ? ' selected' : '');
+      card.className = 'swatch-item' + (isSelected ? ' selected' : '') + (noMatch ? ' no-match' : '');
       card.innerHTML = `
+        ${badge}
         <div class="swatch-color" style="background:${item.color}; border-bottom: 1px solid ${item.border};"></div>
         <div class="swatch-name">${item.name}</div>
       `;
@@ -575,9 +602,9 @@ function renderCarousel(cat, sub, subsub) {
     } else {
       // Render image card
       const card = document.createElement('div');
-      card.className = 'car-item' + (isSelected ? ' selected' : '');
+      card.className = 'car-item' + (isSelected ? ' selected' : '') + (noMatch ? ' no-match' : '');
       card.innerHTML = `
-        ${aiMatch ? '<div class="match-badge">⭐</div>' : ''}
+        ${badge}
         <img src="${CATALOG_BASE}/${cat}/${item.file}?v=${VERSION}" alt="${item.name}" loading="lazy">
         <div class="car-name">${item.name}</div>
       `;
@@ -600,11 +627,10 @@ function selectItem(cat, item, card) {
   }
 
   // Select new item
-  document.querySelectorAll('.car-item').forEach(c => c.classList.remove('selected'));
   selected[slotKey] = { ...item, cat };
-  card.classList.add('selected');
   fillSlot(slotKey, cat, item);
   updateSuitMode();
+  renderCarousel(currentCat, currentSub, currentSubSub);
 
 }
 
@@ -617,10 +643,9 @@ function selectSwatch(cat, item, card) {
   
     return;
   }
-  document.querySelectorAll('.swatch-item').forEach(c => c.classList.remove('selected'));
   selected[slotKey] = { ...item, cat };
-  card.classList.add('selected');
   fillSwatchSlot(slotKey, item);
+  renderCarousel(currentCat, currentSub, currentSubSub);
 
 }
 
