@@ -19,21 +19,37 @@
     position: absolute;
     top: 0; left: 0; right: 0;
     z-index: 50;
-    padding: 10px 12px;
+    padding: 8px 12px 8px;
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 8px;
+    flex-direction: column;
+    gap: 6px;
     background: rgba(255,255,255,0.95);
     backdrop-filter: blur(10px);
     border-bottom: 1px solid #e5e5ea;
   }
 
+  .pill-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .pill-label {
+    font-size: 10px;
+    font-weight: 600;
+    color: #aeaeb2;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    min-width: 36px;
+    flex-shrink: 0;
+  }
+
+  /* Scenario pills — dark active */
   .scenario-pill {
     flex: 1;
-    padding: 7px 4px;
+    padding: 6px 4px;
     border-radius: 20px;
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 600;
     border: none;
     background: #f2f2f7;
@@ -48,10 +64,30 @@
     color: #fff;
   }
 
+  /* Style pills — blue active */
+  .style-pill {
+    flex: 1;
+    padding: 6px 4px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    border: none;
+    background: #f2f2f7;
+    color: #8e8e93;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+  .style-pill.active {
+    background: #007aff;
+    color: #fff;
+  }
+
   /* ── OUTFIT PREVIEW ── */
   .preview-area {
     position: absolute;
-    top: 50px; left: 0; right: 0;
+    top: 90px; left: 0; right: 0;
     bottom: 290px;
     background: #fff;
     padding: 12px;
@@ -343,11 +379,22 @@
 </head>
 <body>
 
-<!-- HEADER — Style selector -->
+<!-- HEADER — Scenario + Style -->
 <div class="header">
-  <button class="scenario-pill active" onclick="setScenario(this,'formal')">Formal</button>
-  <button class="scenario-pill" onclick="setScenario(this,'smart-casual')">Smart Casual</button>
-  <button class="scenario-pill" onclick="setScenario(this,'casual')">Casual</button>
+  <div class="pill-row">
+    <span class="pill-label">Where</span>
+    <button class="scenario-pill active" onclick="setScenario(this,'office')">Office</button>
+    <button class="scenario-pill" onclick="setScenario(this,'dinner')">Dinner</button>
+    <button class="scenario-pill" onclick="setScenario(this,'event')">Event</button>
+    <button class="scenario-pill" onclick="setScenario(this,'weekend')">Weekend</button>
+    <button class="scenario-pill" onclick="setScenario(this,'travel')">Travel</button>
+  </div>
+  <div class="pill-row">
+    <span class="pill-label">Style</span>
+    <button class="style-pill" onclick="setStyle(this,'formal')">Formal</button>
+    <button class="style-pill active" onclick="setStyle(this,'smart-casual')">Smart Casual</button>
+    <button class="style-pill" onclick="setStyle(this,'casual')">Casual</button>
+  </div>
 </div>
 
 <!-- OUTFIT PREVIEW -->
@@ -412,43 +459,44 @@ let currentCat = 'tops';
 let currentSub = 'All';
 let currentSubSub = 'All';
 let currentScenario = 'office';
+let currentStyle = 'smart-casual';
 
-// Hint messages per scenario + what's been selected
+// Hint messages per scenario
 const HINTS = {
   office: {
-    none:    "For <strong>Office</strong> — start by picking a blazer or suit",
-    outer:   "Great start! Now pick a <strong>shirt</strong> to go with it",
-    top:     "Looking sharp! Now choose your <strong>pants</strong>",
-    pants:   "Almost there — pick a <strong>belt</strong> and <strong>shoes</strong> to finish",
-    done:    "Outfit complete! Looking office-ready 💼",
+    none:  "For <strong>Office</strong> — start by picking a blazer or suit",
+    outer: "Great start! Now pick a <strong>shirt</strong> to go with it",
+    top:   "Looking sharp! Now choose your <strong>pants</strong>",
+    pants: "Almost there — add a <strong>belt and shoes</strong> to finish",
+    done:  "Outfit complete! Looking office-ready 💼",
   },
-  casual: {
-    none:    "For <strong>Casual</strong> — pick any top or blazer to start",
-    outer:   "Nice! Now choose a <strong>shirt or t-shirt</strong>",
-    top:     "Now pick your <strong>pants</strong> — denims or chinos work great",
-    pants:   "Finish it off with <strong>shoes</strong>",
-    done:    "Great casual outfit! 👌",
+  dinner: {
+    none:  "For <strong>Dinner</strong> — start with a blazer or smart top",
+    outer: "Nice choice! Now pick a <strong>shirt</strong>",
+    top:   "Now choose your <strong>pants</strong>",
+    pants: "Finish with <strong>shoes</strong> and a <strong>belt</strong>",
+    done:  "Dinner-ready! 🍽️",
   },
-  'casual-friday': {
-    none:    "For <strong>Casual Friday</strong> — try a casual blazer to start",
-    outer:   "Nice choice! Pair it with a <strong>shirt or polo</strong>",
-    top:     "Now pick your <strong>jeans or chinos</strong>",
-    pants:   "Finish with <strong>clean sneakers or loafers</strong>",
-    done:    "Perfect Casual Friday look! 🎉",
-  },
-  formal: {
-    none:    "For <strong>Formal</strong> — start with a suit or formal blazer",
-    outer:   "Excellent! Now pick a <strong>formal shirt</strong>",
-    top:     "Choose your <strong>formal trousers</strong>",
-    pants:   "Complete the look with a <strong>belt and dress shoes</strong>",
-    done:    "Very sharp formal outfit! 👔",
+  event: {
+    none:  "For an <strong>Event</strong> — start with a suit or formal blazer",
+    outer: "Excellent! Now pick a <strong>formal shirt</strong>",
+    top:   "Choose your <strong>trousers or smart pants</strong>",
+    pants: "Complete with a <strong>belt and dress shoes</strong>",
+    done:  "Very sharp — event ready! 👔",
   },
   weekend: {
-    none:    "For <strong>Weekend</strong> — keep it relaxed, start with a casual top",
-    outer:   "Laid back! Now pick a <strong>t-shirt or casual shirt</strong>",
-    top:     "Go for comfortable <strong>casual pants or jeans</strong>",
-    pants:   "Finish with your favourite <strong>sneakers</strong>",
-    done:    "Perfect weekend look! 😎",
+    none:  "For the <strong>Weekend</strong> — keep it relaxed, start anywhere",
+    outer: "Laid back! Now pick a <strong>shirt or t-shirt</strong>",
+    top:   "Go for <strong>jeans or casual pants</strong>",
+    pants: "Finish with your favourite <strong>sneakers</strong>",
+    done:  "Perfect weekend look! 😎",
+  },
+  travel: {
+    none:  "For <strong>Travel</strong> — comfort first, start with pants",
+    outer: "Good call! Now pick a <strong>comfortable top</strong>",
+    top:   "Now choose <strong>easy pants or jeans</strong>",
+    pants: "Finish with <strong>comfortable shoes</strong>",
+    done:  "Travel-ready! ✈️",
   },
 };
 
@@ -482,6 +530,13 @@ function setScenario(el, scenario) {
   document.querySelectorAll('.scenario-pill').forEach(p => p.classList.remove('active'));
   el.classList.add('active');
   currentScenario = scenario;
+  renderCarousel(currentCat, currentSub, currentSubSub);
+}
+
+function setStyle(el, style) {
+  document.querySelectorAll('.style-pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  currentStyle = style;
   renderCarousel(currentCat, currentSub, currentSubSub);
 }
 
@@ -566,7 +621,7 @@ function renderCarousel(cat, sub, subsub) {
   const canvas = buildCanvas();
   const scored = items.map(item => ({
     item,
-    result: window.scoreItem ? window.scoreItem(item, cat, canvas) : { stars: null, excluded: false }
+    result: window.scoreItem ? window.scoreItem(item, cat, canvas, currentStyle) : { stars: null, excluded: false }
   }));
 
   // Sort by score when canvas has selections: 3★ first, excluded/0★ last

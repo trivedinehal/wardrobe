@@ -272,7 +272,7 @@
 
   // ─── Main export ──────────────────────────────────────────────────────────
 
-  window.scoreItem = function (candidate, candidateCat, canvas) {
+  window.scoreItem = function (candidate, candidateCat, canvas, style) {
 
     const slotMap = {
       tops: 'top', pants: 'pants', belts: 'belts',
@@ -333,7 +333,22 @@
     if (scores.length === 0) return { stars: null, excluded: false };
 
     // Average all pairwise scores — more canvas items = more refined rating
-    const avg = scores.reduce((a, b) => a + b, 0) / scores.length;
+    let avg = scores.reduce((a, b) => a + b, 0) / scores.length;
+
+    // Style influence — boost items matching selected style, nudge down those that don't
+    if (style) {
+      const formalityMap = {
+        'formal':       'Formal',
+        'smart-casual': 'Smart Casual',
+        'casual':       'Casual'
+      };
+      const target = formalityMap[style];
+      if (target) {
+        if (candidate.formality.includes(target)) avg += 1.5;
+        else avg -= 1;
+      }
+    }
+
     return { stars: toStars(avg), excluded: false };
   };
 
