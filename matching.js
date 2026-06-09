@@ -120,16 +120,23 @@
 
     // Shoe style fit for outer type
     if (isSuit(outer)) {
-      if (shoe.style === 'dress-shoe')   s += 3;
-      else if (shoe.style === 'chelsea-boot') s += 2;
-      else if (shoe.style === 'loafer')  s += 1;
-      else if (shoe.style === 'sneaker') s += 0;
+      // Suits — dress shoes best, chelsea boots good, loafers okay, sneakers no
+      if (shoe.style === 'dress-shoe')        s += 4;
+      else if (shoe.style === 'chelsea-boot') s += 3;
+      else if (shoe.style === 'loafer')       s += 2;
+      else if (shoe.style === 'sneaker')      s += 0;
+    } else if (formalOnly(outer)) {
+      // Formal blazer — dress shoes and chelsea boots, loafers borderline
+      if (shoe.style === 'dress-shoe')        s += 4;
+      else if (shoe.style === 'chelsea-boot') s += 3;
+      else if (shoe.style === 'loafer')       s += 2;
+      else if (shoe.style === 'sneaker')      s += 0;
     } else {
-      // Blazer
-      if (shoe.style === 'dress-shoe')   s += 2;
-      else if (shoe.style === 'chelsea-boot') s += 2;
-      else if (shoe.style === 'loafer')  s += 2;
-      else if (shoe.style === 'sneaker') s += 1;
+      // Smart casual / casual blazer — loafers and chelsea boots shine, sneakers work
+      if (shoe.style === 'loafer')            s += 4;
+      else if (shoe.style === 'chelsea-boot') s += 3;
+      else if (shoe.style === 'dress-shoe')   s += 2;
+      else if (shoe.style === 'sneaker')      s += 2;
     }
 
     // Colour pairing: warm shoes great with light/medium outers; dark shoes great with dark outers
@@ -144,15 +151,61 @@
   // SHOES vs PANTS ───────────────────────────────────────────────────────────
   function scoreShoesVsPants(shoe, pants) {
 
-    if (shoe.style === 'athletic') return X;                             // athletic shoes with any proper pants
+    if (shoe.style === 'athletic') return X;
     if (shoe.style === 'dress-shoe' && pants.fabric === 'utility') return X;
     if (formalOnly(shoe) && casualOnly(pants)) return X;
 
     let s = 0;
-    s += formalityScore(shoe, pants);
+
+    // ── Shoe style vs pants type — the primary differentiator ──────────────
+    const isDenim    = pants.fabric === 'denim';
+    const isChino    = pants.fabric === 'chino' || pants.fabric === 'cotton';
+    const isFormal   = pants.sub === 'Dress Trousers';
+    const isRelaxed  = pants.fabric === 'linen' || pants.fabric === 'utility';
+    const smartDenim = isDenim && hasSmartCasual(pants);
+    const casualDenim = isDenim && !hasSmartCasual(pants);
+
+    if (isFormal) {
+      // Dress trousers — formal shoes only
+      if (shoe.style === 'dress-shoe')    s += 5;
+      else if (shoe.style === 'chelsea-boot') s += 4;
+      else if (shoe.style === 'loafer')   s += 3;
+      else if (shoe.style === 'sneaker')  s += 0;
+    } else if (isChino) {
+      // Chinos — loafers and chelsea boots shine, dress shoes work, sneakers okay
+      if (shoe.style === 'loafer')        s += 5;
+      else if (shoe.style === 'chelsea-boot') s += 5;
+      else if (shoe.style === 'dress-shoe')   s += 3;
+      else if (shoe.style === 'sneaker')  s += 2;
+    } else if (smartDenim) {
+      // Smart casual jeans — loafers, chelsea boots and clean sneakers all work
+      if (shoe.style === 'loafer')        s += 5;
+      else if (shoe.style === 'chelsea-boot') s += 5;
+      else if (shoe.style === 'sneaker')  s += 4;
+      else if (shoe.style === 'dress-shoe')   s += 2;
+    } else if (casualDenim) {
+      // Casual jeans — sneakers and boots, dress shoes are overdressed
+      if (shoe.style === 'sneaker')       s += 5;
+      else if (shoe.style === 'chelsea-boot') s += 4;
+      else if (shoe.style === 'loafer')   s += 3;
+      else if (shoe.style === 'dress-shoe')   s += 1;
+    } else if (isRelaxed) {
+      // Linen/utility — relaxed shoes only
+      if (shoe.style === 'sneaker')       s += 4;
+      else if (shoe.style === 'loafer')   s += 4;
+      else if (shoe.style === 'chelsea-boot') s += 2;
+      else if (shoe.style === 'dress-shoe')   s += 1;
+    }
+
+    // ── Colour family — warm pants + warm shoes, cool pants + neutral/black ─
+    if (pants.colorFamily === 'warm' && shoe.colorFamily === 'warm') s += 3; // olive/khaki/beige + brown/tan
+    else if (pants.colorFamily === 'cool' && isNeutral(shoe.colorFamily)) s += 2;  // dark jeans + black
+    else if (pants.colorFamily === 'cool' && shoe.colorFamily === 'warm') s += 1;  // dark jeans + brown (works)
+    else if (isNeutral(pants.colorFamily) && isNeutral(shoe.colorFamily)) s += 2;  // black pants + black
+
+    // ── Tone contrast ───────────────────────────────────────────────────────
     s += toneScore(shoe, pants);
-    if (isNeutral(shoe.colorFamily)) s += 2;                            // black/neutral shoes safe with any pants
-    if (!isNeutral(shoe.colorFamily) && shoe.colorFamily === pants.colorFamily) s += 1;
+
     return s;
   }
 
