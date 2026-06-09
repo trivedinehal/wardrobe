@@ -88,7 +88,7 @@
   .preview-area {
     position: absolute;
     top: 90px; left: 0; right: 0;
-    bottom: 290px;
+    bottom: 330px;
     background: #fff;
     padding: 12px;
   }
@@ -173,12 +173,33 @@
   .bottom-panel {
     position: absolute;
     bottom: 0; left: 0; right: 0;
-    height: 290px;
+    height: 330px;
     background: #f2f2f7;
     border-top: 1px solid #e5e5ea;
     display: flex;
     flex-direction: column;
     z-index: 40;
+  }
+
+  /* Action button row */
+  .action-row {
+    display: flex;
+    gap: 8px;
+    padding: 8px 16px 6px;
+    flex-shrink: 0;
+  }
+  .action-btn {
+    flex: 1;
+    padding: 7px 4px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    border: none;
+    background: #e5e5ea;
+    color: #1c1c1e;
+    cursor: pointer;
+    text-align: center;
+    white-space: nowrap;
   }
 
 
@@ -410,6 +431,11 @@
 
 <!-- BOTTOM PANEL -->
 <div class="bottom-panel">
+  <div class="action-row">
+    <button class="action-btn">✨ Complete Outfit</button>
+    <button class="action-btn">🔀 Shuffle</button>
+    <button class="action-btn">✕ Clear</button>
+  </div>
   <div class="cat-tabs" id="catTabs">
     <button class="cat-tab active" onclick="setCategory(this,'tops')">Tops</button>
     <button class="cat-tab" onclick="setCategory(this,'pants')">Pants</button>
