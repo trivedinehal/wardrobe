@@ -36,14 +36,24 @@
   }
 
   .pill-label {
-    font-size: 10px;
-    font-weight: 600;
-    color: #aeaeb2;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
     min-width: 36px;
     flex-shrink: 0;
   }
+  .pill-spacer {
+    min-width: 36px;
+    flex-shrink: 0;
+  }
+  .header-home {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    text-decoration: none;
+    color: #8e8e93;
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+  .header-home:active { opacity: 0.5; }
 
   /* Scenario pills — dark active */
   .scenario-pill {
@@ -443,7 +453,7 @@
 <!-- HEADER — Scenario + Style -->
 <div class="header">
   <div class="pill-row">
-    <span class="pill-label">Where</span>
+    <a class="header-home pill-label" href="wardrobe.html">⌂</a>
     <button class="scenario-pill active" onclick="setScenario(this,'office')">Office</button>
     <button class="scenario-pill" onclick="setScenario(this,'dinner')">Dinner</button>
     <button class="scenario-pill" onclick="setScenario(this,'event')">Event</button>
@@ -451,7 +461,7 @@
     <button class="scenario-pill" onclick="setScenario(this,'travel')">Travel</button>
   </div>
   <div class="pill-row">
-    <span class="pill-label">Style</span>
+    <span class="pill-spacer"></span>
     <button class="style-pill" onclick="setStyle(this,'formal')">Formal</button>
     <button class="style-pill active" onclick="setStyle(this,'smart-casual')">Smart Casual</button>
     <button class="style-pill" onclick="setStyle(this,'casual')">Casual</button>
