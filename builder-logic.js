@@ -30,13 +30,32 @@ function buildCanvas() {
   };
 }
 
-// Outer categories to search based on style and locked slots
+// Outer categories to search — driven by outfit type, with locked items as constraints
 function outerCats() {
-  // If pants are locked, never pick a suit — would conflict with locked pants
-  if (lockedSlots['pants'] && selected['pants']) return ['blazers', 'jackets'];
+  // If outer is locked, stay within that locked item's category
+  if (lockedSlots['outer'] && selected['outer']) {
+    return [selected['outer'].cat];
+  }
+
+  // If pants are locked, check what type — suits conflict with jeans/chinos
+  if (lockedSlots['pants'] && selected['pants']) {
+    const pantsSub = selected['pants'].sub || '';
+    const pantsSubsub = selected['pants'].subsub || '';
+    const isCasualPants = pantsSub === 'Jeans' || pantsSub === 'Chinos' || pantsSubsub === 'Casual';
+    if (isCasualPants) return ['blazers', 'jackets'];
+  }
+
+  // Use outfit type as primary signal
+  const type = window.currentOutfitType;
+  if (type === 'suit')    return ['suits'];
+  if (type === 'no-outer') return [];
+  if (type && type.startsWith('blazer')) return ['blazers'];
+  if (type && type.startsWith('jacket')) return ['jackets'];
+
+  // Fallback to style if no outfit type set
   if (currentStyle === 'casual')  return ['blazers', 'jackets'];
   if (currentStyle === 'formal')  return ['suits', 'blazers'];
-  return ['blazers', 'suits']; // smart casual — blazers preferred
+  return ['blazers', 'suits'];
 }
 
 // ── Core scoring + picking ────────────────────────────────────────────────────
@@ -83,6 +102,7 @@ function bestForSlot(cats, excludeKey, random = false) {
 function fillBestForSlot(slot, cats, excludeKey, random = false) {
   if (lockedSlots[slot]) return;                                          // locked — skip
   if (slot === 'pants' && selected['outer']?.cat === 'suits') return;    // suit mode — no pants
+  if (slot === 'outer' && cats.length === 0) return;                     // no-outer mode — skip
 
   const best = bestForSlot(cats, excludeKey, random);
   if (!best) return;
@@ -180,10 +200,11 @@ function completeOutfit() {
   };
 
   // Check if canvas is fully filled (all non-locked slots have items)
-  // In suit mode, pants slot is hidden — exclude it from the full check
   const inSuitMode = selected['outer']?.cat === 'suits';
+  const noOuter = window.currentOutfitType === 'no-outer';
   const allFilled = slots.every(slot => {
     if (slot === 'pants' && inSuitMode) return true;
+    if (slot === 'outer' && noOuter) return true;
     return selected[slot] || lockedSlots[slot];
   });
 
