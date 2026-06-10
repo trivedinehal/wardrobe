@@ -46,7 +46,7 @@ function outerCats() {
   }
 
   // Use outfit type as primary signal
-  const type = window.currentOutfitType;
+  const type = currentOutfitType;
   if (type === 'suit')    return ['suits'];
   if (type === 'no-outer') return [];
   if (type && type.startsWith('blazer')) return ['blazers'];
@@ -62,7 +62,7 @@ function outerCats() {
 
 // Returns pants sub-category filter function based on outfit type
 function getPantsFilter() {
-  const type = window.currentOutfitType;
+  const type = currentOutfitType;
   if (!type) return null;
   if (type.includes('formal-trouser')) return item => item.sub === 'Dress Trousers';
   if (type.includes('chinos'))         return item => item.sub === 'Chinos';
@@ -213,7 +213,7 @@ function completeOutfit() {
 
   // Check if canvas is fully filled (all non-locked slots have items)
   const inSuitMode = selected['outer']?.cat === 'suits';
-  const noOuter = window.currentOutfitType === 'no-outer';
+  const noOuter = currentOutfitType === 'no-outer';
   const allFilled = slots.every(slot => {
     if (slot === 'pants' && inSuitMode) return true;
     if (slot === 'outer' && noOuter) return true;
