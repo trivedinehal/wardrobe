@@ -12,35 +12,43 @@
     color: #1c1c1e;
   }
 
-  /* Header */
+  /* ── HEADER ── */
   .header {
     background: #fff;
-    padding: 16px 24px;
+    padding: 14px 24px;
     border-bottom: 1px solid #e5e5ea;
     position: sticky;
     top: 0;
     z-index: 100;
-  }
-  .home-btn { font-size: 14px; color: #007aff; text-decoration: none; display: inline-block; margin-bottom: 4px; }
-  .header h1 { font-size: 20px; font-weight: 700; margin-bottom: 2px; }
-  .header p { font-size: 12px; color: #8e8e93; }
-
-  /* Content */
-  .content { padding: 20px 24px; }
-
-  /* Category group */
-  .cat-group { margin-bottom: 16px; }
-
-  .cat-header {
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 12px 16px;
-    background: #1c1c1e;
-    color: #fff;
-    border-radius: 12px 12px 0 0;
-    cursor: pointer;
-    user-select: none;
+    justify-content: space-between;
+  }
+  .home-btn { font-size: 14px; color: #007aff; text-decoration: none; display: inline-block; margin-bottom: 4px; }
+  .header-left h1 { font-size: 18px; font-weight: 700; }
+  .header-left p  { font-size: 11px; color: #8e8e93; }
+
+  .view-toggle {
+    display: flex; gap: 4px;
+    background: #f2f2f7; border-radius: 10px; padding: 3px;
+    flex-shrink: 0;
+  }
+  .view-btn {
+    padding: 6px 14px; border-radius: 8px;
+    font-size: 12px; font-weight: 600;
+    border: none; background: transparent; color: #8e8e93;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .view-btn.active { background: #fff; color: #1c1c1e; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+
+  /* ── LIST VIEW ── */
+  #list-view { padding: 20px 24px; }
+
+  .cat-group { margin-bottom: 16px; }
+  .cat-header {
+    display: flex; align-items: center; gap: 10px;
+    padding: 12px 16px; background: #1c1c1e; color: #fff;
+    border-radius: 12px 12px 0 0; cursor: pointer; user-select: none;
   }
   .cat-group.collapsed .cat-header { border-radius: 12px; }
   .cat-header-title { font-size: 14px; font-weight: 700; flex: 1; }
@@ -48,310 +56,372 @@
   .cat-header-arrow { font-size: 12px; transition: transform 0.2s; }
   .cat-group.collapsed .cat-header-arrow { transform: rotate(-90deg); }
 
-  /* Table */
-  .cat-table {
-    background: #fff;
+  .cat-table-wrap {
+    overflow-x: auto; background: #fff;
     border-radius: 0 0 12px 12px;
-    overflow-x: auto;
-    border: 1px solid #e5e5ea;
-    border-top: none;
+    border: 1px solid #e5e5ea; border-top: none;
   }
-  .cat-group.collapsed .cat-table { display: none; }
-  .cat-table-inner { min-width: 500px; }
+  .cat-group.collapsed .cat-table-wrap { display: none; }
 
-  .table-head {
-    display: grid;
-    grid-template-columns: 80px 1fr 120px 100px 100px;
-    padding: 8px 12px;
-    background: #f8f8f8;
+  table { width: 100%; border-collapse: collapse; font-size: 12px; min-width: 500px; }
+  thead th {
+    padding: 8px 12px; background: #f8f8f8;
     border-bottom: 1px solid #e5e5ea;
-  }
-  .table-head span {
     font-size: 10px; font-weight: 700;
-    text-transform: uppercase; letter-spacing: 0.6px; color: #8e8e93;
+    text-transform: uppercase; letter-spacing: 0.6px;
+    color: #8e8e93; text-align: left; white-space: nowrap;
   }
+  tbody tr { border-bottom: 1px solid #f2f2f7; cursor: pointer; }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: #f5f5f7; }
+  td { padding: 10px 12px; vertical-align: middle; }
 
-  .item-row {
-    display: grid;
-    grid-template-columns: 80px 1fr 120px 100px 100px;
-    align-items: center;
-    padding: 10px 12px;
-    border-bottom: 1px solid #f2f2f7;
-    gap: 8px;
-    cursor: pointer;
-  }
-  .item-row:last-child { border-bottom: none; }
-  .item-row:hover { background: #fafafa; }
-  .item-row:active { background: #f0f0f5; }
+  .item-img-sm { width: 60px; height: 60px; object-fit: contain; border-radius: 8px; background: #f2f2f7; }
+  .item-swatch-sm { width: 60px; height: 40px; border-radius: 8px; border: 1px solid #e5e5ea; }
+  .item-name { font-weight: 600; font-size: 12px; }
+  .item-sub  { color: #636366; font-size: 11px; }
+  .missing   { color: #ff3b30; font-size: 11px; font-style: italic; }
 
-  .item-img {
-    width: 70px; height: 70px;
-    object-fit: contain; border-radius: 8px; background: #f2f2f7;
-  }
-  .item-swatch {
-    width: 70px; height: 40px;
-    border-radius: 8px; border: 1px solid #e5e5ea;
-  }
-  .item-name { font-size: 13px; font-weight: 500; color: #1c1c1e; line-height: 1.3; }
-  .item-sub, .item-subsub { font-size: 12px; color: #3a3a3c; }
-  .dash { color: #c7c7cc; font-size: 12px; }
-  .missing { color: #ff3b30; font-size: 12px; font-style: italic; }
+  /* ── DETAIL VIEW ── */
+  #detail-view { display: none; }
 
-  /* ── Detail overlay ─────────────────────────────────────── */
-  #detail-overlay {
-    display: none;
-    position: fixed; inset: 0;
-    background: #f2f2f7;
-    z-index: 200;
-    flex-direction: column;
-    overflow: hidden;
+  .detail-top {
+    background: #fff; border-bottom: 1px solid #e5e5ea;
+    padding: 12px 24px; display: flex; align-items: center; gap: 12px;
   }
-  #detail-overlay.open { display: flex; }
-
-  .detail-header {
-    background: #fff;
-    border-bottom: 1px solid #e5e5ea;
-    padding: 14px 16px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    flex-shrink: 0;
+  .cat-select {
+    padding: 7px 12px; border-radius: 10px;
+    border: 1.5px solid #e5e5ea; font-size: 13px; font-weight: 600;
+    background: #fff; color: #1c1c1e; cursor: pointer;
   }
-  .detail-back {
-    font-size: 14px; color: #007aff; cursor: pointer;
-    background: none; border: none; padding: 0; flex-shrink: 0;
-  }
-  .detail-header-title { font-size: 15px; font-weight: 600; flex: 1; }
-  .detail-nav { display: flex; gap: 8px; flex-shrink: 0; }
-  .detail-nav button {
-    background: #f2f2f7; border: none; border-radius: 8px;
-    width: 32px; height: 32px; font-size: 16px; cursor: pointer; color: #007aff;
-  }
-  .detail-nav button:disabled { color: #c7c7cc; cursor: default; }
-  .detail-counter { font-size: 12px; color: #8e8e93; align-self: center; }
+  .item-counter { font-size: 12px; color: #8e8e93; margin-left: auto; }
 
   .detail-body {
-    flex: 1;
-    overflow-y: auto;
-    padding: 20px 16px;
     display: flex;
-    flex-direction: column;
-    gap: 16px;
+    height: calc(100vh - 110px);
   }
 
-  .detail-image-wrap {
-    background: #fff;
-    border-radius: 16px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 24px;
-    min-height: 240px;
+  .detail-img-panel {
+    flex: 0 0 45%; background: #fff;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 30px; border-right: 1px solid #e5e5ea;
   }
-  .detail-image-wrap img {
-    max-width: 100%; max-height: 280px;
-    object-fit: contain;
-  }
-  .detail-swatch {
-    width: 100%; height: 120px;
-    border-radius: 12px;
-    border: 1px solid #e5e5ea;
-  }
+  .detail-img { max-width: 100%; max-height: calc(100vh - 260px); object-fit: contain; border-radius: 12px; }
+  .detail-swatch { width: 160px; height: 160px; border-radius: 20px; border: 1px solid #e5e5ea; }
+  .detail-item-name { margin-top: 16px; font-size: 16px; font-weight: 700; text-align: center; }
+  .detail-item-sub  { font-size: 12px; color: #8e8e93; margin-top: 4px; text-align: center; }
 
-  .detail-card {
-    background: #fff;
-    border-radius: 16px;
-    overflow: hidden;
+  .nav-arrows { display: flex; gap: 12px; margin-top: 20px; }
+  .nav-btn {
+    width: 44px; height: 44px; border-radius: 50%;
+    background: #1c1c1e; color: #fff; font-size: 18px;
+    border: none; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
   }
-  .detail-row {
-    display: flex;
-    align-items: center;
-    padding: 12px 16px;
-    border-bottom: 1px solid #f2f2f7;
-    gap: 12px;
-  }
-  .detail-row:last-child { border-bottom: none; }
-  .detail-label {
-    font-size: 12px; color: #8e8e93; min-width: 90px; flex-shrink: 0;
-  }
-  .detail-value { font-size: 13px; color: #1c1c1e; font-weight: 500; }
-  .detail-value.missing { color: #ff3b30; font-style: italic; font-weight: 400; }
+  .nav-btn:disabled { background: #e5e5ea; color: #c7c7cc; cursor: default; }
+  .nav-btn:not(:disabled):hover { background: #3a3a3c; }
 
-  .tag {
-    display: inline-block; font-size: 11px; font-weight: 600;
-    padding: 3px 9px; border-radius: 20px; margin: 2px 2px 2px 0;
-    background: #f2f2f7; color: #3a3a3c;
+  .detail-fields-panel {
+    flex: 1; overflow-y: auto; padding: 24px; background: #f2f2f7;
+  }
+  .fields-card {
+    background: #fff; border-radius: 12px; overflow: hidden; margin-bottom: 12px;
+  }
+  .field-row {
+    display: flex; align-items: center;
+    padding: 12px 16px; border-bottom: 1px solid #f2f2f7; gap: 12px;
+  }
+  .field-row:last-child { border-bottom: none; }
+  .field-label { font-size: 11px; color: #8e8e93; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; min-width: 80px; flex-shrink: 0; }
+  .field-value { font-size: 13px; color: #1c1c1e; font-weight: 500; }
+  .field-value.missing { color: #ff3b30; font-style: italic; font-weight: 400; }
+
+  @media (max-width: 600px) {
+    .detail-body { flex-direction: column; height: auto; }
+    .detail-img-panel { flex: none; width: 100%; border-right: none; border-bottom: 1px solid #e5e5ea; padding: 20px; }
+    .detail-img { max-height: 220px; }
+    .detail-fields-panel { overflow-y: visible; padding: 16px; }
   }
 </style>
 </head>
 <body>
 
 <div class="header">
-  <a class="home-btn" href="wardrobe.html">‹ Home</a>
-  <h1>Catalog View</h1>
-  <p>Tap any item to see details</p>
+  <div class="header-left">
+    <a class="home-btn" href="wardrobe.html">‹ Home</a>
+    <h1>Catalog View</h1>
+    <p>Browse wardrobe items by category</p>
+  </div>
+  <div class="view-toggle">
+    <button class="view-btn active" id="btn-list" onclick="setView('list')">☰ List</button>
+    <button class="view-btn" id="btn-detail" onclick="setView('detail')">⊞ Detail</button>
+  </div>
 </div>
 
-<div class="content" id="content"></div>
+<!-- LIST VIEW -->
+<div id="list-view"></div>
 
-<!-- Detail overlay -->
-<div id="detail-overlay">
-  <div class="detail-header">
-    <button class="detail-back" onclick="closeDetail()">‹ Back</button>
-    <div class="detail-header-title" id="detail-title"></div>
-    <div class="detail-counter" id="detail-counter"></div>
-    <div class="detail-nav">
-      <button id="btn-prev" onclick="navDetail(-1)">‹</button>
-      <button id="btn-next" onclick="navDetail(1)">›</button>
-    </div>
+<!-- DETAIL VIEW -->
+<div id="detail-view">
+  <div class="detail-top">
+    <select class="cat-select" id="catSelect" onchange="onCatChange()"></select>
+    <select class="cat-select" id="subSelect" onchange="onSubChange()" style="display:none"></select>
+    <select class="cat-select" id="subsubSelect" onchange="onSubSubChange()" style="display:none"></select>
+    <span class="item-counter" id="itemCounter"></span>
   </div>
-  <div class="detail-body" id="detail-body"></div>
+  <div class="detail-body">
+    <div class="detail-img-panel">
+      <div id="detailImgWrap"></div>
+      <div class="detail-item-name" id="detailName"></div>
+      <div class="detail-item-sub"  id="detailSub"></div>
+      <div class="nav-arrows">
+        <button class="nav-btn" id="prevBtn" onclick="navigate(-1)">‹</button>
+        <button class="nav-btn" id="nextBtn" onclick="navigate(1)">›</button>
+      </div>
+    </div>
+    <div class="detail-fields-panel" id="detailFields"></div>
+  </div>
 </div>
 
 <script src="catalog.js"></script>
 <script>
 const CATALOG_BASE = "catalog";
 
-// Flat list of all items for detail navigation, built per category
-let detailItems = [];   // [{ item, cat }]
-let detailIndex = 0;
+// ── Column definition — single source of truth for both list and detail ──────
+// Each column: { key, label, render(item) → string }
+// To add a new column, add one entry here — it appears in both views automatically.
 
-function buildPage() {
-  const content = document.getElementById('content');
+const COLUMNS = [
+  {
+    key: 'image',
+    label: 'Image',
+    listOnly: true, // image shown in list as thumbnail, in detail as large image — handled separately
+  },
+  {
+    key: 'name',
+    label: 'Name',
+    listOnly: true, // shown as header title in detail view
+    render: item => `<span class="item-name">${item.name}</span>`,
+  },
+  {
+    key: 'brand',
+    label: 'Brand',
+    render: item => item.brand
+      ? item.brand
+      : '<span class="missing">missing</span>',
+    detailMissing: item => !item.brand,
+  },
+  {
+    key: 'sub',
+    label: 'Sub',
+    render: item => item.sub || '—',
+  },
+  {
+    key: 'subsub',
+    label: 'Sub-Sub',
+    render: item => item.subsub || '—',
+  },
+];
+
+// Columns shown in list table (exclude listOnly image col which is rendered manually)
+const listCols  = COLUMNS.filter(c => c.key !== 'image');
+// Columns shown in detail panel (exclude listOnly cols)
+const detailCols = COLUMNS.filter(c => !c.listOnly);
+
+// ── State ────────────────────────────────────────────────────────────────────
+let currentView      = 'list';
+let currentCatKey    = CAT_ORDER[0];
+let currentSub       = 'All';
+let currentSubSub    = 'All';
+let currentItemIndex = 0;
+
+function filteredItems() {
+  return (catalog[currentCatKey] || []).filter(item => {
+    if (currentSub !== 'All' && item.sub !== currentSub) return false;
+    if (currentSubSub !== 'All' && item.subsub !== currentSubSub) return false;
+    return true;
+  });
+}
+
+// ── List view ─────────────────────────────────────────────────────────────────
+function buildListView() {
+  const container = document.getElementById('list-view');
 
   for (const key of CAT_ORDER) {
-    const items = catalog[key];
-    const meta = CAT_META[key];
+    const items = catalog[key] || [];
+    const meta  = CAT_META[key];
     if (!meta) continue;
 
     const group = document.createElement('div');
     group.className = 'cat-group collapsed';
+
+    const headerCols = listCols.map(c => `<th>${c.label}</th>`).join('');
+
     group.innerHTML = `
-      <div class="cat-header" onclick="toggle(this)">
+      <div class="cat-header" onclick="this.parentElement.classList.toggle('collapsed')">
         <span>${meta.icon}</span>
         <span class="cat-header-title">${meta.label}</span>
-        <span class="cat-header-count">${(items||[]).length} items</span>
+        <span class="cat-header-count">${items.length} items</span>
         <span class="cat-header-arrow">▼</span>
       </div>
-      <div class="cat-table">
-        <div class="cat-table-inner">
-          <div class="table-head">
-            <span>Image</span><span>Name</span><span>Brand</span><span>Sub</span><span>Sub-Sub</span>
-          </div>
-          <div class="table-body" id="body-${key}"></div>
-        </div>
+      <div class="cat-table-wrap">
+        <table>
+          <thead><tr><th>Image</th>${headerCols}</tr></thead>
+          <tbody id="tbody-${key}"></tbody>
+        </table>
       </div>
     `;
-    content.appendChild(group);
+    container.appendChild(group);
 
-    const body = group.querySelector(`#body-${key}`);
-    (items || []).forEach((item, i) => {
-      const globalIdx = detailItems.length;
-      detailItems.push({ item, cat: key });
+    const tbody = group.querySelector(`#tbody-${key}`);
+    items.forEach((item, i) => {
+      const tr = document.createElement('tr');
+      tr.onclick = () => { currentCatKey = key; currentItemIndex = i; setView('detail'); };
 
-      const row = document.createElement('div');
-      row.className = 'item-row';
-      row.onclick = () => openDetail(globalIdx);
+      const imgCell = item.swatch
+        ? `<td><div class="item-swatch-sm" style="background:${item.color};border:1px solid ${item.border||'#e5e5ea'};"></div></td>`
+        : `<td><img class="item-img-sm" src="${CATALOG_BASE}/${key}/${item.file}" alt="${item.name}" loading="lazy"></td>`;
 
-      let imgHTML;
-      if (item.swatch) {
-        imgHTML = `<div class="item-swatch" style="background:${item.color}; border:1px solid ${item.border || '#e5e5ea'};"></div>`;
-      } else {
-        imgHTML = `<img class="item-img" src="${CATALOG_BASE}/${key}/${item.file}" alt="${item.name}" loading="lazy">`;
-      }
-
-      const brand = item.brand
-        ? `<div class="item-sub">${item.brand}</div>`
-        : `<div class="missing">missing</div>`;
-
-      row.innerHTML = `
-        ${imgHTML}
-        <div class="item-name">${item.name}</div>
-        ${brand}
-        <div class="item-sub">${item.sub || '—'}</div>
-        <div class="item-subsub">${item.subsub || '—'}</div>
-      `;
-      body.appendChild(row);
+      const dataCells = listCols.map(c => `<td>${c.render ? c.render(item) : (item[c.key] || '—')}</td>`).join('');
+      tr.innerHTML = imgCell + dataCells;
+      tbody.appendChild(tr);
     });
   }
 }
 
-function toggle(header) {
-  header.parentElement.classList.toggle('collapsed');
+// ── Detail view ───────────────────────────────────────────────────────────────
+function buildCatSelect() {
+  const sel = document.getElementById('catSelect');
+  sel.innerHTML = '';
+  CAT_ORDER.forEach(key => {
+    const meta  = CAT_META[key];
+    const count = (catalog[key] || []).length;
+    const opt   = document.createElement('option');
+    opt.value       = key;
+    opt.textContent = `${meta.icon} ${meta.label} (${count})`;
+    sel.appendChild(opt);
+  });
 }
 
-function openDetail(idx) {
-  detailIndex = idx;
-  renderDetail();
-  document.getElementById('detail-overlay').classList.add('open');
-  document.body.style.overflow = 'hidden';
+function buildSubSelect() {
+  const subs = SUB_CATS[currentCatKey] || [];
+  const sel  = document.getElementById('subSelect');
+  if (subs.length <= 1) { sel.style.display = 'none'; return; }
+  sel.style.display = '';
+  sel.innerHTML = '';
+  subs.forEach(s => {
+    const opt = document.createElement('option');
+    opt.value = s; opt.textContent = s;
+    sel.appendChild(opt);
+  });
+  sel.value = currentSub;
+  buildSubSubSelect();
 }
 
-function closeDetail() {
-  document.getElementById('detail-overlay').classList.remove('open');
-  document.body.style.overflow = '';
+function buildSubSubSelect() {
+  const subsubs = (SUBSUB_CATS[currentCatKey] || {})[currentSub] || [];
+  const sel = document.getElementById('subsubSelect');
+  if (subsubs.length === 0) { sel.style.display = 'none'; return; }
+  sel.style.display = '';
+  sel.innerHTML = '';
+  subsubs.forEach(s => {
+    const opt = document.createElement('option');
+    opt.value = s; opt.textContent = s;
+    sel.appendChild(opt);
+  });
+  sel.value = currentSubSub;
 }
 
-function navDetail(dir) {
-  const newIdx = detailIndex + dir;
-  if (newIdx < 0 || newIdx >= detailItems.length) return;
-  detailIndex = newIdx;
-  renderDetail();
+function onCatChange() {
+  currentCatKey    = document.getElementById('catSelect').value;
+  currentSub       = 'All';
+  currentSubSub    = 'All';
+  currentItemIndex = 0;
+  buildSubSelect();
+  renderDetailItem();
 }
 
-function renderDetail() {
-  const { item, cat } = detailItems[detailIndex];
-  const meta = CAT_META[cat];
+function onSubChange() {
+  currentSub       = document.getElementById('subSelect').value;
+  currentSubSub    = 'All';
+  currentItemIndex = 0;
+  buildSubSubSelect();
+  renderDetailItem();
+}
 
-  document.getElementById('detail-title').textContent = item.name;
-  document.getElementById('detail-counter').textContent = `${detailIndex + 1} / ${detailItems.length}`;
-  document.getElementById('btn-prev').disabled = detailIndex === 0;
-  document.getElementById('btn-next').disabled = detailIndex === detailItems.length - 1;
+function onSubSubChange() {
+  currentSubSub    = document.getElementById('subsubSelect').value;
+  currentItemIndex = 0;
+  renderDetailItem();
+}
 
-  // Image / swatch
-  let imageHTML;
+function loadCategory() { onCatChange(); }
+
+function navigate(dir) {
+  const items  = filteredItems();
+  const newIdx = currentItemIndex + dir;
+  if (newIdx < 0 || newIdx >= items.length) return;
+  currentItemIndex = newIdx;
+  renderDetailItem();
+}
+
+function renderDetailItem() {
+  const items = filteredItems();
+  const item  = items[currentItemIndex];
+  if (!item) return;
+
+  document.getElementById('catSelect').value = currentCatKey;
+  document.getElementById('itemCounter').textContent = `${currentItemIndex + 1} of ${items.length}`;
+  document.getElementById('prevBtn').disabled = currentItemIndex === 0;
+  document.getElementById('nextBtn').disabled = currentItemIndex === items.length - 1;
+
+  // Image
+  const imgWrap = document.getElementById('detailImgWrap');
   if (item.swatch) {
-    imageHTML = `<div class="detail-swatch" style="background:${item.color}; border:1px solid ${item.border || '#e5e5ea'};"></div>`;
+    imgWrap.innerHTML = `<div class="detail-swatch" style="background:${item.color};border:1px solid ${item.border||'#e5e5ea'};"></div>`;
   } else {
-    imageHTML = `<img src="${CATALOG_BASE}/${cat}/${item.file}" alt="${item.name}">`;
+    imgWrap.innerHTML = `<img class="detail-img" src="${CATALOG_BASE}/${currentCatKey}/${item.file}" alt="${item.name}">`;
   }
 
-  // Core fields
-  function row(label, value, isMissing) {
-    const cls = (!value || isMissing) ? 'detail-value missing' : 'detail-value';
-    const display = value || 'missing';
-    return `<div class="detail-row"><div class="detail-label">${label}</div><div class="${cls}">${display}</div></div>`;
-  }
+  // Name + sub path
+  document.getElementById('detailName').textContent = item.name;
+  const sub = [item.sub, item.subsub].filter(Boolean).join(' › ');
+  document.getElementById('detailSub').textContent = sub;
 
-  const catPath = [meta.label, item.sub, item.subsub].filter(Boolean).join(' › ');
-
-  const body = document.getElementById('detail-body');
-  body.innerHTML = `
-    <div class="detail-image-wrap">${imageHTML}</div>
-    <div class="detail-card">
-      ${row('Category', catPath)}
-      ${row('Brand', item.brand, !item.brand)}
-      ${row('Colour', item.color)}
-      ${row('Tone', item.tone)}
-      ${row('Season', item.season)}
-    </div>
-  `;
-
-  // Scroll to top on navigation
-  body.scrollTop = 0;
+  // Fields — driven by detailCols definition
+  const panel = document.getElementById('detailFields');
+  const rows = detailCols.map(col => {
+    const raw = col.render ? col.render(item) : (item[col.key] || '');
+    const isMissing = col.detailMissing ? col.detailMissing(item) : false;
+    const valClass = isMissing ? 'field-value missing' : 'field-value';
+    return `
+      <div class="field-row">
+        <div class="field-label">${col.label}</div>
+        <div class="${valClass}">${raw}</div>
+      </div>
+    `;
+  }).join('');
+  panel.innerHTML = `<div class="fields-card">${rows}</div>`;
 }
 
-buildPage();
+// ── View switching ────────────────────────────────────────────────────────────
+function setView(view) {
+  currentView = view;
+  const isDetail = view === 'detail';
 
-// Swipe support on detail overlay
-let touchStartX = 0;
-document.getElementById('detail-overlay').addEventListener('touchstart', e => {
-  touchStartX = e.touches[0].clientX;
-}, { passive: true });
-document.getElementById('detail-overlay').addEventListener('touchend', e => {
-  const dx = e.changedTouches[0].clientX - touchStartX;
-  if (Math.abs(dx) > 50) navDetail(dx < 0 ? 1 : -1);
-}, { passive: true });
+  document.getElementById('list-view').style.display   = isDetail ? 'none' : 'block';
+  document.getElementById('detail-view').style.display = isDetail ? 'block' : 'none';
+  document.getElementById('btn-list').classList.toggle('active', !isDetail);
+  document.getElementById('btn-detail').classList.toggle('active', isDetail);
+
+  if (isDetail) renderDetailItem();
+}
+
+// ── Init ─────────────────────────────────────────────────────────────────────
+buildListView();
+buildCatSelect();
+buildSubSelect();
 </script>
 </body>
 </html>
