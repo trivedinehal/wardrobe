@@ -686,12 +686,43 @@ function renderOutfitTypes(style) {
     `<button class="outfit-type-pill ${i === 0 ? 'active' : ''}" onclick="setOutfitType(this,'${t.key}')">${t.label}</button>`
   ).join('');
   currentOutfitType = types[0]?.key || null;
+  if (currentOutfitType) updateSlotLabels(currentOutfitType);
+  if (currentOutfitType) updateCanvasMode(currentOutfitType);
 }
 
 function setOutfitType(el, key) {
   document.querySelectorAll('.outfit-type-pill').forEach(p => p.classList.remove('active'));
   el.classList.add('active');
   currentOutfitType = key;
+  updateSlotLabels(key);
+  updateCanvasMode(key);
+}
+
+function updateCanvasMode(key) {
+  const canvas = document.getElementById('outfitCanvas');
+  if (key === 'suit') {
+    canvas.classList.add('suit-mode');
+  } else {
+    canvas.classList.remove('suit-mode');
+  }
+}
+
+function updateSlotLabels(key) {
+  const outerLabel = key === 'no-outer' ? 'No Outer'
+                   : key.startsWith('suit')    ? 'Suit'
+                   : key.startsWith('blazer')  ? 'Blazer'
+                   : key.startsWith('jacket')  ? 'Jacket'
+                   : 'Outer';
+
+  const pantsLabel = key.includes('formal-trouser') ? 'Trousers'
+                   : key.includes('chinos')          ? 'Chinos'
+                   : key.includes('jeans')           ? 'Jeans'
+                   : 'Pants';
+
+  const outerEl = document.querySelector('#slot-outer .empty-label');
+  const pantsEl = document.querySelector('#slot-pants .empty-label');
+  if (outerEl) outerEl.textContent = outerLabel;
+  if (pantsEl) pantsEl.textContent = pantsLabel;
 }
 
 function setCategory(el, cat) {
