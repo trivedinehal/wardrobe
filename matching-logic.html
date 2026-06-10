@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Matching Logic</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: #f2f2f7;
+  color: #1c1c1e;
+  padding-bottom: 60px;
+}
+
+header {
+  background: #1c1c1e;
+  color: white;
+  padding: 14px 20px;
+  position: sticky; top: 0; z-index: 10;
+  display: flex; align-items: center; gap: 14px;
+}
+header a { color: #888; text-decoration: none; font-size: 14px; }
+header h1 { font-size: 17px; font-weight: 600; }
+header p  { font-size: 12px; color: #888; margin-top: 2px; }
+
+.page { max-width: 760px; margin: 0 auto; padding: 24px 16px 0; }
+
+.section {
+  background: white;
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+}
+.section-title {
+  font-size: 11px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.7px; color: #8e8e93; margin-bottom: 16px;
+}
+
+/* Score bar */
+.score-bar-wrap { position: relative; height: 36px; border-radius: 10px; overflow: hidden; display: flex; margin-bottom: 10px; }
+.score-zone { display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: white; }
+.score-labels { display: flex; font-size: 11px; color: #8e8e93; justify-content: space-between; padding: 0 2px; }
+
+/* Pill tags */
+.tag {
+  display: inline-block; font-size: 11px; font-weight: 600;
+  padding: 3px 9px; border-radius: 20px; margin: 3px 3px 3px 0;
+}
+.tag-blue   { background: #e8f0fe; color: #007aff; }
+.tag-orange { background: #fff3e0; color: #e07000; }
+.tag-red    { background: #ffeaea; color: #d00; }
+.tag-green  { background: #e6f9ed; color: #1a9e3a; }
+.tag-grey   { background: #f2f2f7; color: #636366; }
+
+/* Two column grid */
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+@media (max-width: 520px) { .two-col { grid-template-columns: 1fr; } }
+
+/* Stat card */
+.stat-card {
+  background: #f7f7f9; border-radius: 12px; padding: 14px 16px;
+}
+.stat-label { font-size: 11px; color: #8e8e93; margin-bottom: 4px; }
+.stat-value { font-size: 22px; font-weight: 700; color: #1c1c1e; }
+.stat-sub   { font-size: 11px; color: #8e8e93; margin-top: 2px; }
+
+/* Exclusion list */
+.excl-group { margin-bottom: 14px; }
+.excl-group:last-child { margin-bottom: 0; }
+.excl-pair-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #8e8e93; margin-bottom: 6px; }
+.excl-item {
+  display: flex; align-items: flex-start; gap: 10px;
+  background: #ffeaea; border-radius: 10px; padding: 10px 12px; margin-bottom: 6px;
+}
+.excl-item:last-child { margin-bottom: 0; }
+.excl-x { font-size: 14px; font-weight: 800; color: #d00; flex-shrink: 0; line-height: 1.4; }
+.excl-reason { font-size: 12px; color: #444; line-height: 1.45; }
+
+/* Bonus table */
+.bonus-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.bonus-table th {
+  background: #f2f2f7; text-align: left; padding: 8px 10px;
+  font-size: 10px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.5px; color: #8e8e93;
+}
+.bonus-table th:first-child { border-radius: 8px 0 0 0; }
+.bonus-table th:last-child  { border-radius: 0 8px 0 0; }
+.bonus-table td { padding: 8px 10px; border-bottom: 1px solid #f2f2f7; color: #1c1c1e; }
+.bonus-table tr:last-child td { border-bottom: none; }
+.bonus-table td:not(:first-child) { text-align: center; }
+.bonus-table th:not(:first-child) { text-align: center; }
+.pts-high { color: #1a9e3a; font-weight: 700; }
+.pts-mid  { color: #e07000; font-weight: 600; }
+.pts-low  { color: #8e8e93; }
+.pts-x    { color: #d00; font-weight: 700; }
+
+/* Formality matrix */
+.fm-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.fm-table th, .fm-table td { padding: 8px 10px; border-bottom: 1px solid #f2f2f7; }
+.fm-table th { background: #f2f2f7; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #8e8e93; text-align: left; }
+.fm-table td:not(:first-child) { text-align: center; }
+.fm-table tr:last-child td { border-bottom: none; }
+
+/* Style pill section */
+.pill-demo { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 4px; }
+.pill-demo-item { background: #f7f7f9; border-radius: 12px; padding: 12px 16px; flex: 1; min-width: 140px; }
+.pill-demo-val  { font-size: 22px; font-weight: 700; }
+.pill-demo-desc { font-size: 11px; color: #8e8e93; margin-top: 3px; line-height: 1.4; }
+
+.divider { border: none; border-top: 1px solid #f0f0f0; margin: 14px 0; }
+
+.note { font-size: 12px; color: #8e8e93; line-height: 1.5; margin-top: 10px; }
+
+.stars { color: #f5a623; letter-spacing: 1px; }
+</style>
+</head>
+<body>
+
+<header>
+  <a href="wardrobe.html">‹ Home</a>
+  <div>
+    <h1>Matching Logic</h1>
+    <p>How the scoring engine rates outfits</p>
+  </div>
+</header>
+
+<div class="page" id="page"></div>
+
+<script src="matching.js?v=2"></script>
+<script>
+const cfg = window.MATCH_CONFIG;
+const page = document.getElementById('page');
+
+function section(title, html) {
+  return `<div class="section"><div class="section-title">${title}</div>${html}</div>`;
+}
+
+function ptsClass(v) {
+  if (v === null || v === undefined) return 'pts-x';
+  if (v >= 4) return 'pts-high';
+  if (v >= 2) return 'pts-mid';
+  return 'pts-low';
+}
+
+// ── 1. How it works ──────────────────────────────────────────────────────────
+function buildOverview() {
+  return section('How It Works', `
+    <p style="font-size:13px;line-height:1.6;color:#444;">
+      Each item in the carousel is scored against what's already on the canvas.
+      The engine compares items <strong>pairwise</strong> — top vs outer, shoes vs pants, belt vs shoes, etc.
+      Each pair produces a numeric score. All pair scores are averaged, then the
+      <strong>Style pill modifier</strong> is applied. The final number maps to a star rating.
+    </p>
+    <hr class="divider">
+    <p style="font-size:12px;color:#8e8e93;line-height:1.5;">
+      More items on canvas → more pairs → more refined score. A shirt scored only against jeans
+      will get a rough estimate. The same shirt scored against jeans + blazer + shoes gets a precise rating.
+    </p>
+  `);
+}
+
+// ── 2. Star thresholds ───────────────────────────────────────────────────────
+function buildThresholds() {
+  const t = cfg.thresholds;
+  const zones = [
+    { label: '✕',   from: 0,    to: t.one,   color: '#ff3b30', flex: t.one },
+    { label: '⭐',   from: t.one, to: t.two,   color: '#d4a800', flex: t.two - t.one },
+    { label: '⭐⭐',  from: t.two, to: t.three, color: '#f5a623', flex: t.three - t.two },
+    { label: '⭐⭐⭐', from: t.three, to: 13,   color: '#34c759', flex: 5 },
+  ];
+  const total = zones.reduce((a, z) => a + z.flex, 0);
+  const bars = zones.map(z =>
+    `<div class="score-zone" style="flex:${z.flex};background:${z.color};">${z.label}</div>`
+  ).join('');
+  const labels = zones.map(z => `<span>${z.from}+</span>`).join('');
+  return section('Star Thresholds', `
+    <div class="score-bar-wrap">${bars}</div>
+    <div class="score-labels">${labels}<span>→</span></div>
+    <hr class="divider">
+    <div class="two-col" style="margin-top:4px;">
+      <div class="stat-card"><div class="stat-label">⭐⭐⭐ Three stars</div><div class="stat-value">${t.three}+</div><div class="stat-sub">Excellent pairing</div></div>
+      <div class="stat-card"><div class="stat-label">⭐⭐ Two stars</div><div class="stat-value">${t.two}–${t.three - 1}</div><div class="stat-sub">Good pairing</div></div>
+      <div class="stat-card"><div class="stat-label">⭐ One star</div><div class="stat-value">${t.one}–${t.two - 1}</div><div class="stat-sub">Acceptable</div></div>
+      <div class="stat-card"><div class="stat-label">No stars / ✕</div><div class="stat-value">0–${t.one - 1} / neg</div><div class="stat-sub">Poor or excluded</div></div>
+    </div>
+  `);
+}
+
+// ── 3. Style pill ────────────────────────────────────────────────────────────
+function buildStylePill() {
+  return section('Style Pill Modifier', `
+    <p class="note" style="margin-top:0;margin-bottom:12px;">Applied after averaging all pairwise scores. Rewards items that match the selected style formality, nudges down those that don't.</p>
+    <div class="pill-demo">
+      <div class="pill-demo-item">
+        <div class="pill-demo-val" style="color:#34c759;">+${cfg.stylePill.boost}</div>
+        <div class="pill-demo-desc">Item formality <strong>matches</strong> selected style</div>
+      </div>
+      <div class="pill-demo-item">
+        <div class="pill-demo-val" style="color:#ff3b30;">−${cfg.stylePill.penalty}</div>
+        <div class="pill-demo-desc">Item formality <strong>doesn't match</strong> selected style</div>
+      </div>
+    </div>
+    <hr class="divider">
+    <p class="note">Formal + Semi-Formal → targets "Formal" items &nbsp;|&nbsp; Smart Casual → targets "Smart Casual" &nbsp;|&nbsp; Casual → targets "Casual"</p>
+  `);
+}
+
+// ── 4. Base scoring ───────────────────────────────────────────────────────────
+function buildBaseScoring() {
+  const fm = cfg.formalityMatrix;
+  const rows = [
+    ['Formal',       'Formal',       fm['Formal+Formal']],
+    ['Formal',       'Smart Casual', fm['Formal+Smart Casual']],
+    ['Smart Casual', 'Smart Casual', fm['Smart Casual+Smart Casual']],
+    ['Smart Casual', 'Casual',       fm['Smart Casual+Casual']],
+    ['Casual',       'Casual',       fm['Casual+Casual']],
+    ['Formal',       'Casual',       fm['default']],
+  ];
+  const fmRows = rows.map(([a, b, pts]) =>
+    `<tr><td>${a}</td><td>${b}</td><td class="${ptsClass(pts)}">${pts} pts</td></tr>`
+  ).join('');
+
+  return section('Base Scoring Components', `
+    <p style="font-size:12px;color:#444;line-height:1.5;margin-bottom:14px;">
+      Three signals are used in most pairwise comparisons. Scores are added together per pair.
+    </p>
+    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px;">
+      <div class="stat-card">
+        <div class="stat-label">Formality Alignment &nbsp;<span class="tag tag-orange">0–4 pts</span></div>
+        <div style="font-size:12px;color:#444;margin-top:6px;line-height:1.5;">How well the formality levels of two items match. Formal+Formal scores highest; Formal+Casual scores lowest.</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Tone Contrast &nbsp;<span class="tag tag-blue">1–3 pts</span></div>
+        <div style="font-size:12px;color:#444;margin-top:6px;line-height:1.5;">Contrast is good in menswear. 2-step difference (light + dark) scores 3. Same tone scores 1.</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Colour Harmony &nbsp;<span class="tag tag-green">0–3 pts</span></div>
+        <div style="font-size:12px;color:#444;margin-top:6px;line-height:1.5;">Neutral items (black, white, grey, navy) are universally safe (+2). Same colour family = harmonious (+2).</div>
+      </div>
+    </div>
+    <div class="section-title" style="margin-bottom:10px;">Formality Alignment Detail</div>
+    <table class="fm-table">
+      <thead><tr><th>Item A</th><th>Item B</th><th>Score</th></tr></thead>
+      <tbody>${fmRows}</tbody>
+    </table>
+  `);
+}
+
+// ── 5. Exclusion rules ────────────────────────────────────────────────────────
+function buildExclusions() {
+  const byPair = {};
+  cfg.exclusions.forEach(e => {
+    if (!byPair[e.pair]) byPair[e.pair] = [];
+    byPair[e.pair].push(e);
+  });
+  const html = Object.entries(byPair).map(([pair, rules]) => `
+    <div class="excl-group">
+      <div class="excl-pair-label">${pair}</div>
+      ${rules.map(r => `
+        <div class="excl-item">
+          <div class="excl-x">✕</div>
+          <div class="excl-reason">${r.reason}</div>
+        </div>
+      `).join('')}
+    </div>
+  `).join('');
+
+  return section(`Hard Exclusion Rules &nbsp;<span class="tag tag-red">${cfg.exclusions.length} rules</span>`, `
+    <p class="note" style="margin-top:0;margin-bottom:14px;">These combinations are always excluded — greyed out in the carousel, never suggested by Complete Outfit.</p>
+    ${html}
+  `);
+}
+
+// ── 6. Shoe bonuses ───────────────────────────────────────────────────────────
+function buildShoeBonuses() {
+  const shoeStyles = ['dress-shoe', 'chelsea-boot', 'loafer', 'sneaker'];
+  const shoeLabels = { 'dress-shoe': 'Dress Shoe', 'chelsea-boot': 'Chelsea Boot', 'loafer': 'Loafer', 'sneaker': 'Sneaker' };
+
+  // vs outer
+  const outerRows = Object.values(cfg.shoeVsOuter).map(ctx => {
+    const cells = shoeStyles.map(s => {
+      const v = ctx.scores[s] ?? 0;
+      return `<td class="${ptsClass(v)}">${v}</td>`;
+    }).join('');
+    return `<tr><td>${ctx.label}</td>${cells}</tr>`;
+  }).join('');
+
+  // vs pants
+  const pantsRows = Object.values(cfg.shoeVsPants).map(ctx => {
+    const cells = shoeStyles.map(s => {
+      const v = ctx.scores[s];
+      if (v === null || v === undefined) return `<td class="pts-x">✕</td>`;
+      return `<td class="${ptsClass(v)}">${v}</td>`;
+    }).join('');
+    return `<tr><td>${ctx.label}</td>${cells}</tr>`;
+  }).join('');
+
+  const headers = shoeStyles.map(s => `<th>${shoeLabels[s]}</th>`).join('');
+
+  return section('Shoe Style Bonuses', `
+    <p class="note" style="margin-top:0;margin-bottom:14px;">Added on top of base formality + tone + colour scores. Higher = better fit for that context.</p>
+    <div class="section-title" style="margin-bottom:8px;">vs Outer Garment</div>
+    <div style="overflow-x:auto;margin-bottom:20px;">
+      <table class="bonus-table">
+        <thead><tr><th>Outer type</th>${headers}</tr></thead>
+        <tbody>${outerRows}</tbody>
+      </table>
+    </div>
+    <div class="section-title" style="margin-bottom:8px;">vs Pants Type</div>
+    <div style="overflow-x:auto;">
+      <table class="bonus-table">
+        <thead><tr><th>Pants type</th>${headers}</tr></thead>
+        <tbody>${pantsRows}</tbody>
+      </table>
+    </div>
+  `);
+}
+
+// ── 7. Belt rules ─────────────────────────────────────────────────────────────
+function buildBeltRules() {
+  const widths = ['thin', 'medium', 'wide'];
+  const rows = Object.values(cfg.beltVsPants).map(ctx => {
+    const cells = widths.map(w => {
+      const v = ctx.scores[w];
+      if (v === null) return `<td class="pts-x">✕</td>`;
+      return `<td class="${ptsClass(v)}">${v} pts</td>`;
+    }).join('');
+    return `<tr><td>${ctx.label}</td>${cells}</tr>`;
+  }).join('');
+
+  return section('Belt Width vs Pants Loop', `
+    <p class="note" style="margin-top:0;margin-bottom:14px;">Belt width must match the belt loop width of the trousers. ✕ = hard exclusion (wide belt won't fit narrow formal loops).</p>
+    <div style="overflow-x:auto;">
+      <table class="bonus-table">
+        <thead><tr><th>Loop type</th><th>Thin belt</th><th>Medium belt</th><th>Wide belt</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>
+    <p class="note" style="margin-top:12px;">Elastic waist pants (no loop) always ✕ with any belt.</p>
+  `);
+}
+
+// ── Render all ────────────────────────────────────────────────────────────────
+page.innerHTML = [
+  buildOverview(),
+  buildThresholds(),
+  buildStylePill(),
+  buildBaseScoring(),
+  buildExclusions(),
+  buildShoeBonuses(),
+  buildBeltRules(),
+].join('');
+</script>
+</body>
+</html>
