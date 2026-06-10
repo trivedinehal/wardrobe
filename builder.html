@@ -524,7 +524,7 @@
 </div>
 
 <script src="catalog.js?v=2"></script>
-<script src="matching.js?v=2"></script>
+<script src="matching.js?v=3"></script>
 <script src="builder-logic.js"></script>
 <script>
 const VERSION = Date.now();
@@ -547,7 +547,7 @@ function buildCanvas() {
 function slotStarsHTML(item, cat) {
   if (!window.scoreItem) return '';
   const canvas = buildCanvas();
-  const result = window.scoreItem(item, cat, canvas, currentStyle);
+  const result = window.scoreItem(item, cat, canvas, currentStyle, currentOutfitType);
   if (!result || result.stars === null) return '';
   if (result.excluded) return '<div class="slot-stars" style="color:#ff3b30">✕</div>';
   const stars = '⭐'.repeat(result.stars);
@@ -860,7 +860,7 @@ function renderCarousel(cat, sub, subsub) {
   const canvas = buildCanvas();
   const scored = items.map(item => ({
     item,
-    result: window.scoreItem ? window.scoreItem(item, cat, canvas, currentStyle) : { stars: null, excluded: false }
+    result: window.scoreItem ? window.scoreItem(item, cat, canvas, currentStyle, currentOutfitType) : { stars: null, excluded: false }
   }));
 
   // Sort by score when canvas has selections: 3★ first, excluded/0★ last

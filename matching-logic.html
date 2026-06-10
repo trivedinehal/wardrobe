@@ -128,7 +128,7 @@ header p  { font-size: 12px; color: #888; margin-top: 2px; }
 
 <div class="page" id="page"></div>
 
-<script src="matching.js?v=2"></script>
+<script src="matching.js?v=3"></script>
 <script>
 const cfg = window.MATCH_CONFIG;
 const page = document.getElementById('page');
@@ -203,24 +203,29 @@ function buildStylePill() {
       </div>
     </div>
     <hr class="divider">
-    <p class="note">Formal + Semi-Formal → targets "Formal" items &nbsp;|&nbsp; Smart Casual → targets "Smart Casual" &nbsp;|&nbsp; Casual → targets "Casual"</p>
+    <table class="fm-table">
+      <thead><tr><th>Style pill</th><th>Boost (+${cfg.stylePill.boost})</th><th>Penalty (−${cfg.stylePill.penalty})</th></tr></thead>
+      <tbody>
+        <tr><td>Formal</td><td>Formal items</td><td>Smart Casual or Casual only</td></tr>
+        <tr><td>Semi-Formal</td><td>Formal, Semi-Formal, or Smart Casual</td><td>Casual-only items</td></tr>
+        <tr><td>Smart Casual</td><td>Smart Casual items</td><td>Formal or Casual only</td></tr>
+        <tr><td>Casual</td><td>Casual items</td><td>Formal or Smart Casual only</td></tr>
+      </tbody>
+    </table>
   `);
 }
 
 // ── 4. Base scoring ───────────────────────────────────────────────────────────
 function buildBaseScoring() {
   const fm = cfg.formalityMatrix;
-  const rows = [
-    ['Formal',       'Formal',       fm['Formal+Formal']],
-    ['Formal',       'Smart Casual', fm['Formal+Smart Casual']],
-    ['Smart Casual', 'Smart Casual', fm['Smart Casual+Smart Casual']],
-    ['Smart Casual', 'Casual',       fm['Smart Casual+Casual']],
-    ['Casual',       'Casual',       fm['Casual+Casual']],
-    ['Formal',       'Casual',       fm['default']],
-  ];
-  const fmRows = rows.map(([a, b, pts]) =>
-    `<tr><td>${a}</td><td>${b}</td><td class="${ptsClass(pts)}">${pts} pts</td></tr>`
-  ).join('');
+  // Render all matrix entries except 'default'
+  const fmRows = Object.entries(fm)
+    .filter(([k]) => k !== 'default')
+    .map(([k, pts]) => {
+      const [a, b] = k.split('+');
+      return `<tr><td>${a}</td><td>${b}</td><td class="${ptsClass(pts)}">${pts} pts</td></tr>`;
+    }).join('') +
+    `<tr><td colspan="2" style="color:#8e8e93;font-style:italic;">Any other combination</td><td class="${ptsClass(fm['default'])}">${fm['default']} pts</td></tr>`;
 
   return section('Base Scoring Components', `
     <p style="font-size:12px;color:#444;line-height:1.5;margin-bottom:14px;">
@@ -318,7 +323,34 @@ function buildShoeBonuses() {
   `);
 }
 
-// ── 7. Belt rules ─────────────────────────────────────────────────────────────
+// ── 7. Outfit type ────────────────────────────────────────────────────────────
+function buildOutfitType() {
+  const contextLabels = {
+    'suit':          'Suit (dress shoes max)',
+    'formal-blazer': 'Formal Blazer (dress shoes max)',
+    'casual-blazer': 'Smart Casual Blazer (loafers/chelsea max)',
+    null:            'No outer — shoe scores against pants only',
+  };
+  const rows = Object.entries(cfg.outfitTypeShoeContext).map(([key, ctx]) => {
+    const ctxLabel = contextLabels[ctx] || ctx || '—';
+    return `<tr><td>${key}</td><td>${ctxLabel}</td></tr>`;
+  }).join('');
+  return section('Outfit Type — Shoe Context', `
+    <p class="note" style="margin-top:0;margin-bottom:14px;">
+      When an outfit type is selected, the engine uses it to pick the correct shoe bonus row —
+      rather than guessing from the outer item alone. This matters for jackets and blazers
+      that could be formal or casual depending on context.
+    </p>
+    <div style="overflow-x:auto;">
+      <table class="bonus-table">
+        <thead><tr><th>Outfit type</th><th>Shoe scoring context</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>
+  `);
+}
+
+// ── 8. Belt rules ─────────────────────────────────────────────────────────────
 function buildBeltRules() {
   const widths = ['thin', 'medium', 'wide'];
   const rows = Object.values(cfg.beltVsPants).map(ctx => {
@@ -348,6 +380,7 @@ page.innerHTML = [
   buildThresholds(),
   buildStylePill(),
   buildBaseScoring(),
+  buildOutfitType(),
   buildExclusions(),
   buildShoeBonuses(),
   buildBeltRules(),

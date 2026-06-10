@@ -3,7 +3,7 @@
 // ============================================================
 // Exposes:
 //   window.MATCH_CONFIG  — all rules as structured data (used by matching-logic.html)
-//   window.scoreItem(candidate, candidateCat, canvas, style)
+//   window.scoreItem(candidate, candidateCat, canvas, style, outfitType)
 //
 // Returns: { stars: 0|1|2|3|null, score: number|null, excluded: boolean }
 // ============================================================
@@ -29,14 +29,34 @@
 
     // Formality alignment table — how well two formality levels pair (0–4 pts)
     formalityMatrix: {
-      'Formal+Formal':             4,
-      'Formal+Smart Casual':       2,
-      'Smart Casual+Formal':       2,
-      'Smart Casual+Smart Casual': 3,
-      'Smart Casual+Casual':       2,
-      'Casual+Smart Casual':       2,
-      'Casual+Casual':             3,
-      'default':                   1,
+      'Formal+Formal':               4,
+      'Formal+Semi-Formal':          3,
+      'Semi-Formal+Formal':          3,
+      'Semi-Formal+Semi-Formal':     4,
+      'Semi-Formal+Smart Casual':    3,
+      'Smart Casual+Semi-Formal':    3,
+      'Semi-Formal+Casual':          1,
+      'Casual+Semi-Formal':          1,
+      'Formal+Smart Casual':         2,
+      'Smart Casual+Formal':         2,
+      'Smart Casual+Smart Casual':   3,
+      'Smart Casual+Casual':         2,
+      'Casual+Smart Casual':         2,
+      'Casual+Casual':               3,
+      'default':                     1,
+    },
+
+    // Outfit type → shoe-vs-outer context mapping
+    // Used when outfitType is passed to scoreItem to pick the right shoe bonus table row
+    outfitTypeShoeContext: {
+      'suit':                  'suit',
+      'blazer-formal-trouser': 'formal-blazer',
+      'jacket-formal-trouser': 'formal-blazer',
+      'blazer-chinos':         'casual-blazer',
+      'blazer-jeans':          'casual-blazer',
+      'jacket-chinos':         'casual-blazer',
+      'jacket-jeans':          'casual-blazer',
+      'no-outer':              null,
     },
 
     // Hard exclusion rules — result in ✕ (greyed out, never suggested)
@@ -89,27 +109,34 @@
 
   function toneVal(t) { return t === 'light' ? 1 : t === 'medium' ? 2 : 3; }
   function toneDiff(a, b) { return Math.abs(toneVal(a.tone) - toneVal(b.tone)); }
-  function isSuit(item)        { return item && item.cat === 'suits'; }
-  function isNeutral(cf)       { return cf === 'neutral'; }
+  function isSuit(item)         { return item && item.cat === 'suits'; }
+  function isNeutral(cf)        { return cf === 'neutral'; }
   function hasFormal(item)      { return item.formality.includes('Formal'); }
+  function hasSemiFormal(item)  { return item.formality.includes('Semi-Formal'); }
   function hasSmartCasual(item) { return item.formality.includes('Smart Casual'); }
   function hasCasual(item)      { return item.formality.includes('Casual'); }
   function formalOnly(item)     { return hasFormal(item) && !hasSmartCasual(item) && !hasCasual(item); }
-  function casualOnly(item)     { return hasCasual(item) && !hasFormal(item) && !hasSmartCasual(item); }
+  function casualOnly(item)     { return hasCasual(item) && !hasFormal(item) && !hasSemiFormal(item) && !hasSmartCasual(item); }
 
   const X = { excluded: true };
 
   // ─── Base scoring functions ───────────────────────────────────────────────────
 
   function formalityScore(a, b) {
-    if (hasFormal(a) && hasFormal(b))               return MATCH_CONFIG.formalityMatrix['Formal+Formal'];
-    if (hasFormal(a) && hasSmartCasual(b))          return MATCH_CONFIG.formalityMatrix['Formal+Smart Casual'];
-    if (hasSmartCasual(a) && hasFormal(b))          return MATCH_CONFIG.formalityMatrix['Smart Casual+Formal'];
-    if (hasSmartCasual(a) && hasSmartCasual(b))     return MATCH_CONFIG.formalityMatrix['Smart Casual+Smart Casual'];
-    if (hasSmartCasual(a) && hasCasual(b))          return MATCH_CONFIG.formalityMatrix['Smart Casual+Casual'];
-    if (hasCasual(a) && hasSmartCasual(b))          return MATCH_CONFIG.formalityMatrix['Casual+Smart Casual'];
-    if (hasCasual(a) && hasCasual(b))               return MATCH_CONFIG.formalityMatrix['Casual+Casual'];
-    return MATCH_CONFIG.formalityMatrix['default'];
+    const fm = MATCH_CONFIG.formalityMatrix;
+    // Find best score across all formality levels each item has
+    const levels = ['Formal', 'Semi-Formal', 'Smart Casual', 'Casual'];
+    let best = fm['default'];
+    for (const la of levels) {
+      if (!a.formality.includes(la)) continue;
+      for (const lb of levels) {
+        if (!b.formality.includes(lb)) continue;
+        const key = `${la}+${lb}`;
+        const val = fm[key] ?? fm['default'];
+        if (val > best) best = val;
+      }
+    }
+    return best;
   }
 
   function toneScore(a, b) {
@@ -154,14 +181,15 @@
     return s;
   }
 
-  function scoreShoesVsOuter(shoe, outer) {
+  function scoreShoesVsOuter(shoe, outer, outfitType) {
     if (shoe.style === 'athletic')                        return X;
     if (casualOnly(shoe) && formalOnly(outer))            return X;
 
     let s = 0;
     s += formalityScore(outer, shoe);
 
-    const context = isSuit(outer) ? 'suit' : formalOnly(outer) ? 'formal-blazer' : 'casual-blazer';
+    const mappedContext = outfitType ? MATCH_CONFIG.outfitTypeShoeContext[outfitType] : null;
+    const context = mappedContext || (isSuit(outer) ? 'suit' : formalOnly(outer) ? 'formal-blazer' : 'casual-blazer');
     const bonuses = MATCH_CONFIG.shoeVsOuter[context].scores;
     s += bonuses[shoe.style] ?? 0;
 
@@ -257,7 +285,7 @@
 
   // ─── Main export ──────────────────────────────────────────────────────────────
 
-  window.scoreItem = function (candidate, candidateCat, canvas, style) {
+  window.scoreItem = function (candidate, candidateCat, canvas, style, outfitType) {
 
     const slotMap = {
       tops: 'top', pants: 'pants', belts: 'belts',
@@ -286,7 +314,7 @@
       case 'outer':
         if (canvas.top)   apply(scoreTopVsOuter(canvas.top, candidate));
         if (canvas.pants) apply(scorePantsVsOuter(canvas.pants, candidate));
-        if (canvas.shoes) apply(scoreShoesVsOuter(canvas.shoes, candidate));
+        if (canvas.shoes) apply(scoreShoesVsOuter(canvas.shoes, candidate, outfitType));
         break;
 
       case 'pants':
@@ -297,7 +325,7 @@
         break;
 
       case 'shoes':
-        if (canvas.outer) apply(scoreShoesVsOuter(candidate, canvas.outer));
+        if (canvas.outer) apply(scoreShoesVsOuter(candidate, canvas.outer, outfitType));
         if (canvas.pants) apply(scoreShoesVsPants(candidate, canvas.pants));
         if (canvas.belts) apply(scoreBeltVsShoes(canvas.belts, candidate));
         break;
@@ -315,16 +343,21 @@
 
     // Style pill modifier
     if (style) {
-      const formalityMap = {
-        'formal':       'Formal',
-        'semi-formal':  'Formal',
-        'smart-casual': 'Smart Casual',
-        'casual':       'Casual',
-      };
-      const target = formalityMap[style];
-      if (target) {
-        if (candidate.formality.includes(target))  avg += MATCH_CONFIG.stylePill.boost;
-        else                                        avg -= MATCH_CONFIG.stylePill.penalty;
+      if (style === 'semi-formal') {
+        // Semi-formal bridges Formal and Smart Casual — boost either, penalise casual-only
+        if (hasFormal(candidate) || hasSemiFormal(candidate) || hasSmartCasual(candidate)) avg += MATCH_CONFIG.stylePill.boost;
+        else if (casualOnly(candidate)) avg -= MATCH_CONFIG.stylePill.penalty;
+      } else {
+        const formalityMap = {
+          'formal':       'Formal',
+          'smart-casual': 'Smart Casual',
+          'casual':       'Casual',
+        };
+        const target = formalityMap[style];
+        if (target) {
+          if (candidate.formality.includes(target))  avg += MATCH_CONFIG.stylePill.boost;
+          else                                        avg -= MATCH_CONFIG.stylePill.penalty;
+        }
       }
     }
 
