@@ -12,108 +12,77 @@ body {
   color: #1c1c1e;
   padding-bottom: 60px;
 }
-
 header {
-  background: #1c1c1e;
-  color: white;
-  padding: 14px 20px;
-  position: sticky; top: 0; z-index: 10;
+  background: #1c1c1e; color: white;
+  padding: 14px 20px; position: sticky; top: 0; z-index: 10;
   display: flex; align-items: center; gap: 14px;
 }
 header a { color: #888; text-decoration: none; font-size: 14px; }
 header h1 { font-size: 17px; font-weight: 600; }
 header p  { font-size: 12px; color: #888; margin-top: 2px; }
 
-.page { max-width: 760px; margin: 0 auto; padding: 24px 16px 0; }
+.page { max-width: 860px; margin: 0 auto; padding: 24px 16px 0; }
 
 .section {
-  background: white;
-  border-radius: 16px;
-  padding: 20px;
-  margin-bottom: 20px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+  background: white; border-radius: 16px; padding: 20px;
+  margin-bottom: 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.07);
 }
 .section-title {
   font-size: 11px; font-weight: 700; text-transform: uppercase;
   letter-spacing: 0.7px; color: #8e8e93; margin-bottom: 16px;
 }
 
-/* Score bar */
-.score-bar-wrap { position: relative; height: 36px; border-radius: 10px; overflow: hidden; display: flex; margin-bottom: 10px; }
-.score-zone { display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: white; }
-.score-labels { display: flex; font-size: 11px; color: #8e8e93; justify-content: space-between; padding: 0 2px; }
-
-/* Pill tags */
-.tag {
-  display: inline-block; font-size: 11px; font-weight: 600;
-  padding: 3px 9px; border-radius: 20px; margin: 3px 3px 3px 0;
-}
+.tag { display: inline-block; font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 20px; margin: 3px 3px 3px 0; }
 .tag-blue   { background: #e8f0fe; color: #007aff; }
-.tag-orange { background: #fff3e0; color: #e07000; }
 .tag-red    { background: #ffeaea; color: #d00; }
 .tag-green  { background: #e6f9ed; color: #1a9e3a; }
 .tag-grey   { background: #f2f2f7; color: #636366; }
 
-/* Two column grid */
 .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 @media (max-width: 520px) { .two-col { grid-template-columns: 1fr; } }
 
-/* Stat card */
-.stat-card {
-  background: #f7f7f9; border-radius: 12px; padding: 14px 16px;
-}
+.stat-card { background: #f7f7f9; border-radius: 12px; padding: 14px 16px; }
 .stat-label { font-size: 11px; color: #8e8e93; margin-bottom: 4px; }
 .stat-value { font-size: 22px; font-weight: 700; color: #1c1c1e; }
 .stat-sub   { font-size: 11px; color: #8e8e93; margin-top: 2px; }
 
-/* Exclusion list */
 .excl-group { margin-bottom: 14px; }
 .excl-group:last-child { margin-bottom: 0; }
 .excl-pair-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #8e8e93; margin-bottom: 6px; }
-.excl-item {
-  display: flex; align-items: flex-start; gap: 10px;
-  background: #ffeaea; border-radius: 10px; padding: 10px 12px; margin-bottom: 6px;
-}
+.excl-item { display: flex; align-items: flex-start; gap: 10px; background: #ffeaea; border-radius: 10px; padding: 10px 12px; margin-bottom: 6px; }
 .excl-item:last-child { margin-bottom: 0; }
 .excl-x { font-size: 14px; font-weight: 800; color: #d00; flex-shrink: 0; line-height: 1.4; }
 .excl-reason { font-size: 12px; color: #444; line-height: 1.45; }
 
-/* Bonus table */
-.bonus-table { width: 100%; border-collapse: collapse; font-size: 12px; }
-.bonus-table th {
-  background: #f2f2f7; text-align: left; padding: 8px 10px;
+.ctx-table { width: 100%; border-collapse: collapse; font-size: 11px; }
+.ctx-table th {
+  background: #f2f2f7; text-align: left; padding: 7px 8px;
   font-size: 10px; font-weight: 700; text-transform: uppercase;
-  letter-spacing: 0.5px; color: #8e8e93;
+  letter-spacing: 0.5px; color: #8e8e93; white-space: nowrap;
 }
-.bonus-table th:first-child { border-radius: 8px 0 0 0; }
-.bonus-table th:last-child  { border-radius: 0 8px 0 0; }
-.bonus-table td { padding: 8px 10px; border-bottom: 1px solid #f2f2f7; color: #1c1c1e; }
-.bonus-table tr:last-child td { border-bottom: none; }
-.bonus-table td:not(:first-child) { text-align: center; }
-.bonus-table th:not(:first-child) { text-align: center; }
-.pts-high { color: #1a9e3a; font-weight: 700; }
-.pts-mid  { color: #e07000; font-weight: 600; }
-.pts-low  { color: #8e8e93; }
-.pts-x    { color: #d00; font-weight: 700; }
+.ctx-table th:first-child { border-radius: 8px 0 0 0; }
+.ctx-table th:last-child  { border-radius: 0 8px 0 0; }
+.ctx-table td { padding: 7px 8px; border-bottom: 1px solid #f2f2f7; color: #1c1c1e; }
+.ctx-table tr:last-child td { border-bottom: none; }
+.ctx-table td:not(:first-child) { text-align: center; }
+.ctx-table th:not(:first-child) { text-align: center; }
+.pts-5  { color: #1a9e3a; font-weight: 800; }
+.pts-4  { color: #34c759; font-weight: 700; }
+.pts-3  { color: #e07000; font-weight: 600; }
+.pts-2  { color: #8e8e93; }
+.pts-1  { color: #c7c7cc; }
+.pts-x  { color: #d00; font-weight: 700; }
 
-/* Formality matrix */
-.fm-table { width: 100%; border-collapse: collapse; font-size: 12px; }
-.fm-table th, .fm-table td { padding: 8px 10px; border-bottom: 1px solid #f2f2f7; }
-.fm-table th { background: #f2f2f7; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #8e8e93; text-align: left; }
-.fm-table td:not(:first-child) { text-align: center; }
-.fm-table tr:last-child td { border-bottom: none; }
-
-/* Style pill section */
-.pill-demo { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 4px; }
-.pill-demo-item { background: #f7f7f9; border-radius: 12px; padding: 12px 16px; flex: 1; min-width: 140px; }
-.pill-demo-val  { font-size: 22px; font-weight: 700; }
-.pill-demo-desc { font-size: 11px; color: #8e8e93; margin-top: 3px; line-height: 1.4; }
+.score-bar-wrap { position: relative; height: 36px; border-radius: 10px; overflow: hidden; display: flex; margin-bottom: 10px; }
+.score-zone { display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: white; }
+.score-labels { display: flex; font-size: 11px; color: #8e8e93; justify-content: space-between; padding: 0 2px; }
 
 .divider { border: none; border-top: 1px solid #f0f0f0; margin: 14px 0; }
-
 .note { font-size: 12px; color: #8e8e93; line-height: 1.5; margin-top: 10px; }
 
-.stars { color: #f5a623; letter-spacing: 1px; }
+.ctx-block { margin-bottom: 20px; }
+.ctx-block:last-child { margin-bottom: 0; }
+.ctx-block-title { font-size: 12px; font-weight: 700; color: #1c1c1e; margin-bottom: 8px; }
 </style>
 </head>
 <body>
@@ -122,13 +91,13 @@ header p  { font-size: 12px; color: #888; margin-top: 2px; }
   <a href="wardrobe.html">‹ Home</a>
   <div>
     <h1>Matching Logic</h1>
-    <p>How the scoring engine rates outfits</p>
+    <p>How the scoring engine rates outfits — v2</p>
   </div>
 </header>
 
 <div class="page" id="page"></div>
 
-<script src="matching.js?v=3"></script>
+<script src="matching.js?v=4"></script>
 <script>
 const cfg = window.MATCH_CONFIG;
 const page = document.getElementById('page');
@@ -137,26 +106,41 @@ function section(title, html) {
   return `<div class="section"><div class="section-title">${title}</div>${html}</div>`;
 }
 
-function ptsClass(v) {
-  if (v === null || v === undefined) return 'pts-x';
-  if (v >= 4) return 'pts-high';
-  if (v >= 2) return 'pts-mid';
-  return 'pts-low';
+function ptsCell(v) {
+  if (v === null || v === undefined) return `<td class="pts-x">✕</td>`;
+  const cls = v >= 5 ? 'pts-5' : v >= 4 ? 'pts-4' : v >= 3 ? 'pts-3' : v >= 2 ? 'pts-2' : 'pts-1';
+  return `<td class="${cls}">${v}</td>`;
 }
 
 // ── 1. How it works ──────────────────────────────────────────────────────────
 function buildOverview() {
   return section('How It Works', `
     <p style="font-size:13px;line-height:1.6;color:#444;">
-      Each item in the carousel is scored against what's already on the canvas.
-      The engine compares items <strong>pairwise</strong> — top vs outer, shoes vs pants, belt vs shoes, etc.
-      Each pair produces a numeric score. All pair scores are averaged, then the
-      <strong>Style pill modifier</strong> is applied. The final number maps to a star rating.
+      Every item in the carousel is scored on two signals — then those signals are combined.
     </p>
     <hr class="divider">
-    <p style="font-size:12px;color:#8e8e93;line-height:1.5;">
-      More items on canvas → more pairs → more refined score. A shirt scored only against jeans
-      will get a rough estimate. The same shirt scored against jeans + blazer + shoes gets a precise rating.
+    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:4px;">
+      <div class="stat-card">
+        <div class="stat-label">Signal 1 — Context Fit &nbsp;<span class="tag tag-blue">0–5 pts</span></div>
+        <div style="font-size:12px;color:#444;margin-top:6px;line-height:1.5;">
+          How well does this item belong in the selected <strong>Style + Outfit Type</strong>?
+          A casual shirt in a Formal/Suit context scores low. The same shirt in Smart Casual/Blazer+Jeans scores 5.
+          This signal fires as soon as a style and outfit type are selected — even before anything is on the canvas.
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Signal 2 — Visual Harmony &nbsp;<span class="tag tag-green">0–5 pts</span></div>
+        <div style="font-size:12px;color:#444;margin-top:6px;line-height:1.5;">
+          How well does this item work visually with what is already on the canvas?
+          Scores tone contrast (difference is good), colour harmony (neutrals are universally safe),
+          and pattern pairing (one pattern + one solid reads well).
+        </div>
+      </div>
+    </div>
+    <hr class="divider">
+    <p class="note" style="margin-top:0;">
+      <strong>Combined:</strong> Context Fit + avg Harmony = final score (0–10).<br>
+      If only one signal is available (context set but canvas empty, or canvas has items but no context), that signal is doubled to stay on the 0–10 scale.
     </p>
   `);
 }
@@ -165,95 +149,167 @@ function buildOverview() {
 function buildThresholds() {
   const t = cfg.thresholds;
   const zones = [
-    { label: '✕',   from: 0,    to: t.one,   color: '#ff3b30', flex: t.one },
-    { label: '⭐',   from: t.one, to: t.two,   color: '#d4a800', flex: t.two - t.one },
-    { label: '⭐⭐',  from: t.two, to: t.three, color: '#f5a623', flex: t.three - t.two },
-    { label: '⭐⭐⭐', from: t.three, to: 13,   color: '#34c759', flex: 5 },
+    { label: '✕',    from: 0,      color: '#ff3b30', flex: t.one },
+    { label: '⭐',    from: t.one,  color: '#d4a800', flex: t.two - t.one },
+    { label: '⭐⭐',   from: t.two,  color: '#f5a623', flex: t.three - t.two },
+    { label: '⭐⭐⭐',  from: t.three,color: '#34c759', flex: 2 },
   ];
-  const total = zones.reduce((a, z) => a + z.flex, 0);
-  const bars = zones.map(z =>
-    `<div class="score-zone" style="flex:${z.flex};background:${z.color};">${z.label}</div>`
-  ).join('');
+  const bars = zones.map(z => `<div class="score-zone" style="flex:${z.flex};background:${z.color};">${z.label}</div>`).join('');
   const labels = zones.map(z => `<span>${z.from}+</span>`).join('');
   return section('Star Thresholds', `
     <div class="score-bar-wrap">${bars}</div>
-    <div class="score-labels">${labels}<span>→</span></div>
+    <div class="score-labels">${labels}<span>→ 10</span></div>
     <hr class="divider">
     <div class="two-col" style="margin-top:4px;">
-      <div class="stat-card"><div class="stat-label">⭐⭐⭐ Three stars</div><div class="stat-value">${t.three}+</div><div class="stat-sub">Excellent pairing</div></div>
-      <div class="stat-card"><div class="stat-label">⭐⭐ Two stars</div><div class="stat-value">${t.two}–${t.three - 1}</div><div class="stat-sub">Good pairing</div></div>
-      <div class="stat-card"><div class="stat-label">⭐ One star</div><div class="stat-value">${t.one}–${t.two - 1}</div><div class="stat-sub">Acceptable</div></div>
-      <div class="stat-card"><div class="stat-label">No stars / ✕</div><div class="stat-value">0–${t.one - 1} / neg</div><div class="stat-sub">Poor or excluded</div></div>
+      <div class="stat-card"><div class="stat-label">⭐⭐⭐ Three stars</div><div class="stat-value">${t.three}+</div><div class="stat-sub">Excellent fit for this context</div></div>
+      <div class="stat-card"><div class="stat-label">⭐⭐ Two stars</div><div class="stat-value">${t.two}–${t.three-1}</div><div class="stat-sub">Good pairing</div></div>
+      <div class="stat-card"><div class="stat-label">⭐ One star</div><div class="stat-value">${t.one}–${t.two-1}</div><div class="stat-sub">Acceptable</div></div>
+      <div class="stat-card"><div class="stat-label">No stars / ✕</div><div class="stat-value">0–${t.one-1} / excl</div><div class="stat-sub">Poor fit or excluded</div></div>
     </div>
   `);
 }
 
-// ── 3. Style pill ────────────────────────────────────────────────────────────
-function buildStylePill() {
-  return section('Style Pill Modifier', `
-    <p class="note" style="margin-top:0;margin-bottom:12px;">Applied after averaging all pairwise scores. Rewards items that match the selected style formality, nudges down those that don't.</p>
-    <div class="pill-demo">
-      <div class="pill-demo-item">
-        <div class="pill-demo-val" style="color:#34c759;">+${cfg.stylePill.boost}</div>
-        <div class="pill-demo-desc">Item formality <strong>matches</strong> selected style</div>
+// ── 3. Context fit — Tops ─────────────────────────────────────────────────────
+function buildContextTops() {
+  const table = cfg.contextFit.tops;
+  const types = ['dress-shirt', 'casual-shirt', 't-shirt'];
+  const labels = { 'dress-shirt': 'Dress Shirt', 'casual-shirt': 'Casual Shirt', 't-shirt': 'T-Shirt' };
+  const headers = types.map(t => `<th>${labels[t]}</th>`).join('');
+  const rows = Object.entries(table).map(([ctx, scores]) => {
+    const cells = types.map(t => ptsCell(scores[t])).join('');
+    return `<tr><td style="font-size:11px;">${ctx}</td>${cells}</tr>`;
+  }).join('');
+  return `
+    <div class="ctx-block">
+      <div class="ctx-block-title">Tops</div>
+      <div style="overflow-x:auto;">
+        <table class="ctx-table">
+          <thead><tr><th>Context</th>${headers}</tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
       </div>
-      <div class="pill-demo-item">
-        <div class="pill-demo-val" style="color:#ff3b30;">−${cfg.stylePill.penalty}</div>
-        <div class="pill-demo-desc">Item formality <strong>doesn't match</strong> selected style</div>
+      <p class="note">Dress shirt = has Formal or Semi-Formal in formality. Casual shirt = Shirts sub without Formal. T-shirt = T-Shirts sub.</p>
+    </div>`;
+}
+
+// ── 3. Context fit — Pants ────────────────────────────────────────────────────
+function buildContextPants() {
+  const table = cfg.contextFit.pants;
+  const types = ['dress-trousers', 'chinos', 'smart-denim', 'casual-denim', 'relaxed'];
+  const labels = { 'dress-trousers': 'Dress Trousers', chinos: 'Chinos', 'smart-denim': 'Smart Denim', 'casual-denim': 'Casual Denim', relaxed: 'Relaxed' };
+  const headers = types.map(t => `<th>${labels[t]}</th>`).join('');
+  const rows = Object.entries(table).map(([ctx, scores]) => {
+    const cells = types.map(t => ptsCell(scores[t])).join('');
+    return `<tr><td style="font-size:11px;">${ctx}</td>${cells}</tr>`;
+  }).join('');
+  return `
+    <div class="ctx-block">
+      <div class="ctx-block-title">Pants &nbsp;<span class="tag tag-grey" style="font-size:10px;">Pants hidden in Suit mode</span></div>
+      <div style="overflow-x:auto;">
+        <table class="ctx-table">
+          <thead><tr><th>Context</th>${headers}</tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>
+      <p class="note">Smart denim = dark/smart wash jeans with Smart Casual in formality. Relaxed = linen or utility.</p>
+    </div>`;
+}
+
+// ── 3. Context fit — Shoes ────────────────────────────────────────────────────
+function buildContextShoes() {
+  const table = cfg.contextFit.shoes;
+  const types = ['dress-shoe', 'chelsea-boot', 'loafer', 'sneaker', 'athletic'];
+  const labels = { 'dress-shoe': 'Dress Shoe', 'chelsea-boot': 'Chelsea Boot', loafer: 'Loafer', sneaker: 'Sneaker', athletic: 'Athletic' };
+  const headers = types.map(t => `<th>${labels[t]}</th>`).join('');
+  const rows = Object.entries(table).map(([ctx, scores]) => {
+    const cells = types.map(t => ptsCell(scores[t])).join('');
+    return `<tr><td style="font-size:11px;">${ctx}</td>${cells}</tr>`;
+  }).join('');
+  return `
+    <div class="ctx-block">
+      <div class="ctx-block-title">Shoes</div>
+      <div style="overflow-x:auto;">
+        <table class="ctx-table">
+          <thead><tr><th>Context</th>${headers}</tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>
+    </div>`;
+}
+
+// ── 3. Context fit — Outer ────────────────────────────────────────────────────
+function buildContextOuter() {
+  const table = cfg.contextFit.outer;
+  const types = ['suit-wool', 'suit-linen', 'formal-blazer', 'casual-blazer'];
+  const labels = { 'suit-wool': 'Wool Suit', 'suit-linen': 'Linen Suit', 'formal-blazer': 'Formal Blazer', 'casual-blazer': 'Casual Blazer' };
+  const headers = types.map(t => `<th>${labels[t]}</th>`).join('');
+  const rows = Object.entries(table).map(([ctx, scores]) => {
+    const cells = types.map(t => ptsCell(scores[t])).join('');
+    return `<tr><td style="font-size:11px;">${ctx}</td>${cells}</tr>`;
+  }).join('');
+  return `
+    <div class="ctx-block">
+      <div class="ctx-block-title">Outer &nbsp;<span class="tag tag-grey" style="font-size:10px;">No-outer contexts not listed — outer scores null (not excluded)</span></div>
+      <div style="overflow-x:auto;">
+        <table class="ctx-table">
+          <thead><tr><th>Context</th>${headers}</tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>
+    </div>`;
+}
+
+function buildContextFit() {
+  return section(`Context Fit — Style + Outfit Type → Item Score`, `
+    <p style="font-size:12px;color:#444;line-height:1.5;margin-bottom:16px;">
+      The primary scoring signal. Each item is scored 0–5 based on how well it fits the selected Style + Outfit Type combination.
+      ✕ means excluded — that item type does not belong in this context.
+    </p>
+    ${buildContextTops()}
+    <hr class="divider">
+    ${buildContextPants()}
+    <hr class="divider">
+    ${buildContextShoes()}
+    <hr class="divider">
+    ${buildContextOuter()}
+  `);
+}
+
+// ── 4. Visual Harmony ─────────────────────────────────────────────────────────
+function buildHarmony() {
+  return section('Visual Harmony — Item vs Canvas', `
+    <p style="font-size:12px;color:#444;line-height:1.5;margin-bottom:14px;">
+      Scored against each relevant item already on canvas, then averaged. Three components add up to a max of 5 pts.
+    </p>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div class="stat-card">
+        <div class="stat-label">Tone Contrast &nbsp;<span class="tag tag-blue">0–2 pts</span></div>
+        <div style="font-size:12px;color:#444;margin-top:6px;line-height:1.5;">
+          2-step difference (light + dark) → 2 pts. 1-step → 1 pt. Same tone → 0 pts.<br>
+          Contrast is a menswear principle — avoid head-to-toe same tone.
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Colour Harmony &nbsp;<span class="tag tag-green">0–2 pts</span></div>
+        <div style="font-size:12px;color:#444;margin-top:6px;line-height:1.5;">
+          Either item is neutral (black, white, grey, navy) → 2 pts. Same non-neutral family or contrasting families → 1 pt each.
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Pattern Pairing &nbsp;<span class="tag tag-grey">0–1 pt</span></div>
+        <div style="font-size:12px;color:#444;margin-top:6px;line-height:1.5;">
+          One patterned item + one solid → +1 pt. Both solid or both patterned → 0 (pattern-on-pattern is a hard exclusion).
+        </div>
       </div>
     </div>
     <hr class="divider">
-    <table class="fm-table">
-      <thead><tr><th>Style pill</th><th>Boost (+${cfg.stylePill.boost})</th><th>Penalty (−${cfg.stylePill.penalty})</th></tr></thead>
-      <tbody>
-        <tr><td>Formal</td><td>Formal items</td><td>Smart Casual or Casual only</td></tr>
-        <tr><td>Semi-Formal</td><td>Formal, Semi-Formal, or Smart Casual</td><td>Casual-only items</td></tr>
-        <tr><td>Smart Casual</td><td>Smart Casual items</td><td>Formal or Casual only</td></tr>
-        <tr><td>Casual</td><td>Casual items</td><td>Formal or Smart Casual only</td></tr>
-      </tbody>
-    </table>
-  `);
-}
-
-// ── 4. Base scoring ───────────────────────────────────────────────────────────
-function buildBaseScoring() {
-  const fm = cfg.formalityMatrix;
-  // Render all matrix entries except 'default'
-  const fmRows = Object.entries(fm)
-    .filter(([k]) => k !== 'default')
-    .map(([k, pts]) => {
-      const [a, b] = k.split('+');
-      return `<tr><td>${a}</td><td>${b}</td><td class="${ptsClass(pts)}">${pts} pts</td></tr>`;
-    }).join('') +
-    `<tr><td colspan="2" style="color:#8e8e93;font-style:italic;">Any other combination</td><td class="${ptsClass(fm['default'])}">${fm['default']} pts</td></tr>`;
-
-  return section('Base Scoring Components', `
-    <p style="font-size:12px;color:#444;line-height:1.5;margin-bottom:14px;">
-      Three signals are used in most pairwise comparisons. Scores are added together per pair.
+    <p class="note" style="margin-top:0;">
+      Harmony is scored vs the most relevant canvas items: top↔outer or top↔pants (no outer), pants↔outer+shoes, shoes↔pants+outer.
     </p>
-    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px;">
-      <div class="stat-card">
-        <div class="stat-label">Formality Alignment &nbsp;<span class="tag tag-orange">0–4 pts</span></div>
-        <div style="font-size:12px;color:#444;margin-top:6px;line-height:1.5;">How well the formality levels of two items match. Formal+Formal scores highest; Formal+Casual scores lowest.</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">Tone Contrast &nbsp;<span class="tag tag-blue">1–3 pts</span></div>
-        <div style="font-size:12px;color:#444;margin-top:6px;line-height:1.5;">Contrast is good in menswear. 2-step difference (light + dark) scores 3. Same tone scores 1.</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">Colour Harmony &nbsp;<span class="tag tag-green">0–3 pts</span></div>
-        <div style="font-size:12px;color:#444;margin-top:6px;line-height:1.5;">Neutral items (black, white, grey, navy) are universally safe (+2). Same colour family = harmonious (+2).</div>
-      </div>
-    </div>
-    <div class="section-title" style="margin-bottom:10px;">Formality Alignment Detail</div>
-    <table class="fm-table">
-      <thead><tr><th>Item A</th><th>Item B</th><th>Score</th></tr></thead>
-      <tbody>${fmRows}</tbody>
-    </table>
   `);
 }
 
-// ── 5. Exclusion rules ────────────────────────────────────────────────────────
+// ── 5. Hard exclusions ────────────────────────────────────────────────────────
 function buildExclusions() {
   const byPair = {};
   cfg.exclusions.forEach(e => {
@@ -267,105 +323,31 @@ function buildExclusions() {
         <div class="excl-item">
           <div class="excl-x">✕</div>
           <div class="excl-reason">${r.reason}</div>
-        </div>
-      `).join('')}
-    </div>
-  `).join('');
-
+        </div>`).join('')}
+    </div>`).join('');
   return section(`Hard Exclusion Rules &nbsp;<span class="tag tag-red">${cfg.exclusions.length} rules</span>`, `
-    <p class="note" style="margin-top:0;margin-bottom:14px;">These combinations are always excluded — greyed out in the carousel, never suggested by Complete Outfit.</p>
+    <p class="note" style="margin-top:0;margin-bottom:14px;">Always excluded regardless of context — greyed out in carousel, never suggested by Complete Outfit.</p>
     ${html}
   `);
 }
 
-// ── 6. Shoe bonuses ───────────────────────────────────────────────────────────
-function buildShoeBonuses() {
-  const shoeStyles = ['dress-shoe', 'chelsea-boot', 'loafer', 'sneaker'];
-  const shoeLabels = { 'dress-shoe': 'Dress Shoe', 'chelsea-boot': 'Chelsea Boot', 'loafer': 'Loafer', 'sneaker': 'Sneaker' };
-
-  // vs outer
-  const outerRows = Object.values(cfg.shoeVsOuter).map(ctx => {
-    const cells = shoeStyles.map(s => {
-      const v = ctx.scores[s] ?? 0;
-      return `<td class="${ptsClass(v)}">${v}</td>`;
-    }).join('');
-    return `<tr><td>${ctx.label}</td>${cells}</tr>`;
-  }).join('');
-
-  // vs pants
-  const pantsRows = Object.values(cfg.shoeVsPants).map(ctx => {
-    const cells = shoeStyles.map(s => {
-      const v = ctx.scores[s];
-      if (v === null || v === undefined) return `<td class="pts-x">✕</td>`;
-      return `<td class="${ptsClass(v)}">${v}</td>`;
-    }).join('');
-    return `<tr><td>${ctx.label}</td>${cells}</tr>`;
-  }).join('');
-
-  const headers = shoeStyles.map(s => `<th>${shoeLabels[s]}</th>`).join('');
-
-  return section('Shoe Style Bonuses', `
-    <p class="note" style="margin-top:0;margin-bottom:14px;">Added on top of base formality + tone + colour scores. Higher = better fit for that context.</p>
-    <div class="section-title" style="margin-bottom:8px;">vs Outer Garment</div>
-    <div style="overflow-x:auto;margin-bottom:20px;">
-      <table class="bonus-table">
-        <thead><tr><th>Outer type</th>${headers}</tr></thead>
-        <tbody>${outerRows}</tbody>
-      </table>
-    </div>
-    <div class="section-title" style="margin-bottom:8px;">vs Pants Type</div>
-    <div style="overflow-x:auto;">
-      <table class="bonus-table">
-        <thead><tr><th>Pants type</th>${headers}</tr></thead>
-        <tbody>${pantsRows}</tbody>
-      </table>
-    </div>
-  `);
-}
-
-// ── 7. Outfit type ────────────────────────────────────────────────────────────
-function buildOutfitType() {
-  const contextLabels = {
-    'suit':          'Suit (dress shoes max)',
-    'formal-blazer': 'Formal Blazer (dress shoes max)',
-    'casual-blazer': 'Smart Casual Blazer (loafers/chelsea max)',
-    null:            'No outer — shoe scores against pants only',
-  };
-  const rows = Object.entries(cfg.outfitTypeShoeContext).map(([key, ctx]) => {
-    const ctxLabel = contextLabels[ctx] || ctx || '—';
-    return `<tr><td>${key}</td><td>${ctxLabel}</td></tr>`;
-  }).join('');
-  return section('Outfit Type — Shoe Context', `
-    <p class="note" style="margin-top:0;margin-bottom:14px;">
-      When an outfit type is selected, the engine uses it to pick the correct shoe bonus row —
-      rather than guessing from the outer item alone. This matters for jackets and blazers
-      that could be formal or casual depending on context.
-    </p>
-    <div style="overflow-x:auto;">
-      <table class="bonus-table">
-        <thead><tr><th>Outfit type</th><th>Shoe scoring context</th></tr></thead>
-        <tbody>${rows}</tbody>
-      </table>
-    </div>
-  `);
-}
-
-// ── 8. Belt rules ─────────────────────────────────────────────────────────────
+// ── 6. Belt rules ─────────────────────────────────────────────────────────────
 function buildBeltRules() {
   const widths = ['thin', 'medium', 'wide'];
   const rows = Object.values(cfg.beltVsPants).map(ctx => {
     const cells = widths.map(w => {
       const v = ctx.scores[w];
       if (v === null) return `<td class="pts-x">✕</td>`;
-      return `<td class="${ptsClass(v)}">${v} pts</td>`;
+      return `<td class="${v >= 3 ? 'pts-5' : v >= 2 ? 'pts-3' : 'pts-1'}">${v} pts</td>`;
     }).join('');
     return `<tr><td>${ctx.label}</td>${cells}</tr>`;
   }).join('');
-
-  return section('Belt Width vs Pants Loop', `
-    <p class="note" style="margin-top:0;margin-bottom:14px;">Belt width must match the belt loop width of the trousers. ✕ = hard exclusion (wide belt won't fit narrow formal loops).</p>
+  return section('Belt Scoring', `
+    <p class="note" style="margin-top:0;margin-bottom:14px;">
+      Belt scoring is pairwise — width vs pants loops, tone match vs shoes. Colour matching (black shoe → black belt etc) is a hard exclusion above.
+    </p>
     <div style="overflow-x:auto;">
-      <table class="bonus-table">
+      <table class="ctx-table">
         <thead><tr><th>Loop type</th><th>Thin belt</th><th>Medium belt</th><th>Wide belt</th></tr></thead>
         <tbody>${rows}</tbody>
       </table>
@@ -374,15 +356,13 @@ function buildBeltRules() {
   `);
 }
 
-// ── Render all ────────────────────────────────────────────────────────────────
+// ── Render ────────────────────────────────────────────────────────────────────
 page.innerHTML = [
   buildOverview(),
   buildThresholds(),
-  buildStylePill(),
-  buildBaseScoring(),
-  buildOutfitType(),
+  buildContextFit(),
+  buildHarmony(),
   buildExclusions(),
-  buildShoeBonuses(),
   buildBeltRules(),
 ].join('');
 </script>

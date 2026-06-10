@@ -1,285 +1,274 @@
 // ============================================================
-// matching.js — Config-driven outfit matching engine
+// matching.js — v2 rebuilt matching engine
 // ============================================================
 // Exposes:
-//   window.MATCH_CONFIG  — all rules as structured data (used by matching-logic.html)
+//   window.MATCH_CONFIG  — all rules as structured data
 //   window.scoreItem(candidate, candidateCat, canvas, style, outfitType)
 //
-// Returns: { stars: 0|1|2|3|null, score: number|null, excluded: boolean }
+// Score model (0–10 scale):
+//   Context fit (0–5): how well item fits style + outfit type combined
+//   Harmony    (0–5): how well item works visually with canvas items
+//   Final = contextFit + avgHarmony  (or ×2 if one component is missing)
+//   Stars: 8+ = ⭐⭐⭐,  5–7 = ⭐⭐,  3–4 = ⭐,  <3 = 0
 // ============================================================
 
 (function () {
 
-  // ─── Config — all rules live here ────────────────────────────────────────────
+  // ─── Config ───────────────────────────────────────────────────────────────────
 
   const MATCH_CONFIG = {
 
-    // Star thresholds — avg pairwise score → star rating
     thresholds: { three: 8, two: 5, one: 3 },
 
-    // Style pill modifier — applied after averaging pairwise scores
-    stylePill: { boost: 1.5, penalty: 1.0 },
+    // ── Context fit tables ──────────────────────────────────────────────────────
+    // Key format: 'style/outfitType'
+    // null = excluded (✕),  0–5 = fit score
+    //
+    // Top item types:   'dress-shirt' (Formal/Semi-Formal in formality array)
+    //                   'casual-shirt' (Shirts sub, no Formal)
+    //                   't-shirt'
+    //
+    // Pants item types: 'dress-trousers', 'chinos', 'smart-denim', 'casual-denim', 'relaxed'
+    //
+    // Shoe item types:  'dress-shoe', 'chelsea-boot', 'loafer', 'sneaker', 'athletic'
+    //
+    // Outer item types: 'suit-wool', 'suit-linen', 'formal-blazer', 'casual-blazer'
 
-    // Base scoring components (max points each contributes)
-    baseScoring: {
-      formality: { max: 4, desc: 'How well formality levels align between two items' },
-      tone:      { max: 3, desc: 'Tone contrast — contrast is generally good in menswear' },
-      color:     { max: 3, desc: 'Colour harmony — neutral items are universally safe' },
+    contextFit: {
+
+      tops: {
+        'formal/suit':                       { 'dress-shirt': 5, 'casual-shirt': null, 't-shirt': null },
+        'formal/blazer-formal-trouser':      { 'dress-shirt': 5, 'casual-shirt': 1,    't-shirt': null },
+        'formal/no-outer':                   { 'dress-shirt': 5, 'casual-shirt': 2,    't-shirt': null },
+        'semi-formal/blazer-formal-trouser': { 'dress-shirt': 5, 'casual-shirt': 3,    't-shirt': null },
+        'semi-formal/blazer-chinos':         { 'dress-shirt': 4, 'casual-shirt': 5,    't-shirt': null },
+        'semi-formal/jacket-formal-trouser': { 'dress-shirt': 4, 'casual-shirt': 3,    't-shirt': null },
+        'semi-formal/no-outer':              { 'dress-shirt': 4, 'casual-shirt': 4,    't-shirt': null },
+        'smart-casual/blazer-chinos':        { 'dress-shirt': 2, 'casual-shirt': 5,    't-shirt': 3   },
+        'smart-casual/blazer-jeans':         { 'dress-shirt': 1, 'casual-shirt': 5,    't-shirt': 4   },
+        'smart-casual/jacket-chinos':        { 'dress-shirt': 2, 'casual-shirt': 5,    't-shirt': 3   },
+        'smart-casual/jacket-jeans':         { 'dress-shirt': 1, 'casual-shirt': 4,    't-shirt': 4   },
+        'smart-casual/no-outer':             { 'dress-shirt': 1, 'casual-shirt': 5,    't-shirt': 4   },
+        'casual/jacket-jeans':               { 'dress-shirt': 1, 'casual-shirt': 3,    't-shirt': 5   },
+        'casual/no-outer':                   { 'dress-shirt': 1, 'casual-shirt': 3,    't-shirt': 5   },
+      },
+
+      pants: {
+        // formal/suit → pants hidden in suit mode, no scoring
+        'formal/blazer-formal-trouser':      { 'dress-trousers': 5, 'chinos': 1,    'smart-denim': null, 'casual-denim': null, 'relaxed': null },
+        'formal/no-outer':                   { 'dress-trousers': 5, 'chinos': 2,    'smart-denim': null, 'casual-denim': null, 'relaxed': null },
+        'semi-formal/blazer-formal-trouser': { 'dress-trousers': 5, 'chinos': 2,    'smart-denim': null, 'casual-denim': null, 'relaxed': null },
+        'semi-formal/blazer-chinos':         { 'dress-trousers': 2, 'chinos': 5,    'smart-denim': 1,    'casual-denim': null, 'relaxed': null },
+        'semi-formal/jacket-formal-trouser': { 'dress-trousers': 5, 'chinos': 2,    'smart-denim': null, 'casual-denim': null, 'relaxed': null },
+        'semi-formal/no-outer':              { 'dress-trousers': 3, 'chinos': 5,    'smart-denim': 2,    'casual-denim': null, 'relaxed': null },
+        'smart-casual/blazer-chinos':        { 'dress-trousers': 2, 'chinos': 5,    'smart-denim': 2,    'casual-denim': null, 'relaxed': null },
+        'smart-casual/blazer-jeans':         { 'dress-trousers': null, 'chinos': 2, 'smart-denim': 5,    'casual-denim': 2,    'relaxed': null },
+        'smart-casual/jacket-chinos':        { 'dress-trousers': 2, 'chinos': 5,    'smart-denim': 2,    'casual-denim': null, 'relaxed': null },
+        'smart-casual/jacket-jeans':         { 'dress-trousers': null, 'chinos': 2, 'smart-denim': 5,    'casual-denim': 3,    'relaxed': null },
+        'smart-casual/no-outer':             { 'dress-trousers': 2, 'chinos': 4,    'smart-denim': 4,    'casual-denim': 2,    'relaxed': 1   },
+        'casual/jacket-jeans':               { 'dress-trousers': null, 'chinos': 1, 'smart-denim': 3,    'casual-denim': 5,    'relaxed': 2   },
+        'casual/no-outer':                   { 'dress-trousers': null, 'chinos': 2, 'smart-denim': 3,    'casual-denim': 5,    'relaxed': 4   },
+      },
+
+      shoes: {
+        // athletic is always null (excluded from all outfit scoring)
+        'formal/suit':                       { 'dress-shoe': 5, 'chelsea-boot': 4, 'loafer': 2,    'sneaker': null, 'athletic': null },
+        'formal/blazer-formal-trouser':      { 'dress-shoe': 5, 'chelsea-boot': 4, 'loafer': 3,    'sneaker': null, 'athletic': null },
+        'formal/no-outer':                   { 'dress-shoe': 4, 'chelsea-boot': 4, 'loafer': 3,    'sneaker': null, 'athletic': null },
+        'semi-formal/blazer-formal-trouser': { 'dress-shoe': 5, 'chelsea-boot': 5, 'loafer': 3,    'sneaker': null, 'athletic': null },
+        'semi-formal/blazer-chinos':         { 'dress-shoe': 3, 'chelsea-boot': 5, 'loafer': 5,    'sneaker': null, 'athletic': null },
+        'semi-formal/jacket-formal-trouser': { 'dress-shoe': 4, 'chelsea-boot': 5, 'loafer': 3,    'sneaker': null, 'athletic': null },
+        'semi-formal/no-outer':              { 'dress-shoe': 3, 'chelsea-boot': 4, 'loafer': 4,    'sneaker': 1,    'athletic': null },
+        'smart-casual/blazer-chinos':        { 'dress-shoe': 2, 'chelsea-boot': 4, 'loafer': 5,    'sneaker': 2,    'athletic': null },
+        'smart-casual/blazer-jeans':         { 'dress-shoe': 1, 'chelsea-boot': 5, 'loafer': 4,    'sneaker': 3,    'athletic': null },
+        'smart-casual/jacket-chinos':        { 'dress-shoe': 2, 'chelsea-boot': 4, 'loafer': 5,    'sneaker': 3,    'athletic': null },
+        'smart-casual/jacket-jeans':         { 'dress-shoe': 1, 'chelsea-boot': 4, 'loafer': 3,    'sneaker': 5,    'athletic': null },
+        'smart-casual/no-outer':             { 'dress-shoe': 2, 'chelsea-boot': 4, 'loafer': 4,    'sneaker': 4,    'athletic': null },
+        'casual/jacket-jeans':               { 'dress-shoe': null, 'chelsea-boot': 3, 'loafer': 3,  'sneaker': 5,    'athletic': null },
+        'casual/no-outer':                   { 'dress-shoe': null, 'chelsea-boot': 3, 'loafer': 3,  'sneaker': 5,    'athletic': null },
+      },
+
+      outer: {
+        // item types: 'suit-wool', 'suit-linen', 'formal-blazer', 'casual-blazer'
+        // no-outer contexts are not listed — outer items return null (no score, not excluded)
+        'formal/suit':                       { 'suit-wool': 5, 'suit-linen': 2,    'formal-blazer': null, 'casual-blazer': null },
+        'formal/blazer-formal-trouser':      { 'suit-wool': null, 'suit-linen': null, 'formal-blazer': 5,  'casual-blazer': 1   },
+        'semi-formal/blazer-formal-trouser': { 'suit-wool': null, 'suit-linen': null, 'formal-blazer': 5,  'casual-blazer': 3   },
+        'semi-formal/blazer-chinos':         { 'suit-wool': null, 'suit-linen': 2,    'formal-blazer': 4,  'casual-blazer': 5   },
+        'semi-formal/jacket-formal-trouser': { 'suit-wool': null, 'suit-linen': null, 'formal-blazer': 3,  'casual-blazer': 4   },
+        'smart-casual/blazer-chinos':        { 'suit-wool': null, 'suit-linen': 2,    'formal-blazer': 3,  'casual-blazer': 5   },
+        'smart-casual/blazer-jeans':         { 'suit-wool': null, 'suit-linen': 1,    'formal-blazer': 2,  'casual-blazer': 5   },
+        'smart-casual/jacket-chinos':        { 'suit-wool': null, 'suit-linen': 2,    'formal-blazer': 2,  'casual-blazer': 5   },
+        'smart-casual/jacket-jeans':         { 'suit-wool': null, 'suit-linen': 1,    'formal-blazer': 1,  'casual-blazer': 5   },
+        'casual/jacket-jeans':               { 'suit-wool': null, 'suit-linen': null, 'formal-blazer': null, 'casual-blazer': 5 },
+      },
     },
 
-    // Formality alignment table — how well two formality levels pair (0–4 pts)
-    formalityMatrix: {
-      'Formal+Formal':               4,
-      'Formal+Semi-Formal':          3,
-      'Semi-Formal+Formal':          3,
-      'Semi-Formal+Semi-Formal':     4,
-      'Semi-Formal+Smart Casual':    3,
-      'Smart Casual+Semi-Formal':    3,
-      'Semi-Formal+Casual':          1,
-      'Casual+Semi-Formal':          1,
-      'Formal+Smart Casual':         2,
-      'Smart Casual+Formal':         2,
-      'Smart Casual+Smart Casual':   3,
-      'Smart Casual+Casual':         2,
-      'Casual+Smart Casual':         2,
-      'Casual+Casual':               3,
-      'default':                     1,
-    },
-
-    // Outfit type → shoe-vs-outer context mapping
-    // Used when outfitType is passed to scoreItem to pick the right shoe bonus table row
-    outfitTypeShoeContext: {
-      'suit':                  'suit',
-      'blazer-formal-trouser': 'formal-blazer',
-      'jacket-formal-trouser': 'formal-blazer',
-      'blazer-chinos':         'casual-blazer',
-      'blazer-jeans':          'casual-blazer',
-      'jacket-chinos':         'casual-blazer',
-      'jacket-jeans':          'casual-blazer',
-      'no-outer':              null,
-    },
-
-    // Hard exclusion rules — result in ✕ (greyed out, never suggested)
-    exclusions: [
-      { id: 'suit-tshirt',              pair: 'Outer + Top',   reason: 'Suits require a proper shirt — t-shirt is too casual' },
-      { id: 'suit-plaid',               pair: 'Outer + Top',   reason: 'Plaid shirt clashes with suit formality' },
-      { id: 'formal-blazer-tshirt',     pair: 'Outer + Top',   reason: 'Formal blazer requires a proper shirt' },
-      { id: 'pattern-on-pattern',       pair: 'Outer + Top',   reason: 'Two patterned items together — too busy' },
-      { id: 'athletic-outer',           pair: 'Shoes + Outer', reason: 'Athletic shoes with any outer garment' },
-      { id: 'casual-shoe-formal-outer', pair: 'Shoes + Outer', reason: 'Casual-only sneakers with a formal blazer or suit' },
-      { id: 'utility-pants-outer',      pair: 'Pants + Outer', reason: 'Cargo / utility pants with any blazer or jacket' },
-      { id: 'casual-pants-formal-outer',pair: 'Pants + Outer', reason: 'Casual-only pants with a formal-only blazer' },
-      { id: 'athletic-pants',           pair: 'Shoes + Pants', reason: 'Athletic shoes excluded from outfit scoring' },
-      { id: 'dress-shoe-utility-pants', pair: 'Shoes + Pants', reason: 'Dress shoes with cargo / utility pants' },
-      { id: 'formal-shoe-casual-pants', pair: 'Shoes + Pants', reason: 'Formal-only dress shoes with casual-only pants' },
-      { id: 'black-shoe-warm-belt',     pair: 'Belt + Shoes',  reason: 'Black shoes always paired with a black belt' },
-      { id: 'warm-shoe-black-belt',     pair: 'Belt + Shoes',  reason: 'Brown / tan shoes always paired with a warm belt' },
-      { id: 'elastic-waist-belt',       pair: 'Belt + Pants',  reason: 'Elastic waist pants have no belt loop' },
-      { id: 'wide-belt-narrow-loop',    pair: 'Belt + Pants',  reason: 'Wide belt won\'t fit through formal trouser loops' },
-    ],
-
-    // Shoe style bonuses vs outer garment type (points added on top of base score)
-    shoeVsOuter: {
-      'suit':          { label: 'Suit',                 scores: { 'dress-shoe': 4, 'chelsea-boot': 3, 'loafer': 2, 'sneaker': 0 } },
-      'formal-blazer': { label: 'Formal Blazer',        scores: { 'dress-shoe': 4, 'chelsea-boot': 3, 'loafer': 2, 'sneaker': 0 } },
-      'casual-blazer': { label: 'Smart Casual Blazer',  scores: { 'loafer': 4, 'chelsea-boot': 3, 'dress-shoe': 2, 'sneaker': 2 } },
-    },
-
-    // Shoe style bonuses vs pants type (points added on top of base score)
-    shoeVsPants: {
-      'dress-trousers': { label: 'Dress Trousers', scores: { 'dress-shoe': 5, 'chelsea-boot': 4, 'loafer': 3, 'sneaker': 0 } },
-      'chinos':         { label: 'Chinos',         scores: { 'loafer': 5, 'chelsea-boot': 5, 'dress-shoe': 3, 'sneaker': 2 } },
-      'smart-denim':    { label: 'Smart Denim',    scores: { 'loafer': 5, 'chelsea-boot': 5, 'sneaker': 4, 'dress-shoe': 2 } },
-      'casual-denim':   { label: 'Casual Denim',   scores: { 'sneaker': 5, 'chelsea-boot': 4, 'loafer': 3, 'dress-shoe': 1 } },
-      'relaxed':        { label: 'Linen / Utility', scores: { 'sneaker': 4, 'loafer': 4, 'chelsea-boot': 2, 'dress-shoe': 1 } },
-    },
-
-    // Belt width vs pants belt loop width
+    // Belt width vs pants loop width (hard rules)
     beltVsPants: {
-      'narrow': { label: 'Narrow loops (formal trousers)', scores: { 'thin': 3, 'medium': 1, 'wide': null } },
-      'wide':   { label: 'Wide loops (casual / chinos)',   scores: { 'wide': 3, 'medium': 2, 'thin': 1 } },
+      'narrow': { label: 'Narrow loops', scores: { 'thin': 3, 'medium': 1, 'wide': null } },
+      'wide':   { label: 'Wide loops',   scores: { 'wide': 3, 'medium': 2, 'thin': 1   } },
     },
+
+    // Hard exclusion rules (displayed on matching-logic.html)
+    exclusions: [
+      { id: 'tshirt-formal',         pair: 'Top + Context',   reason: 'T-shirts excluded from Formal and Semi-Formal contexts — a collar is required' },
+      { id: 'plaid-suit',            pair: 'Outer + Top',     reason: 'Plaid shirt clashes with the formality of a suit' },
+      { id: 'pattern-on-pattern',    pair: 'Outer + Top',     reason: 'Two patterned items together — too busy' },
+      { id: 'utility-pants-outer',   pair: 'Pants + Outer',   reason: 'Cargo / utility pants with any blazer or jacket' },
+      { id: 'athletic-shoes',        pair: 'Shoes',           reason: 'Athletic shoes are excluded from all outfit scoring' },
+      { id: 'elastic-waist-belt',    pair: 'Belt + Pants',    reason: 'Elastic waist pants have no belt loop' },
+      { id: 'wide-belt-narrow-loop', pair: 'Belt + Pants',    reason: 'Wide belt will not fit through narrow formal trouser loops' },
+      { id: 'black-shoe-warm-belt',  pair: 'Belt + Shoes',    reason: 'Black shoes must pair with a black belt' },
+      { id: 'warm-shoe-black-belt',  pair: 'Belt + Shoes',    reason: 'Brown / tan shoes must pair with a warm belt' },
+    ],
 
   };
 
-  // Expose config for the matching-logic page
   window.MATCH_CONFIG = MATCH_CONFIG;
 
   // ─── Helpers ──────────────────────────────────────────────────────────────────
 
   function toneVal(t) { return t === 'light' ? 1 : t === 'medium' ? 2 : 3; }
-  function toneDiff(a, b) { return Math.abs(toneVal(a.tone) - toneVal(b.tone)); }
-  function isSuit(item)         { return item && item.cat === 'suits'; }
-  function isNeutral(cf)        { return cf === 'neutral'; }
-  function hasFormal(item)      { return item.formality.includes('Formal'); }
-  function hasSemiFormal(item)  { return item.formality.includes('Semi-Formal'); }
-  function hasSmartCasual(item) { return item.formality.includes('Smart Casual'); }
-  function hasCasual(item)      { return item.formality.includes('Casual'); }
-  function formalOnly(item)     { return hasFormal(item) && !hasSmartCasual(item) && !hasCasual(item); }
-  function casualOnly(item)     { return hasCasual(item) && !hasFormal(item) && !hasSemiFormal(item) && !hasSmartCasual(item); }
+  function isNeutral(cf) { return cf === 'neutral'; }
+  function isSuit(item) { return item && item.cat === 'suits'; }
 
-  const X = { excluded: true };
+  function getTopType(item) {
+    if (item.sub === 'T-Shirts') return 't-shirt';
+    if (item.formality.includes('Formal') || item.formality.includes('Semi-Formal')) return 'dress-shirt';
+    return 'casual-shirt';
+  }
 
-  // ─── Base scoring functions ───────────────────────────────────────────────────
+  function getPantsType(item) {
+    if (item.sub === 'Dress Trousers') return 'dress-trousers';
+    if (item.fabric === 'denim') return item.formality.includes('Smart Casual') ? 'smart-denim' : 'casual-denim';
+    if (item.fabric === 'chino' || item.fabric === 'cotton') return 'chinos';
+    return 'relaxed';
+  }
 
-  function formalityScore(a, b) {
-    const fm = MATCH_CONFIG.formalityMatrix;
-    // Find best score across all formality levels each item has
-    const levels = ['Formal', 'Semi-Formal', 'Smart Casual', 'Casual'];
-    let best = fm['default'];
-    for (const la of levels) {
-      if (!a.formality.includes(la)) continue;
-      for (const lb of levels) {
-        if (!b.formality.includes(lb)) continue;
-        const key = `${la}+${lb}`;
-        const val = fm[key] ?? fm['default'];
-        if (val > best) best = val;
+  function getOuterType(item) {
+    if (isSuit(item)) return item.fabric === 'linen' ? 'suit-linen' : 'suit-wool';
+    return item.sub === 'Formal' ? 'formal-blazer' : 'casual-blazer';
+  }
+
+  // ─── Context fit ──────────────────────────────────────────────────────────────
+
+  function getContextFit(item, candidateCat, context) {
+    const outfitType = context.split('/')[1];
+    const isOuter = candidateCat === 'blazers' || candidateCat === 'suits' || candidateCat === 'jackets';
+
+    // Outer in no-outer context → null score (not excluded, just no guidance)
+    if (isOuter && outfitType === 'no-outer') return undefined;
+
+    // Pants in suit context → hidden in UI, no scoring
+    if (candidateCat === 'pants' && outfitType === 'suit') return undefined;
+
+    let table, type;
+    if (candidateCat === 'tops')       { table = MATCH_CONFIG.contextFit.tops[context];  type = getTopType(item); }
+    else if (candidateCat === 'pants') { table = MATCH_CONFIG.contextFit.pants[context]; type = getPantsType(item); }
+    else if (candidateCat === 'shoes') { table = MATCH_CONFIG.contextFit.shoes[context]; type = item.style; }
+    else if (isOuter)                  { table = MATCH_CONFIG.contextFit.outer[context]; type = getOuterType(item); }
+
+    if (!table) return undefined; // context not in table
+    const score = table[type];
+    return score === undefined ? null : score; // undefined type → null (excluded)
+  }
+
+  // ─── Harmony scoring ─────────────────────────────────────────────────────────
+
+  function harmonyScore(a, b) {
+    let s = 0;
+    // Tone contrast — difference is good in menswear
+    const d = Math.abs(toneVal(a.tone) - toneVal(b.tone));
+    s += d === 2 ? 2 : d === 1 ? 1 : 0;
+    // Colour harmony — neutral items are universally safe
+    if (isNeutral(a.colorFamily) || isNeutral(b.colorFamily)) s += 2;
+    else if (a.colorFamily === b.colorFamily) s += 1;
+    else s += 1; // contrasting non-neutrals — fine
+    // Pattern bonus — one patterned item against a solid reads well
+    if (a.pattern && b.pattern) {
+      const aPat = a.pattern !== 'solid';
+      const bPat = b.pattern !== 'solid';
+      if (aPat !== bPat) s += 1; // one pattern, one solid
+    }
+    return Math.min(s, 5);
+  }
+
+  // ─── Exclusion check ──────────────────────────────────────────────────────────
+
+  function isExcluded(candidate, candidateCat, candidateSlot, canvas, context, ctxFit) {
+    // Athletic shoes always excluded
+    if (candidateCat === 'shoes' && candidate.style === 'athletic') return true;
+
+    // Context-driven exclusion (ctxFit === null means excluded by context table)
+    if (ctxFit === null && context) return true;
+
+    // Pairwise — top vs outer
+    if (candidateSlot === 'top' && canvas.outer) {
+      if (isSuit(canvas.outer) && candidate.pattern === 'plaid') return true;
+      if (canvas.outer.pattern !== 'solid' && candidate.pattern && candidate.pattern !== 'solid') return true;
+    }
+
+    // Pairwise — outer vs top/pants
+    if (candidateSlot === 'outer') {
+      if (canvas.top && candidate.pattern !== 'solid' && canvas.top.pattern && canvas.top.pattern !== 'solid') return true;
+      if (canvas.pants && canvas.pants.fabric === 'utility') return true;
+    }
+
+    // Pairwise — utility pants vs outer
+    if (candidateSlot === 'pants' && canvas.outer && candidate.fabric === 'utility') return true;
+
+    // Belt pairwise exclusions
+    if (candidateSlot === 'belts') {
+      if (canvas.pants) {
+        if (canvas.pants.beltLoop === 'none') return true;
+        if (canvas.pants.beltLoop === 'narrow' && candidate.width === 'wide') return true;
+      }
+      if (canvas.shoes) {
+        const shoeBlack = isNeutral(canvas.shoes.colorFamily) && canvas.shoes.color.toLowerCase().includes('black');
+        const shoeWarm  = canvas.shoes.colorFamily === 'warm';
+        const beltBlack = isNeutral(candidate.colorFamily) && candidate.color.toLowerCase().includes('black');
+        const beltWarm  = candidate.colorFamily === 'warm';
+        if (shoeBlack && beltWarm) return true;
+        if (shoeWarm  && beltBlack) return true;
       }
     }
-    return best;
+
+    return false;
   }
 
-  function toneScore(a, b) {
-    const d = toneDiff(a, b);
-    return d === 2 ? 3 : d === 1 ? 2 : 1;
-  }
+  // ─── Belt scoring (pairwise) ─────────────────────────────────────────────────
 
-  function colorScore(a, b) {
+  function scoreBelt(belt, canvas) {
     let score = 0;
-    if (isNeutral(a.colorFamily)) score += 2;
-    if (isNeutral(b.colorFamily)) score += 1;
-    if (!isNeutral(a.colorFamily) && a.colorFamily === b.colorFamily) score += 2;
-    return Math.min(score, 3);
+    let pairs = 0;
+
+    if (canvas.shoes) {
+      const td = Math.abs(toneVal(belt.tone) - toneVal(canvas.shoes.tone));
+      score += td === 0 ? 5 : td === 1 ? 4 : 2;
+      if (belt.material === 'leather') score += 1;
+      pairs++;
+    }
+
+    if (canvas.pants && canvas.pants.beltLoop !== 'none') {
+      const loopKey = canvas.pants.beltLoop === 'narrow' ? 'narrow' : 'wide';
+      const pts = MATCH_CONFIG.beltVsPants[loopKey].scores[belt.width];
+      if (pts !== null && pts !== undefined) {
+        score += pts;
+        pairs++;
+      }
+    }
+
+    if (pairs === 0) return null;
+    return score; // raw 0–9 range, same scale as combined scores
   }
 
-  // ─── Pairwise scoring functions ───────────────────────────────────────────────
+  // ─── Stars ────────────────────────────────────────────────────────────────────
 
-  function scoreTopVsOuter(top, outer) {
-    if (isSuit(outer) && top.sub === 'T-Shirts')                       return X;
-    if (isSuit(outer) && top.pattern === 'plaid')                      return X;
-    if (formalOnly(outer) && top.sub === 'T-Shirts')                   return X;
-    if (outer.pattern !== 'solid' && top.pattern !== 'solid')          return X;
-
-    let s = 0;
-    s += formalityScore(outer, top);
-    s += toneScore(outer, top);
-    s += colorScore(outer, top);
-    if (outer.pattern !== 'solid' && top.pattern === 'solid') s += 1;
-    return s;
-  }
-
-  function scorePantsVsOuter(pants, outer) {
-    if (isSuit(outer))                                    return null;
-    if (pants.fabric === 'utility')                       return X;
-    if (casualOnly(pants) && formalOnly(outer))           return X;
-
-    let s = 0;
-    s += formalityScore(outer, pants);
-    s += toneScore(outer, pants);
-    s += colorScore(outer, pants);
-    if (outer.pattern !== 'solid' && pants.pattern === 'solid') s += 1;
-    return s;
-  }
-
-  function scoreShoesVsOuter(shoe, outer, outfitType) {
-    if (shoe.style === 'athletic')                        return X;
-    if (casualOnly(shoe) && formalOnly(outer))            return X;
-
-    let s = 0;
-    s += formalityScore(outer, shoe);
-
-    const mappedContext = outfitType ? MATCH_CONFIG.outfitTypeShoeContext[outfitType] : null;
-    const context = mappedContext || (isSuit(outer) ? 'suit' : formalOnly(outer) ? 'formal-blazer' : 'casual-blazer');
-    const bonuses = MATCH_CONFIG.shoeVsOuter[context].scores;
-    s += bonuses[shoe.style] ?? 0;
-
-    const ot = toneVal(outer.tone);
-    if (ot <= 2 && shoe.colorFamily === 'warm') s += 2;
-    if (ot === 3 && isNeutral(shoe.colorFamily)) s += 2;
-    if (isNeutral(shoe.colorFamily)) s += 1;
-
-    return s;
-  }
-
-  function scoreShoesVsPants(shoe, pants) {
-    if (shoe.style === 'athletic')                                    return X;
-    if (shoe.style === 'dress-shoe' && pants.fabric === 'utility')   return X;
-    if (formalOnly(shoe) && casualOnly(pants))                        return X;
-
-    let s = 0;
-
-    const isDenim    = pants.fabric === 'denim';
-    const isChino    = pants.fabric === 'chino' || pants.fabric === 'cotton';
-    const isFormal   = pants.sub === 'Dress Trousers';
-    const isRelaxed  = pants.fabric === 'linen' || pants.fabric === 'utility';
-    const smartDenim = isDenim && hasSmartCasual(pants);
-    const casualDenim = isDenim && !hasSmartCasual(pants);
-
-    let pantsContext = 'relaxed';
-    if (isFormal)      pantsContext = 'dress-trousers';
-    else if (isChino)  pantsContext = 'chinos';
-    else if (smartDenim) pantsContext = 'smart-denim';
-    else if (casualDenim) pantsContext = 'casual-denim';
-
-    const bonuses = MATCH_CONFIG.shoeVsPants[pantsContext].scores;
-    s += bonuses[shoe.style] ?? 0;
-
-    if (pants.colorFamily === 'warm' && shoe.colorFamily === 'warm') s += 3;
-    else if (pants.colorFamily === 'cool' && isNeutral(shoe.colorFamily)) s += 2;
-    else if (pants.colorFamily === 'cool' && shoe.colorFamily === 'warm') s += 1;
-    else if (isNeutral(pants.colorFamily) && isNeutral(shoe.colorFamily)) s += 2;
-
-    s += toneScore(shoe, pants);
-    return s;
-  }
-
-  function scoreBeltVsShoes(belt, shoe) {
-    const shoeIsBlack = isNeutral(shoe.colorFamily) && shoe.color.toLowerCase().includes('black');
-    const shoeIsWarm  = shoe.colorFamily === 'warm';
-    const beltIsBlack = isNeutral(belt.colorFamily) && belt.color.toLowerCase().includes('black');
-    const beltIsWarm  = belt.colorFamily === 'warm';
-
-    if (shoeIsBlack && beltIsWarm)  return X;
-    if (shoeIsWarm  && beltIsBlack) return X;
-
-    let s = 0;
-    if (!isNeutral(shoe.colorFamily) && shoe.colorFamily === belt.colorFamily) s += 4;
-    if (isNeutral(shoe.colorFamily) && isNeutral(belt.colorFamily)) s += 4;
-    const td = toneDiff(belt, shoe);
-    s += td === 0 ? 3 : td === 1 ? 2 : 1;
-    if (belt.material === 'leather') s += 1;
-    if (hasFormal(shoe) && hasFormal(belt)) s += 2;
-    else if (hasSmartCasual(shoe) && hasSmartCasual(belt)) s += 1;
-    return s;
-  }
-
-  function scoreBeltVsPants(belt, pants) {
-    if (pants.beltLoop === 'none') return X;
-    if (pants.beltLoop === 'narrow' && belt.width === 'wide') return X;
-
-    const loopKey = pants.beltLoop === 'narrow' ? 'narrow' : 'wide';
-    const points = MATCH_CONFIG.beltVsPants[loopKey].scores[belt.width];
-    if (points === null) return X;
-
-    let s = points ?? 1;
-    s += formalityScore(belt, pants);
-    return s;
-  }
-
-  function scoreTopVsPants(top, pants) {
-    let s = 0;
-    s += formalityScore(top, pants);
-    s += toneScore(top, pants);
-    if (isNeutral(top.colorFamily) || isNeutral(pants.colorFamily)) s += 1;
-    return s;
-  }
-
-  // ─── Stars conversion ─────────────────────────────────────────────────────────
-
-  function toStars(avg) {
-    if (avg >= MATCH_CONFIG.thresholds.three) return 3;
-    if (avg >= MATCH_CONFIG.thresholds.two)   return 2;
-    if (avg >= MATCH_CONFIG.thresholds.one)   return 1;
+  function toStars(score) {
+    if (score >= MATCH_CONFIG.thresholds.three) return 3;
+    if (score >= MATCH_CONFIG.thresholds.two)   return 2;
+    if (score >= MATCH_CONFIG.thresholds.one)   return 1;
     return 0;
   }
 
@@ -287,81 +276,80 @@
 
   window.scoreItem = function (candidate, candidateCat, canvas, style, outfitType) {
 
-    const slotMap = {
-      tops: 'top', pants: 'pants', belts: 'belts',
-      shoes: 'shoes', blazers: 'outer', suits: 'outer', jackets: 'outer'
-    };
+    const slotMap = { tops: 'top', pants: 'pants', belts: 'belts', shoes: 'shoes', blazers: 'outer', suits: 'outer', jackets: 'outer' };
     const candidateSlot = slotMap[candidateCat];
-
+    const context = (style && outfitType) ? `${style}/${outfitType}` : null;
     const filled = [canvas.outer, canvas.top, canvas.pants, canvas.belts, canvas.shoes].filter(Boolean);
-    if (filled.length === 0) return { stars: null, excluded: false };
+    const hasCanvas = filled.length > 0;
+    const hasContext = !!context;
 
-    const scores = [];
-    let excluded = false;
+    if (!hasCanvas && !hasContext) return { stars: null, excluded: false };
 
-    function apply(result) {
-      if (result === null || result === undefined) return;
-      if (result && result.excluded) { excluded = true; return; }
-      if (typeof result === 'number') scores.push(result);
+    // Pants hidden in suit mode
+    if (candidateCat === 'pants' && outfitType === 'suit') return { stars: null, excluded: false };
+
+    // ── Belt: pairwise only ──
+    if (candidateSlot === 'belts') {
+      if (!hasCanvas) return { stars: null, excluded: false };
+      const ctxFit = hasContext ? getContextFit(candidate, candidateCat, context) : undefined;
+      if (isExcluded(candidate, candidateCat, candidateSlot, canvas, context, ctxFit)) return { stars: 0, score: -1, excluded: true };
+      const s = scoreBelt(candidate, canvas);
+      if (s === null) return { stars: null, excluded: false };
+      return { stars: toStars(s), score: s, excluded: false };
     }
 
-    switch (candidateSlot) {
-      case 'top':
-        if (canvas.outer) apply(scoreTopVsOuter(candidate, canvas.outer));
-        if (canvas.pants && !canvas.outer) apply(scoreTopVsPants(candidate, canvas.pants));
-        break;
+    // ── Context fit ──
+    const ctxFit = hasContext ? getContextFit(candidate, candidateCat, context) : undefined;
 
-      case 'outer':
-        if (canvas.top)   apply(scoreTopVsOuter(canvas.top, candidate));
-        if (canvas.pants) apply(scorePantsVsOuter(canvas.pants, candidate));
-        if (canvas.shoes) apply(scoreShoesVsOuter(canvas.shoes, candidate, outfitType));
-        break;
+    // undefined = no score for this category in this context (not excluded)
+    if (ctxFit === undefined && !hasCanvas) return { stars: null, excluded: false };
 
-      case 'pants':
-        if (canvas.outer) apply(scorePantsVsOuter(candidate, canvas.outer));
-        if (canvas.shoes) apply(scoreShoesVsPants(canvas.shoes, candidate));
-        if (canvas.belts) apply(scoreBeltVsPants(canvas.belts, candidate));
-        if (canvas.top && !canvas.outer) apply(scoreTopVsPants(canvas.top, candidate));
-        break;
+    // Exclusion check
+    if (isExcluded(candidate, candidateCat, candidateSlot, canvas, context, ctxFit)) return { stars: 0, score: -1, excluded: true };
 
-      case 'shoes':
-        if (canvas.outer) apply(scoreShoesVsOuter(candidate, canvas.outer, outfitType));
-        if (canvas.pants) apply(scoreShoesVsPants(candidate, canvas.pants));
-        if (canvas.belts) apply(scoreBeltVsShoes(canvas.belts, candidate));
-        break;
-
-      case 'belts':
-        if (canvas.shoes) apply(scoreBeltVsShoes(candidate, canvas.shoes));
-        if (canvas.pants) apply(scoreBeltVsPants(candidate, canvas.pants));
-        break;
+    // Outer in no-outer context → no stars, not excluded
+    if ((candidateCat === 'blazers' || candidateCat === 'suits' || candidateCat === 'jackets') && outfitType === 'no-outer') {
+      return { stars: null, excluded: false };
     }
 
-    if (excluded) return { stars: 0, score: -1, excluded: true };
-    if (scores.length === 0) return { stars: null, score: null, excluded: false };
-
-    let avg = scores.reduce((a, b) => a + b, 0) / scores.length;
-
-    // Style pill modifier
-    if (style) {
-      if (style === 'semi-formal') {
-        // Semi-formal bridges Formal and Smart Casual — boost either, penalise casual-only
-        if (hasFormal(candidate) || hasSemiFormal(candidate) || hasSmartCasual(candidate)) avg += MATCH_CONFIG.stylePill.boost;
-        else if (casualOnly(candidate)) avg -= MATCH_CONFIG.stylePill.penalty;
-      } else {
-        const formalityMap = {
-          'formal':       'Formal',
-          'smart-casual': 'Smart Casual',
-          'casual':       'Casual',
-        };
-        const target = formalityMap[style];
-        if (target) {
-          if (candidate.formality.includes(target))  avg += MATCH_CONFIG.stylePill.boost;
-          else                                        avg -= MATCH_CONFIG.stylePill.penalty;
-        }
+    // ── Harmony scores vs canvas items ──
+    const harmScores = [];
+    if (hasCanvas) {
+      switch (candidateSlot) {
+        case 'top':
+          if (canvas.outer) harmScores.push(harmonyScore(candidate, canvas.outer));
+          else if (canvas.pants) harmScores.push(harmonyScore(candidate, canvas.pants));
+          break;
+        case 'outer':
+          if (canvas.top)   harmScores.push(harmonyScore(candidate, canvas.top));
+          if (canvas.pants) harmScores.push(harmonyScore(candidate, canvas.pants));
+          break;
+        case 'pants':
+          if (canvas.outer) harmScores.push(harmonyScore(candidate, canvas.outer));
+          else if (canvas.top) harmScores.push(harmonyScore(candidate, canvas.top));
+          if (canvas.shoes) harmScores.push(harmonyScore(candidate, canvas.shoes));
+          break;
+        case 'shoes':
+          if (canvas.pants) harmScores.push(harmonyScore(candidate, canvas.pants));
+          if (canvas.outer) harmScores.push(harmonyScore(candidate, canvas.outer));
+          break;
       }
     }
 
-    return { stars: toStars(avg), score: avg, excluded: false };
+    const avgHarm = harmScores.length > 0
+      ? harmScores.reduce((a, b) => a + b, 0) / harmScores.length
+      : null;
+
+    // ── Final score ──
+    let finalScore;
+    const cf = (ctxFit !== null && ctxFit !== undefined) ? ctxFit : null;
+
+    if (cf !== null && avgHarm !== null) finalScore = cf + avgHarm;       // both: 0–10
+    else if (cf !== null)               finalScore = cf * 2;              // context only: 0–10
+    else if (avgHarm !== null)          finalScore = avgHarm * 2;         // harmony only: 0–10
+    else                                return { stars: null, excluded: false };
+
+    return { stars: toStars(finalScore), score: finalScore, excluded: false };
   };
 
 })();
