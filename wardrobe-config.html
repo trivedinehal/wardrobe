@@ -172,6 +172,27 @@
   .item-chip.formal { border-color: #1c1c1e; }
   .item-chip.smart  { border-color: #3a6ea5; }
   .item-chip.casual { border-color: #34c759; }
+  .tag.semiformal { background: #5856d6; color: #fff; }
+  .outfit-types { margin-top: 12px; }
+  .outfit-types-label {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #8e8e93;
+    margin-bottom: 8px;
+  }
+  .outfit-type-tag {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 500;
+    background: #f2f2f7;
+    color: #3a3a3c;
+    border: 1px solid #e5e5ea;
+    margin: 3px 3px 3px 0;
+  }
 </style>
 </head>
 <body>
@@ -186,40 +207,47 @@
 
   <div class="scenario-card">
     <div class="scenario-name">🎩 Formal</div>
-    <div class="scenario-desc">Full formal office look. Suits, dress shirts, formal shoes. Important meetings, events, formal occasions.</div>
-    <div class="scenario-tags">
-      <span class="tag formal">Suits</span>
-      <span class="tag formal">Dress Shirts</span>
-      <span class="tag formal">Formal Trousers</span>
-      <span class="tag formal">Dress Shoes</span>
-      <span class="tag formal">Formal Belts</span>
+    <div class="scenario-desc">Full formal look. Suits or dress shirts with formal trousers. Important meetings, events, formal occasions.</div>
+    <div class="outfit-types">
+      <div class="outfit-types-label">Outfit Types</div>
+      <span class="outfit-type-tag">Suit</span>
+      <span class="outfit-type-tag">Blazer + Formal Trousers</span>
+      <span class="outfit-type-tag">No Outer</span>
+    </div>
+  </div>
+
+  <div class="scenario-card">
+    <div class="scenario-name">🧥 Semi-Formal</div>
+    <div class="scenario-desc">Dressed up but not a full suit. Blazer or jacket with formal trousers or chinos. Thursday office day, dinner, smart events.</div>
+    <div class="outfit-types">
+      <div class="outfit-types-label">Outfit Types</div>
+      <span class="outfit-type-tag">Blazer + Formal Trousers</span>
+      <span class="outfit-type-tag">Blazer + Chinos</span>
+      <span class="outfit-type-tag">Jacket + Formal Trousers</span>
+      <span class="outfit-type-tag">No Outer</span>
     </div>
   </div>
 
   <div class="scenario-card">
     <div class="scenario-name">👔 Smart Casual</div>
-    <div class="scenario-desc">Blazer with formal denim or chinos, collared shirt, smart shoes or loafers. Typical semi-formal office day.</div>
-    <div class="scenario-tags">
-      <span class="tag smart">Blazers</span>
-      <span class="tag smart">Formal Denim</span>
-      <span class="tag smart">Chinos</span>
-      <span class="tag smart">Shirts</span>
-      <span class="tag smart">Loafers</span>
-      <span class="tag smart">Chelsea Boots</span>
-      <span class="tag smart">Leather Belts</span>
+    <div class="scenario-desc">Relaxed but put together. Blazer or jacket with jeans or chinos, collared shirt. Casual office day, social occasions.</div>
+    <div class="outfit-types">
+      <div class="outfit-types-label">Outfit Types</div>
+      <span class="outfit-type-tag">Blazer + Chinos</span>
+      <span class="outfit-type-tag">Blazer + Jeans</span>
+      <span class="outfit-type-tag">Jacket + Chinos</span>
+      <span class="outfit-type-tag">Jacket + Jeans</span>
+      <span class="outfit-type-tag">No Outer</span>
     </div>
   </div>
 
   <div class="scenario-card">
     <div class="scenario-name">👕 Casual</div>
     <div class="scenario-desc">Relaxed look. T-shirts or casual shirts, casual denim, sneakers. Casual Friday, weekends, relaxed days.</div>
-    <div class="scenario-tags">
-      <span class="tag casual">T-Shirts</span>
-      <span class="tag casual">Casual Shirts</span>
-      <span class="tag casual">Casual Denim</span>
-      <span class="tag casual">Sneakers</span>
-      <span class="tag casual">Casual Belts</span>
-      <span class="tag casual">Casual Boots</span>
+    <div class="outfit-types">
+      <div class="outfit-types-label">Outfit Types</div>
+      <span class="outfit-type-tag">Jacket + Jeans</span>
+      <span class="outfit-type-tag">No Outer</span>
     </div>
   </div>
 </div>
@@ -242,55 +270,21 @@ function buildCategories() {
     const items = catalog[key] || [];
     const subs = (SUB_CATS[key] || []).filter(s => s !== 'All');
 
-    // Group items by sub then subsub
+    // Collect unique sub-sub values per sub
     const grouped = {};
-    subs.forEach(s => grouped[s] = {});
+    subs.forEach(s => grouped[s] = new Set());
     items.forEach(item => {
-      if (!grouped[item.sub]) grouped[item.sub] = {};
-      const ss = item.subsub || '—';
-      if (!grouped[item.sub][ss]) grouped[item.sub][ss] = [];
-      grouped[item.sub][ss].push(item);
+      if (item.subsub && grouped[item.sub]) grouped[item.sub].add(item.subsub);
     });
 
-    // Build sub rows HTML
     let subRowsHTML = '';
     subs.forEach(sub => {
-      const subItems = grouped[sub] || {};
-      const allItems = Object.values(subItems).flat();
-      const subsubs = Object.keys(subItems).filter(ss => ss !== '—');
-
-      let itemsHTML = '';
-      if (subsubs.length > 0) {
-        // Has sub-sub — render each subsub block
-        subsubs.forEach(ss => {
-          const ssItems = subItems[ss] || [];
-          const chips = ssItems.map(i => `<span class="item-chip">${i.name}</span>`).join('');
-          itemsHTML += `<div class="subsub-block"><div class="subsub-label">${ss}</div><div class="items-grid">${chips || '<span class="item-chip" style="color:#c7c7cc;border-color:#e5e5ea">Coming soon</span>'}</div></div>`;
-        });
-        // Also render items with no subsub
-        if (subItems['—'] && subItems['—'].length > 0) {
-          const chips = subItems['—'].map(i => `<span class="item-chip">${i.name}</span>`).join('');
-          itemsHTML += `<div class="items-grid">${chips}</div>`;
-        }
-      } else {
-        // No sub-sub — flat list
-        if (allItems.length > 0) {
-          itemsHTML = `<div class="items-grid">${allItems.map(i => `<span class="item-chip">${i.name}</span>`).join('')}</div>`;
-        } else {
-          itemsHTML = `<div class="items-grid"><span class="item-chip" style="color:#c7c7cc;border-color:#e5e5ea">Coming soon</span></div>`;
-        }
-      }
-
-      subRowsHTML += `<div class="sub-row"><div class="sub-name">${sub}</div>${itemsHTML}</div>`;
+      const subsubs = [...(grouped[sub] || [])];
+      const subssubHTML = subsubs.length > 0
+        ? subsubs.map(ss => `<span class="subsub-label">${ss}</span>`).join('')
+        : '';
+      subRowsHTML += `<div class="sub-row"><div class="sub-name">${sub}</div>${subssubHTML ? `<div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:4px;">${subssubHTML}</div>` : ''}</div>`;
     });
-
-    // Special note for tops
-    if (key === 'tops') {
-      subRowsHTML = `
-        <div class="sub-row"><div class="sub-name">Shirts</div><div class="items-grid"><span class="item-chip" style="color:#c7c7cc;border-color:#e5e5ea">Managed in wardrobe app</span></div></div>
-        <div class="sub-row"><div class="sub-name">T-Shirts</div><div class="items-grid"><span class="item-chip" style="color:#c7c7cc;border-color:#e5e5ea">Managed in wardrobe app</span></div></div>
-      `;
-    }
 
     const nonSwatchItems = items.filter(i => !i.swatch);
     const countLabel = key === 'tops' ? 'Color swatches' : `${nonSwatchItems.length} items`;
