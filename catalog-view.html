@@ -207,10 +207,7 @@ const COLUMNS = [
   {
     key: 'brand',
     label: 'Brand',
-    render: item => item.brand
-      ? item.brand
-      : '<span class="missing">missing</span>',
-    detailMissing: item => !item.brand,
+    render: item => item.brand || '—',
   },
   {
     key: 'sub',
