@@ -161,7 +161,7 @@ function buildPage() {
     if (!meta) continue;
     const cat = { label: meta.label, icon: meta.icon, items: items || [] };
     const group = document.createElement('div');
-    group.className = 'cat-group';
+    group.className = 'cat-group collapsed';
     group.innerHTML = `
       <div class="cat-header" onclick="toggle(this)">
         <span>${cat.icon}</span>
