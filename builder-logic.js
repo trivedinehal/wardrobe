@@ -180,7 +180,12 @@ function completeOutfit() {
   };
 
   // Check if canvas is fully filled (all non-locked slots have items)
-  const allFilled = slots.every(slot => selected[slot] || lockedSlots[slot]);
+  // In suit mode, pants slot is hidden — exclude it from the full check
+  const inSuitMode = selected['outer']?.cat === 'suits';
+  const allFilled = slots.every(slot => {
+    if (slot === 'pants' && inSuitMode) return true;
+    return selected[slot] || lockedSlots[slot];
+  });
 
   if (allFilled) {
     // Canvas full — randomly pick from top tier for each unlocked slot
