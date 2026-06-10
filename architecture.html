@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Wardrobe App — Architecture</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: #f0f2f5;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+header {
+  background: #1c1c1e;
+  color: white;
+  padding: 14px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+header h1 { font-size: 17px; font-weight: 600; }
+header p  { font-size: 12px; color: #888; margin-top: 2px; }
+.hint     { font-size: 12px; color: #555; }
+
+#main { display: flex; flex: 1; overflow: hidden; }
+
+#diagram-wrap {
+  flex: 1;
+  overflow: auto;
+  padding: 40px 40px 60px 40px;
+}
+#diagram {
+  position: relative;
+  width: 1120px;
+  height: 520px;
+}
+#arrows {
+  position: absolute;
+  top: 0; left: 0;
+  width: 1120px;
+  height: 520px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── Nodes ── */
+.node {
+  position: absolute;
+  width: 160px;
+  border-radius: 12px;
+  padding: 11px 13px 10px;
+  cursor: pointer;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+  background: white;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.09);
+  z-index: 2;
+}
+.node:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,0.14); }
+.node.active { box-shadow: 0 8px 28px rgba(0,0,0,0.20); }
+
+.node-badge {
+  display: inline-block;
+  font-size: 9.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  padding: 2px 7px;
+  border-radius: 4px;
+  margin-bottom: 7px;
+}
+.node-name { font-size: 13px; font-weight: 700; color: #1c1c1e; margin-bottom: 4px; line-height: 1.2; }
+.node-desc { font-size: 11px; color: #999; line-height: 1.3; }
+
+.node.page      { border-top: 3px solid #007aff; }
+.node.page      .node-badge { background: #e8f0fe; color: #007aff; }
+.node.logic     { border-top: 3px solid #ff9500; }
+.node.logic     .node-badge { background: #fff3e0; color: #e07000; }
+.node.data      { border-top: 3px solid #34c759; }
+.node.data      .node-badge { background: #e6f9ed; color: #1a9e3a; }
+.node.asset     { border-top: 3px solid #8e8e93; }
+.node.asset     .node-badge { background: #f2f2f7; color: #636366; }
+.node.memory    { border-top: 3px solid #af52de; }
+.node.memory    .node-badge { background: #f5eeff; color: #8c2fc7; }
+.node.sandbox   { border-top: 3px solid #aaa; opacity: 0.6; }
+.node.sandbox   .node-badge { background: #f2f2f7; color: #888; }
+
+/* ── Side Panel ── */
+#panel {
+  width: 290px;
+  flex-shrink: 0;
+  background: white;
+  border-left: 1px solid #e5e5ea;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+#panel-empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: #bbb;
+}
+#panel-empty span:first-child { font-size: 36px; }
+#panel-empty span:last-child  { font-size: 13px; }
+#panel-content { display: none; flex-direction: column; flex: 1; overflow: hidden; }
+#panel-header {
+  padding: 18px 18px 14px;
+  border-bottom: 1px solid #f0f0f0;
+}
+#panel-type-badge {
+  display: inline-block;
+  font-size: 10px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.5px;
+  padding: 3px 8px; border-radius: 5px;
+  margin-bottom: 8px;
+}
+#panel-name    { font-size: 15px; font-weight: 700; color: #1c1c1e; margin-bottom: 5px; }
+#panel-tagline { font-size: 12px; color: #666; line-height: 1.4; }
+#panel-body { padding: 14px 18px 20px; overflow-y: auto; flex: 1; }
+#panel-body h3 {
+  font-size: 10px; text-transform: uppercase; letter-spacing: 0.7px;
+  color: #aaa; font-weight: 700; margin: 16px 0 7px;
+}
+#panel-body h3:first-child { margin-top: 0; }
+#panel-body ul { list-style: none; display: flex; flex-direction: column; gap: 5px; }
+#panel-body li {
+  font-size: 12px; color: #444;
+  background: #f7f7f9; border-radius: 7px;
+  padding: 6px 10px; line-height: 1.45;
+}
+#panel-body li strong { color: #1c1c1e; font-weight: 600; }
+
+/* ── Legend ── */
+#legend {
+  position: fixed;
+  bottom: 20px; right: 20px;
+  background: white;
+  border-radius: 10px;
+  padding: 12px 14px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.13);
+  z-index: 100;
+}
+#legend h4 {
+  font-size: 9.5px; text-transform: uppercase;
+  letter-spacing: 0.7px; color: #aaa; font-weight: 700;
+  margin-bottom: 9px;
+}
+.legend-row { display: flex; align-items: center; gap: 8px; font-size: 11px; color: #555; margin-bottom: 6px; }
+.legend-row:last-child { margin-bottom: 0; }
+.legend-dot  { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
+.legend-line { width: 26px; height: 2px; flex-shrink: 0; border-radius: 1px; }
+.legend-line.dashed { background: none; border-top: 2px dashed #aaa; height: 0; }
+.legend-line.dotted { background: none; border-top: 2px dashed #8e8e93; height: 0; }
+.legend-sep { border-top: 1px solid #eee; margin: 7px 0 6px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>Wardrobe App — Architecture</h1>
+    <p>How all files connect to each other</p>
+  </div>
+  <span class="hint">Click any node to see details →</span>
+</header>
+
+<div id="main">
+  <div id="diagram-wrap">
+    <div id="diagram">
+
+      <svg id="arrows" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="arr-nav"   markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto"><path d="M0,0 L0,7 L7,3.5 z" fill="#bbbbbb"/></marker>
+          <marker id="arr-load"  markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto"><path d="M0,0 L0,7 L7,3.5 z" fill="#007aff"/></marker>
+          <marker id="arr-call"  markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto"><path d="M0,0 L0,7 L7,3.5 z" fill="#ff9500"/></marker>
+          <marker id="arr-data"  markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto"><path d="M0,0 L0,7 L7,3.5 z" fill="#34c759"/></marker>
+          <marker id="arr-asset" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto"><path d="M0,0 L0,7 L7,3.5 z" fill="#8e8e93"/></marker>
+        </defs>
+      </svg>
+
+      <!--
+        LEFT TO RIGHT LAYOUT
+        Col 1 (x≈20):   wardrobe.html  (hub — entry point)
+        Col 2 (x≈230):  HTML pages
+        Col 3 (x≈450):  JS logic files
+        Col 4 (x≈680):  catalog.js  (data)
+        Col 5 (x≈900):  assets / folders
+
+        Standalone (bottom strip): wardrobe-config.html, memory/
+      -->
+
+      <!-- Col 1: Hub -->
+      <div class="node page" id="n-wardrobe" style="left:20px; top:155px" onclick="showPanel('wardrobe')">
+        <div class="node-badge">Page · Hub</div>
+        <div class="node-name">wardrobe.html</div>
+        <div class="node-desc">Home screen & navigation</div>
+      </div>
+
+      <!-- Col 2: Pages -->
+      <div class="node page" id="n-builder" style="left:240px; top:50px" onclick="showPanel('builder')">
+        <div class="node-badge">Page</div>
+        <div class="node-name">builder.html</div>
+        <div class="node-desc">Outfit builder UI</div>
+      </div>
+
+      <div class="node page" id="n-catalogview" style="left:240px; top:185px" onclick="showPanel('catalogview')">
+        <div class="node-badge">Page</div>
+        <div class="node-name">catalog-view.html</div>
+        <div class="node-desc">Browse all items</div>
+      </div>
+
+      <div class="node page" id="n-catalogattrs" style="left:240px; top:310px" onclick="showPanel('catalogattrs')">
+        <div class="node-badge">Page</div>
+        <div class="node-name">catalog-attributes.html</div>
+        <div class="node-desc">Review item attributes</div>
+      </div>
+
+      <!-- Col 3: Logic -->
+      <div class="node logic" id="n-builderlogic" style="left:460px; top:50px" onclick="showPanel('builderlogic')">
+        <div class="node-badge">Logic</div>
+        <div class="node-name">builder-logic.js</div>
+        <div class="node-desc">Outfit building brain</div>
+      </div>
+
+      <div class="node logic" id="n-matching" style="left:460px; top:185px" onclick="showPanel('matching')">
+        <div class="node-badge">Logic</div>
+        <div class="node-name">matching.js</div>
+        <div class="node-desc">Scoring & ranking engine</div>
+      </div>
+
+      <!-- Col 4: Data -->
+      <div class="node data" id="n-catalog" style="left:690px; top:155px" onclick="showPanel('catalog')">
+        <div class="node-badge">Data · Source of Truth</div>
+        <div class="node-name">catalog.js</div>
+        <div class="node-desc">All 72 items — names, brands, attributes</div>
+      </div>
+
+      <!-- Col 5: Assets -->
+      <div class="node asset" id="n-images" style="left:920px; top:100px" onclick="showPanel('images')">
+        <div class="node-badge">Assets</div>
+        <div class="node-name">catalog/</div>
+        <div class="node-desc">All clothing photos</div>
+      </div>
+
+      <div class="node asset" id="n-layouts" style="left:920px; top:230px" onclick="showPanel('layouts')">
+        <div class="node-badge">Assets</div>
+        <div class="node-name">layouts/</div>
+        <div class="node-desc">Reference outfit photos</div>
+      </div>
+
+      <!-- Standalone strip at bottom -->
+      <div class="node sandbox" id="n-config" style="left:240px; top:420px" onclick="showPanel('config')">
+        <div class="node-badge">Sandbox</div>
+        <div class="node-name">wardrobe-config.html</div>
+        <div class="node-desc">Standalone planning page</div>
+      </div>
+
+      <div class="node memory" id="n-memory" style="left:690px; top:380px" onclick="showPanel('memory')">
+        <div class="node-badge">Claude Only</div>
+        <div class="node-name">memory/</div>
+        <div class="node-desc">Session context for Claude</div>
+      </div>
+
+      <!-- Legend -->
+      <div id="legend">
+        <h4>Legend</h4>
+        <div class="legend-row"><div class="legend-dot" style="background:#007aff"></div> Page (HTML)</div>
+        <div class="legend-row"><div class="legend-dot" style="background:#ff9500"></div> Logic (JS)</div>
+        <div class="legend-row"><div class="legend-dot" style="background:#34c759"></div> Data (JS)</div>
+        <div class="legend-row"><div class="legend-dot" style="background:#8e8e93"></div> Assets / Folder</div>
+        <div class="legend-row"><div class="legend-dot" style="background:#af52de"></div> Claude context</div>
+        <div class="legend-sep"></div>
+        <div class="legend-row"><div class="legend-line dashed"></div> navigates to</div>
+        <div class="legend-row"><div class="legend-line" style="background:#007aff"></div> loads (script tag)</div>
+        <div class="legend-row"><div class="legend-line" style="background:#ff9500"></div> calls (function)</div>
+        <div class="legend-row"><div class="legend-line" style="background:#34c759"></div> reads data from</div>
+        <div class="legend-row"><div class="legend-line dotted"></div> image paths in</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Side Panel -->
+  <div id="panel">
+    <div id="panel-empty">
+      <span>👆</span>
+      <span>Click any node to see details</span>
+    </div>
+    <div id="panel-content">
+      <div id="panel-header">
+        <div id="panel-type-badge"></div>
+        <div id="panel-name"></div>
+        <div id="panel-tagline"></div>
+      </div>
+      <div id="panel-body"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const nodeData = {
+  wardrobe: {
+    type: 'Page · Hub', color: '#007aff', badge: { bg:'#e8f0fe', text:'#007aff' },
+    name: 'wardrobe.html',
+    tagline: 'First page you open — links to everything else',
+    sections: [
+      { title: 'What it does', items: [
+        'Home screen with navigation buttons',
+        'Links to builder.html (Outfit Builder)',
+        'Links to catalog-view.html (Browse Catalog)',
+        'Future links: History, Outfits (not built yet)'
+      ]},
+      { title: 'Does NOT load', items: [
+        'catalog.js — just navigation, no item data',
+        'Any JS logic files'
+      ]}
+    ]
+  },
+  builder: {
+    type: 'Page', color: '#007aff', badge: { bg:'#e8f0fe', text:'#007aff' },
+    name: 'builder.html',
+    tagline: 'The main app — where you build outfits',
+    sections: [
+      { title: 'What it does', items: [
+        'Outfit canvas: Outer, Shirt, Pants, Belt, Shoes',
+        'WHERE pills (Office / Dinner / Event / Weekend / Travel)',
+        'STYLE pills (Formal / Smart Casual / Casual)',
+        'Carousel — browse and tap items to place on canvas',
+        'Complete Outfit, Clear, Lock 🔒, Shuffle 🔀 buttons',
+        'Swipe left/right on canvas slots to cycle items',
+        'Star ratings on carousel tiles and canvas slots'
+      ]},
+      { title: 'Loads (script tags)', items: [
+        '<strong>catalog.js</strong> — item names, images, attributes',
+        '<strong>matching.js</strong> — for star ratings',
+        '<strong>builder-logic.js</strong> — Complete Outfit, Shuffle, swipe logic'
+      ]},
+      { title: 'Does NOT contain', items: [
+        'Scoring logic → matching.js',
+        'Complete Outfit algorithm → builder-logic.js',
+        'Item data → catalog.js'
+      ]}
+    ]
+  },
+  catalogview: {
+    type: 'Page', color: '#007aff', badge: { bg:'#e8f0fe', text:'#007aff' },
+    name: 'catalog-view.html',
+    tagline: 'Read-only browser — see all items by category',
+    sections: [
+      { title: 'What it does', items: [
+        'Lists all 72 items in collapsible tables by category',
+        'Shows name, brand, image, and key attributes',
+        'No outfit building — purely for browsing'
+      ]},
+      { title: 'Loads', items: ['<strong>catalog.js</strong> — reads names, brands, images, attributes'] }
+    ]
+  },
+  catalogattrs: {
+    type: 'Page', color: '#007aff', badge: { bg:'#e8f0fe', text:'#007aff' },
+    name: 'catalog-attributes.html',
+    tagline: 'Deep audit view — every attribute on every item',
+    sections: [
+      { title: 'What it does', items: [
+        'Shows full attribute set for all 72 items',
+        'Used to check and audit data quality',
+        'List view and detail view modes'
+      ]},
+      { title: 'Loads', items: ['<strong>catalog.js</strong> — reads complete attribute data'] }
+    ]
+  },
+  config: {
+    type: 'Sandbox', color: '#888', badge: { bg:'#f2f2f7', text:'#666' },
+    name: 'wardrobe-config.html',
+    tagline: 'Standalone planning page — not part of the main app flow',
+    sections: [
+      { title: 'What it does', items: [
+        'Used to design and test category structures',
+        'Not linked from wardrobe.html',
+        'Not used during normal day-to-day use'
+      ]}
+    ]
+  },
+  builderlogic: {
+    type: 'Logic', color: '#ff9500', badge: { bg:'#fff3e0', text:'#e07000' },
+    name: 'builder-logic.js',
+    tagline: 'The brain behind all outfit building decisions',
+    sections: [
+      { title: 'What it does', items: [
+        'Tracks state: what\'s on canvas, which slots are locked',
+        '<strong>Complete Outfit</strong> — fills empty slots with best-scoring items',
+        '<strong>Full canvas shuffle</strong> — picks randomly from ⭐⭐⭐ tier',
+        '<strong>Per-category shuffle 🔀</strong> — swaps one slot to next best',
+        '<strong>Swipe snapshot</strong> — freezes ranked order on first swipe',
+        '<strong>clearOutfit</strong> — wipes all unlocked slots'
+      ]},
+      { title: 'Calls', items: [
+        '<strong>matching.js</strong> → to score and rank candidate items'
+      ]},
+      { title: 'Loaded by', items: ['builder.html only'] }
+    ]
+  },
+  matching: {
+    type: 'Logic', color: '#ff9500', badge: { bg:'#fff3e0', text:'#e07000' },
+    name: 'matching.js',
+    tagline: 'Scoring engine — decides ⭐ ratings and ✕ exclusions',
+    sections: [
+      { title: 'What it does', items: [
+        'Scores any item against what\'s on the canvas',
+        'Returns ⭐ / ⭐⭐ / ⭐⭐⭐ or ✕ (excluded)',
+        '<strong>Formality alignment</strong> — +0 to +4 pts',
+        '<strong>Tone contrast</strong> — +0 to +3 pts',
+        '<strong>Colour harmony</strong> — +0 to +3 pts',
+        '<strong>Pattern clash detection</strong> — +0 to +2 pts',
+        '<strong>Style pill modifier</strong> — +1.5 boost or −1 penalty',
+        '<strong>Hard ✕ rules</strong> — suit+t-shirt, pattern-on-pattern, wrong belt width, etc.'
+      ]},
+      { title: 'Score thresholds', items: [
+        '8+ → ⭐⭐⭐   |   5–7 → ⭐⭐   |   2–4 → ⭐   |   0–1 → no stars   |   negative → ✕'
+      ]},
+      { title: 'Called by', items: [
+        '<strong>builder-logic.js</strong> — for Complete Outfit / shuffle decisions',
+        '<strong>builder.html</strong> — to show stars in carousel and on canvas'
+      ]}
+    ]
+  },
+  catalog: {
+    type: 'Data · Source of Truth', color: '#34c759', badge: { bg:'#e6f9ed', text:'#1a9e3a' },
+    name: 'catalog.js',
+    tagline: 'Every piece of data in the app lives here — one file, one source',
+    sections: [
+      { title: 'What lives here', items: [
+        '<strong>72 clothing items</strong> across all categories',
+        '<strong>Item names</strong> — e.g. "White Oxford Shirt"',
+        '<strong>Brands</strong> — e.g. "T.M.Lewin", "Reiss", "Zara"',
+        '<strong>Image paths</strong> → catalog/ folder',
+        '<strong>Formality</strong> — e.g. ["Formal", "Smart Casual"]',
+        '<strong>Colour & tone</strong> — colorFamily, tone, specific color',
+        '<strong>Fabric, pattern, cut, hem, beltLoop</strong> — for pants',
+        '<strong>Style, sole, closure</strong> — for shoes',
+        '<strong>Category structure</strong> — order, sub-categories, slot mappings'
+      ]},
+      { title: 'Loaded by', items: ['builder.html', 'catalog-view.html', 'catalog-attributes.html'] },
+      { title: 'To rename an item', items: [
+        'Edit the <strong>name</strong> field here — updates everywhere automatically'
+      ]},
+      { title: 'To change a brand', items: [
+        'Edit the <strong>brand</strong> field here — one place, reflects everywhere'
+      ]}
+    ]
+  },
+  images: {
+    type: 'Assets', color: '#8e8e93', badge: { bg:'#f2f2f7', text:'#636366' },
+    name: 'catalog/',
+    tagline: 'Folder of all clothing item photos',
+    sections: [
+      { title: 'Sub-folders', items: [
+        'belts/', 'blazers/', 'pants/', 'shoes/', 'suits/',
+        'shirts_formal.png (root level)'
+      ]},
+      { title: 'How images are used', items: [
+        'Each item in catalog.js has an <strong>image</strong> field with the file path',
+        'builder.html and catalog-view.html read that path to display the photo',
+        'Images hosted on Google Drive (Drive share URLs)'
+      ]}
+    ]
+  },
+  layouts: {
+    type: 'Assets', color: '#8e8e93', badge: { bg:'#f2f2f7', text:'#636366' },
+    name: 'layouts/',
+    tagline: 'Reference outfit photos — not used by the app',
+    sections: [
+      { title: 'Contents', items: [
+        'casual_friday_greyblazer_midblue_wildrhino.png',
+        'casual_friday_v2.png'
+      ]},
+      { title: 'Purpose', items: [
+        'Visual reference of real outfit combinations',
+        'Used by Nehal and Claude as design/styling reference',
+        'Not loaded by any HTML or JS file'
+      ]}
+    ]
+  },
+  memory: {
+    type: 'Claude Context', color: '#af52de', badge: { bg:'#f5eeff', text:'#8c2fc7' },
+    name: 'memory/',
+    tagline: 'Context files read by Claude at the start of every session',
+    sections: [
+      { title: 'Files inside', items: [
+        '<strong>MEMORY.md</strong> — index',
+        '<strong>user_profile.md</strong> — who Nehal is',
+        '<strong>project_purpose.md</strong> — file roles, hardware plan',
+        '<strong>project_plan.md</strong> — done, next steps, backlog',
+        '<strong>design_notes.md</strong> — decisions made, features parked',
+        '<strong>matching_logic_design.md</strong> — scoring rules, tuning issues',
+        '<strong>feedback_memory_updates.md</strong> — how to update memory'
+      ]},
+      { title: 'Purpose', items: [
+        'Preserves context across sessions and devices',
+        'Solves the problem of losing context when switching laptops',
+        'Not loaded by any app file — invisible to the running app'
+      ]}
+    ]
+  }
+};
+
+// Arrows: [fromId, toId, type]
+const arrowDefs = [
+  ['n-wardrobe',     'n-builder',      'nav'],
+  ['n-wardrobe',     'n-catalogview',  'nav'],
+  ['n-wardrobe',     'n-catalogattrs', 'nav'],
+  ['n-builder',      'n-builderlogic', 'load'],
+  ['n-builder',      'n-matching',     'load'],
+  ['n-builder',      'n-catalog',      'data'],
+  ['n-catalogview',  'n-catalog',      'data'],
+  ['n-catalogattrs', 'n-catalog',      'data'],
+  ['n-builderlogic', 'n-matching',     'call'],
+  ['n-catalog',      'n-images',       'asset'],
+];
+
+const arrowStyle = {
+  nav:   { color: '#bbbbbb', dash: '6,4', marker: 'arr-nav'   },
+  load:  { color: '#007aff', dash: null,  marker: 'arr-load'  },
+  data:  { color: '#34c759', dash: null,  marker: 'arr-data'  },
+  call:  { color: '#ff9500', dash: null,  marker: 'arr-call'  },
+  asset: { color: '#8e8e93', dash: '5,3', marker: 'arr-asset' },
+};
+
+function nodeGeom(id) {
+  const el = document.getElementById(id);
+  const l = parseInt(el.style.left), t = parseInt(el.style.top);
+  const w = el.offsetWidth, h = el.offsetHeight;
+  return { l, t, w, h, cx: l+w/2, cy: t+h/2, r: l+w, b: t+h };
+}
+
+function drawArrows() {
+  const svg = document.getElementById('arrows');
+  [...svg.querySelectorAll('path')].forEach(e => e.remove());
+
+  arrowDefs.forEach(([fId, tId, type]) => {
+    const f = nodeGeom(fId), t = nodeGeom(tId);
+    const s = arrowStyle[type];
+    let x1, y1, x2, y2, cpx1, cpy1, cpx2, cpy2;
+
+    const sameCol = Math.abs(f.cx - t.cx) < 60;
+
+    if (sameCol) {
+      // vertical — exit bottom, enter top
+      x1 = f.cx; y1 = f.b;
+      x2 = t.cx; y2 = t.t;
+      cpx1 = x1; cpy1 = y1 + (y2-y1)*0.5;
+      cpx2 = x2; cpy2 = y2 - (y2-y1)*0.2;
+    } else {
+      // horizontal / diagonal — exit right, enter left
+      x1 = f.r;  y1 = f.cy;
+      x2 = t.l;  y2 = t.cy;
+      const dx = x2 - x1;
+      cpx1 = x1 + dx*0.45; cpy1 = y1;
+      cpx2 = x2 - dx*0.15; cpy2 = y2;
+    }
+
+    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    path.setAttribute('d', `M${x1},${y1} C${cpx1},${cpy1} ${cpx2},${cpy2} ${x2},${y2}`);
+    path.setAttribute('stroke', s.color);
+    path.setAttribute('stroke-width', '1.8');
+    path.setAttribute('fill', 'none');
+    path.setAttribute('opacity', '0.8');
+    path.setAttribute('marker-end', `url(#${s.marker})`);
+    if (s.dash) path.setAttribute('stroke-dasharray', s.dash);
+    svg.appendChild(path);
+  });
+}
+
+function showPanel(key) {
+  const d = nodeData[key];
+  if (!d) return;
+  document.getElementById('panel-empty').style.display = 'none';
+  const content = document.getElementById('panel-content');
+  content.style.display = 'flex';
+  const badge = document.getElementById('panel-type-badge');
+  badge.textContent = d.type;
+  badge.style.background = d.badge.bg;
+  badge.style.color = d.badge.text;
+  document.getElementById('panel-name').textContent = d.name;
+  document.getElementById('panel-tagline').textContent = d.tagline;
+  const body = document.getElementById('panel-body');
+  body.innerHTML = '';
+  d.sections.forEach(sec => {
+    const h3 = document.createElement('h3');
+    h3.textContent = sec.title;
+    body.appendChild(h3);
+    const ul = document.createElement('ul');
+    sec.items.forEach(item => {
+      const li = document.createElement('li');
+      li.innerHTML = item;
+      ul.appendChild(li);
+    });
+    body.appendChild(ul);
+  });
+  document.querySelectorAll('.node').forEach(n => n.classList.remove('active'));
+  const el = document.getElementById('n-' + key);
+  if (el) el.classList.add('active');
+}
+
+window.addEventListener('load', drawArrows);
+window.addEventListener('resize', drawArrows);
+</script>
+</body>
+</html>
