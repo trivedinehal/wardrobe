@@ -686,6 +686,7 @@ function renderOutfitTypes(style) {
     `<button class="outfit-type-pill ${i === 0 ? 'active' : ''}" onclick="setOutfitType(this,'${t.key}')">${t.label}</button>`
   ).join('');
   currentOutfitType = types[0]?.key || null;
+  if (currentOutfitType) clearConflictingSlots(currentOutfitType);
   if (currentOutfitType) updateSlotLabels(currentOutfitType);
   if (currentOutfitType) updateCanvasMode(currentOutfitType);
 }
