@@ -60,10 +60,21 @@ function outerCats() {
 
 // ── Core scoring + picking ────────────────────────────────────────────────────
 
+// Returns pants sub-category filter function based on outfit type
+function getPantsFilter() {
+  const type = window.currentOutfitType;
+  if (!type) return null;
+  if (type.includes('formal-trouser')) return item => item.sub === 'Dress Trousers';
+  if (type.includes('chinos'))         return item => item.sub === 'Chinos';
+  if (type.includes('jeans'))          return item => item.sub === 'Jeans';
+  return null; // no-outer or suit — no pants filter needed
+}
+
 // Find best item for a slot across given categories
 // random=false → always pick highest scorer (for initial fill)
 // random=true  → pick randomly from top star tier (for shuffle variety)
-function bestForSlot(cats, excludeKey, random = false) {
+// filter → optional function to pre-filter items (e.g. pants sub-category)
+function bestForSlot(cats, excludeKey, random = false, filter = null) {
   const canvas = buildCanvas();
   const scored = [];
 
@@ -71,6 +82,7 @@ function bestForSlot(cats, excludeKey, random = false) {
     (catalog[cat] || []).forEach(item => {
       const key = item.file || item.name;
       if (excludeKey && key === excludeKey) return;
+      if (filter && !filter(item)) return;
 
       const result = window.scoreItem ? window.scoreItem(item, cat, canvas, currentStyle) : null;
       if (!result || result.excluded) return;
@@ -99,12 +111,12 @@ function bestForSlot(cats, excludeKey, random = false) {
 }
 
 // Fill a single slot with the best available item
-function fillBestForSlot(slot, cats, excludeKey, random = false) {
+function fillBestForSlot(slot, cats, excludeKey, random = false, filter = null) {
   if (lockedSlots[slot]) return;                                          // locked — skip
   if (slot === 'pants' && selected['outer']?.cat === 'suits') return;    // suit mode — no pants
   if (slot === 'outer' && cats.length === 0) return;                     // no-outer mode — skip
 
-  const best = bestForSlot(cats, excludeKey, random);
+  const best = bestForSlot(cats, excludeKey, random, filter);
   if (!best) return;
 
   selected[slot] = { ...best.item, cat: best.cat };
@@ -219,10 +231,12 @@ function completeOutfit() {
       }
     });
     updateSuitMode();
-    slots.forEach(slot => fillBestForSlot(slot, cats[slot], prev[slot], true));
+    const pantsFilter = getPantsFilter();
+    slots.forEach(slot => fillBestForSlot(slot, cats[slot], prev[slot], true, slot === 'pants' ? pantsFilter : null));
   } else {
     // Fill empty slots deterministically (best match)
-    slots.forEach(slot => fillBestForSlot(slot, cats[slot], null, false));
+    const pantsFilter = getPantsFilter();
+    slots.forEach(slot => fillBestForSlot(slot, cats[slot], null, false, slot === 'pants' ? pantsFilter : null));
   }
 
   refreshAllSlotStars();
@@ -238,16 +252,18 @@ function shuffleCategory(cat) {
   // Always search current tab's category only
   const cats = [cat];
 
+  const filter = slotKey === 'pants' ? getPantsFilter() : null;
+
   if (selected[slotKey]) {
     // Item exists — randomly pick from top tier excluding current
     const excludeKey = selected[slotKey].file || selected[slotKey].name;
     delete selected[slotKey];
     clearSlot(slotKey);
     updateSuitMode();
-    fillBestForSlot(slotKey, cats, excludeKey, true);
+    fillBestForSlot(slotKey, cats, excludeKey, true, filter);
   } else {
     // Nothing selected — autofill with best item
-    fillBestForSlot(slotKey, cats, null, false);
+    fillBestForSlot(slotKey, cats, null, false, filter);
   }
 
   refreshAllSlotStars();

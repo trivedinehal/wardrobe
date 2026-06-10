@@ -694,8 +694,42 @@ function setOutfitType(el, key) {
   document.querySelectorAll('.outfit-type-pill').forEach(p => p.classList.remove('active'));
   el.classList.add('active');
   currentOutfitType = key;
+  clearConflictingSlots(key);
   updateSlotLabels(key);
   updateCanvasMode(key);
+}
+
+function clearConflictingSlots(key) {
+  // Determine expected outer category from outfit type
+  const expectedOuterCat = key === 'no-outer'          ? null
+                         : key.startsWith('suit')       ? 'suits'
+                         : key.startsWith('blazer')     ? 'blazers'
+                         : key.startsWith('jacket')     ? 'jackets'
+                         : null;
+
+  // Clear outer if it conflicts with the new outfit type
+  if (selected['outer'] && !lockedSlots['outer']) {
+    if (key === 'no-outer' || selected['outer'].cat !== expectedOuterCat) {
+      delete selected['outer'];
+      clearSlot('outer');
+    }
+  }
+
+  // Clear pants if they conflict with the expected pants type
+  if (selected['pants'] && !lockedSlots['pants']) {
+    const expectedSub = key.includes('formal-trouser') ? 'Dress Trousers'
+                      : key.includes('chinos')          ? 'Chinos'
+                      : key.includes('jeans')           ? 'Jeans'
+                      : null;
+    if (expectedSub && selected['pants'].sub !== expectedSub) {
+      delete selected['pants'];
+      clearSlot('pants');
+    }
+  }
+
+  updateSuitMode();
+  refreshAllSlotStars();
+  renderCarousel(currentCat, currentSub, currentSubSub);
 }
 
 function updateCanvasMode(key) {
