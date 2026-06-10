@@ -21,6 +21,7 @@
     top: 0;
     z-index: 100;
   }
+  .home-btn { font-size: 14px; color: #007aff; text-decoration: none; display: inline-block; margin-bottom: 4px; }
   .header h1 { font-size: 20px; font-weight: 700; margin-bottom: 2px; }
   .header p { font-size: 12px; color: #8e8e93; }
 
@@ -53,11 +54,12 @@
   .cat-table {
     background: #fff;
     border-radius: 0 0 12px 12px;
-    overflow: hidden;
+    overflow-x: auto;
     border: 1px solid #e5e5ea;
     border-top: none;
   }
   .cat-group.collapsed .cat-table { display: none; }
+  .cat-table-inner { min-width: 500px; }
 
   /* Column headers */
   .table-head {
@@ -137,6 +139,7 @@
 <body>
 
 <div class="header">
+  <a class="home-btn" href="wardrobe.html">‹ Home</a>
   <h1>Catalog View</h1>
   <p>Review and verify item classification — category, sub and sub-sub</p>
 </div>
@@ -167,14 +170,16 @@ function buildPage() {
         <span class="cat-header-arrow">▼</span>
       </div>
       <div class="cat-table">
-        <div class="table-head">
-          <span>Image</span>
-          <span>Name</span>
-          <span>Brand</span>
-          <span>Sub</span>
-          <span>Sub-Sub</span>
+        <div class="cat-table-inner">
+          <div class="table-head">
+            <span>Image</span>
+            <span>Name</span>
+            <span>Brand</span>
+            <span>Sub</span>
+            <span>Sub-Sub</span>
+          </div>
+          <div class="table-body" id="body-${key}"></div>
         </div>
-        <div class="table-body" id="body-${key}"></div>
       </div>
     `;
     content.appendChild(group);
