@@ -259,6 +259,19 @@
   .formal       { background: #1c1c1e; color: #fff; }
   .smart-casual { background: #3a6ea5; color: #fff; }
   .casual       { background: #34c759; color: #fff; }
+
+  @media (max-width: 600px) {
+    .detail-body { flex-direction: column; height: auto; }
+    .detail-img-panel {
+      flex: none;
+      width: 100%;
+      border-right: none;
+      border-bottom: 1px solid #e5e5ea;
+      padding: 20px;
+    }
+    .detail-img { max-height: 220px; }
+    .detail-attrs-panel { overflow-y: visible; padding: 16px; }
+  }
 </style>
 </head>
 <body>
