@@ -52,14 +52,25 @@ const SUBSUB_CATS = {
   },
 };
 
+// WHERE scenarios — context only, no effect on matching scores
+const WHERE_ORDER = ['office', 'dinner', 'event', 'weekend', 'travel'];
+
+const WHERE_META = {
+  'office':  { label: 'Office',  icon: '💼', desc: 'Work days — smart and professional. Suits, blazers, or smart casual depending on the day.' },
+  'dinner':  { label: 'Dinner',  icon: '🍽️', desc: 'Evening out — dressed up but comfortable. Blazer or smart top, polished shoes.' },
+  'event':   { label: 'Event',   icon: '🎉', desc: 'Formal occasions — weddings, functions, celebrations. Suit or formal blazer.' },
+  'weekend': { label: 'Weekend', icon: '😎', desc: 'Relaxed days off — casual and comfortable. Jeans, t-shirts, sneakers.' },
+  'travel':  { label: 'Travel',  icon: '✈️', desc: 'On the move — comfort first. Easy layers, practical shoes, minimal fuss.' },
+};
+
 // Style order (formality levels, most formal first)
 const STYLE_ORDER = ['formal', 'semi-formal', 'smart-casual', 'casual'];
 
 const STYLE_META = {
-  'formal':       { label: 'Formal',       icon: '🎩' },
-  'semi-formal':  { label: 'Semi-Formal',  icon: '🧥' },
-  'smart-casual': { label: 'Smart Casual', icon: '👔' },
-  'casual':       { label: 'Casual',       icon: '👕' },
+  'formal':       { label: 'Formal',       icon: '🎩', desc: 'Full formal look. Suits or dress shirts with formal trousers. Important meetings, events, formal occasions.' },
+  'semi-formal':  { label: 'Semi-Formal',  icon: '🧥', desc: 'Dressed up but not a full suit. Blazer or jacket with formal trousers or chinos. Thursday office day, dinner, smart events.' },
+  'smart-casual': { label: 'Smart Casual', icon: '👔', desc: 'Relaxed but put together. Blazer or jacket with jeans or chinos, collared shirt. Casual office day, social occasions.' },
+  'casual':       { label: 'Casual',       icon: '👕', desc: 'Relaxed look. T-shirts or casual shirts, casual denim, sneakers. Casual Friday, weekends, relaxed days.' },
 };
 
 // Outfit types per style

@@ -201,55 +201,16 @@
 <h1>Wardrobe Config</h1>
 <p class="subtitle">Planning page — styles, categories, subcategories and mappings</p>
 
-<!-- SCENARIOS -->
+<!-- WHERE — generated from catalog.js -->
+<div class="section">
+  <div class="section-title">Where (Scenarios)</div>
+  <div id="whereCards"></div>
+</div>
+
+<!-- STYLES — generated from catalog.js -->
 <div class="section">
   <div class="section-title">Styles</div>
-
-  <div class="scenario-card">
-    <div class="scenario-name">🎩 Formal</div>
-    <div class="scenario-desc">Full formal look. Suits or dress shirts with formal trousers. Important meetings, events, formal occasions.</div>
-    <div class="outfit-types">
-      <div class="outfit-types-label">Outfit Types</div>
-      <span class="outfit-type-tag">Suit</span>
-      <span class="outfit-type-tag">Blazer + Formal Trousers</span>
-      <span class="outfit-type-tag">No Outer</span>
-    </div>
-  </div>
-
-  <div class="scenario-card">
-    <div class="scenario-name">🧥 Semi-Formal</div>
-    <div class="scenario-desc">Dressed up but not a full suit. Blazer or jacket with formal trousers or chinos. Thursday office day, dinner, smart events.</div>
-    <div class="outfit-types">
-      <div class="outfit-types-label">Outfit Types</div>
-      <span class="outfit-type-tag">Blazer + Formal Trousers</span>
-      <span class="outfit-type-tag">Blazer + Chinos</span>
-      <span class="outfit-type-tag">Jacket + Formal Trousers</span>
-      <span class="outfit-type-tag">No Outer</span>
-    </div>
-  </div>
-
-  <div class="scenario-card">
-    <div class="scenario-name">👔 Smart Casual</div>
-    <div class="scenario-desc">Relaxed but put together. Blazer or jacket with jeans or chinos, collared shirt. Casual office day, social occasions.</div>
-    <div class="outfit-types">
-      <div class="outfit-types-label">Outfit Types</div>
-      <span class="outfit-type-tag">Blazer + Chinos</span>
-      <span class="outfit-type-tag">Blazer + Jeans</span>
-      <span class="outfit-type-tag">Jacket + Chinos</span>
-      <span class="outfit-type-tag">Jacket + Jeans</span>
-      <span class="outfit-type-tag">No Outer</span>
-    </div>
-  </div>
-
-  <div class="scenario-card">
-    <div class="scenario-name">👕 Casual</div>
-    <div class="scenario-desc">Relaxed look. T-shirts or casual shirts, casual denim, sneakers. Casual Friday, weekends, relaxed days.</div>
-    <div class="outfit-types">
-      <div class="outfit-types-label">Outfit Types</div>
-      <span class="outfit-type-tag">Jacket + Jeans</span>
-      <span class="outfit-type-tag">No Outer</span>
-    </div>
-  </div>
+  <div id="styleCards"></div>
 </div>
 
 <!-- CATEGORIES — generated from catalog.js -->
@@ -261,6 +222,38 @@
 <script src="catalog.js"></script>
 <script>
 function toggle(el) { el.parentElement.classList.toggle('collapsed'); }
+
+function buildWhereCards() {
+  const container = document.getElementById('whereCards');
+  WHERE_ORDER.forEach(key => {
+    const meta = WHERE_META[key];
+    container.innerHTML += `
+      <div class="scenario-card">
+        <div class="scenario-name">${meta.icon} ${meta.label}</div>
+        <div class="scenario-desc">${meta.desc}</div>
+      </div>
+    `;
+  });
+}
+
+function buildStyleCards() {
+  const container = document.getElementById('styleCards');
+  STYLE_ORDER.forEach(key => {
+    const meta = STYLE_META[key];
+    const types = OUTFIT_TYPES[key] || [];
+    const tagsHTML = types.map(t => `<span class="outfit-type-tag">${t.label}</span>`).join('');
+    container.innerHTML += `
+      <div class="scenario-card">
+        <div class="scenario-name">${meta.icon} ${meta.label}</div>
+        <div class="scenario-desc">${meta.desc}</div>
+        <div class="outfit-types">
+          <div class="outfit-types-label">Outfit Types</div>
+          ${tagsHTML}
+        </div>
+      </div>
+    `;
+  });
+}
 
 function buildCategories() {
   const container = document.getElementById('catBlocks');
@@ -298,6 +291,8 @@ function buildCategories() {
   });
 }
 
+buildWhereCards();
+buildStyleCards();
 buildCategories();
 </script>
 </body>

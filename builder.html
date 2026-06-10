@@ -480,13 +480,8 @@
 
 <!-- HEADER — Scenario + Style -->
 <div class="header">
-  <div class="pill-row">
+  <div class="pill-row" id="whereRow">
     <a class="header-home pill-label" href="wardrobe.html">⌂</a>
-    <button class="scenario-pill active" onclick="setScenario(this,'office')">Office</button>
-    <button class="scenario-pill" onclick="setScenario(this,'dinner')">Dinner</button>
-    <button class="scenario-pill" onclick="setScenario(this,'event')">Event</button>
-    <button class="scenario-pill" onclick="setScenario(this,'weekend')">Weekend</button>
-    <button class="scenario-pill" onclick="setScenario(this,'travel')">Travel</button>
   </div>
   <div class="pill-row" id="styleRow">
     <span class="pill-spacer"></span>
@@ -657,6 +652,18 @@ function setScenario(el, scenario) {
   el.classList.add('active');
   currentScenario = scenario;
   renderCarousel(currentCat, currentSub, currentSubSub);
+}
+
+function buildWhereRow() {
+  const row = document.getElementById('whereRow');
+  WHERE_ORDER.forEach((key, i) => {
+    const meta = WHERE_META[key];
+    const btn = document.createElement('button');
+    btn.className = 'scenario-pill' + (key === currentScenario ? ' active' : '');
+    btn.textContent = meta.label;
+    btn.onclick = () => setScenario(btn, key);
+    row.appendChild(btn);
+  });
 }
 
 function buildStyleRow() {
@@ -1031,6 +1038,7 @@ function updateSuitMode() {
 // Init
 renderSubTabs('tops');
 renderSubSubTabs('tops', 'All');
+buildWhereRow();
 buildStyleRow();
 renderCarousel('tops', 'All', 'All');
 renderOutfitTypes(currentStyle);

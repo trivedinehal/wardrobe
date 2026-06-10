@@ -257,6 +257,12 @@ header p  { font-size: 12px; color: #888; margin-top: 2px; }
       </div>
 
       <!-- Standalone strip at bottom -->
+      <div class="node sandbox" id="n-architecture" style="left:20px; top:420px" onclick="showPanel('architecture')">
+        <div class="node-badge">This file</div>
+        <div class="node-name">architecture.html</div>
+        <div class="node-desc">This diagram — not part of the app</div>
+      </div>
+
       <div class="node page" id="n-config" style="left:240px; top:420px" onclick="showPanel('config')">
         <div class="node-badge">Page</div>
         <div class="node-name">wardrobe-config.html</div>
@@ -281,6 +287,7 @@ header p  { font-size: 12px; color: #888; margin-top: 2px; }
         <div class="legend-row"><div class="legend-line dashed"></div> navigates to</div>
         <div class="legend-row"><div class="legend-line" style="background:#007aff"></div> loads (script tag)</div>
         <div class="legend-row"><div class="legend-line" style="background:#ff9500"></div> calls (function)</div>
+        <div class="legend-row"><div class="legend-line" style="background:#ff9500; opacity:0.5; border-top: 2px dashed #ff9500; height:0; background:none"></div> calls back (DOM)</div>
         <div class="legend-row"><div class="legend-line" style="background:#34c759"></div> reads data from</div>
         <div class="legend-row"><div class="legend-line dotted"></div> image paths in</div>
       </div>
@@ -470,9 +477,9 @@ const nodeData = {
         'shirts_formal.png (root level)'
       ]},
       { title: 'How images are used', items: [
-        'Each item in catalog.js has an <strong>image</strong> field with the file path',
-        'builder.html and catalog-view.html read that path to display the photo',
-        'Images hosted on Google Drive (Drive share URLs)'
+        'Each item in catalog.js has an <strong>image</strong> field with the Google Drive share URL',
+        'builder.html and catalog-view.html read that URL to display the photo',
+        '<strong>Important:</strong> if you replace a photo, keep the same filename — or update the <strong>file</strong> field in catalog.js to match the new name'
       ]}
     ]
   },
@@ -489,6 +496,23 @@ const nodeData = {
         'Visual reference of real outfit combinations',
         'Used by Nehal and Claude as design/styling reference',
         'Not loaded by any HTML or JS file'
+      ]}
+    ]
+  },
+  architecture: {
+    type: 'Standalone', color: '#aaa', badge: { bg:'#f2f2f7', text:'#888' },
+    name: 'architecture.html',
+    tagline: 'This diagram — standalone reference, not part of the running app',
+    sections: [
+      { title: 'What it does', items: [
+        'Visual map of how all files connect to each other',
+        'Click any node to see details about that file',
+        'Used by Nehal and Claude as a reference'
+      ]},
+      { title: 'Does NOT connect to', items: [
+        'Not loaded by any other file',
+        'Does not load catalog.js, matching.js, or any app logic',
+        'Completely standalone — safe to open or delete without affecting the app'
       ]}
     ]
   },
@@ -520,22 +544,25 @@ const arrowDefs = [
   ['n-wardrobe',     'n-builder',      'nav'],
   ['n-wardrobe',     'n-catalogview',  'nav'],
   ['n-wardrobe',     'n-catalogattrs', 'nav'],
+  ['n-wardrobe',     'n-config',       'nav'],
   ['n-builder',      'n-builderlogic', 'load'],
   ['n-builder',      'n-matching',     'load'],
   ['n-builder',      'n-catalog',      'data'],
   ['n-catalogview',  'n-catalog',      'data'],
   ['n-catalogattrs', 'n-catalog',      'data'],
   ['n-builderlogic', 'n-matching',     'call'],
+  ['n-builderlogic', 'n-builder',      'callback'],
   ['n-catalog',      'n-images',       'asset'],
   ['n-config',       'n-catalog',      'data'],
 ];
 
 const arrowStyle = {
-  nav:   { color: '#bbbbbb', dash: '6,4', marker: 'arr-nav'   },
-  load:  { color: '#007aff', dash: null,  marker: 'arr-load'  },
-  data:  { color: '#34c759', dash: null,  marker: 'arr-data'  },
-  call:  { color: '#ff9500', dash: null,  marker: 'arr-call'  },
-  asset: { color: '#8e8e93', dash: '5,3', marker: 'arr-asset' },
+  nav:      { color: '#bbbbbb', dash: '6,4', marker: 'arr-nav'      },
+  load:     { color: '#007aff', dash: null,  marker: 'arr-load'     },
+  data:     { color: '#34c759', dash: null,  marker: 'arr-data'     },
+  call:     { color: '#ff9500', dash: null,  marker: 'arr-call'     },
+  asset:    { color: '#8e8e93', dash: '5,3', marker: 'arr-asset'    },
+  callback: { color: '#ff9500', dash: '4,3', marker: 'arr-call'     },
 };
 
 function nodeGeom(id) {
