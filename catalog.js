@@ -52,6 +52,43 @@ const SUBSUB_CATS = {
   },
 };
 
+// Style order (formality levels, most formal first)
+const STYLE_ORDER = ['formal', 'semi-formal', 'smart-casual', 'casual'];
+
+const STYLE_META = {
+  'formal':       { label: 'Formal',       icon: '🎩' },
+  'semi-formal':  { label: 'Semi-Formal',  icon: '🧥' },
+  'smart-casual': { label: 'Smart Casual', icon: '👔' },
+  'casual':       { label: 'Casual',       icon: '👕' },
+};
+
+// Outfit types per style
+// outerCat: which catalog category to use for the outer slot (null = No Outer)
+const OUTFIT_TYPES = {
+  'formal': [
+    { key: 'suit',                  label: 'Suit',                    outerCat: 'suits'   },
+    { key: 'blazer-formal-trouser', label: 'Blazer + Formal Trousers', outerCat: 'blazers' },
+    { key: 'no-outer',              label: 'No Outer',                 outerCat: null      },
+  ],
+  'semi-formal': [
+    { key: 'blazer-formal-trouser', label: 'Blazer + Formal Trousers', outerCat: 'blazers' },
+    { key: 'blazer-chinos',         label: 'Blazer + Chinos',          outerCat: 'blazers' },
+    { key: 'jacket-formal-trouser', label: 'Jacket + Formal Trousers', outerCat: 'jackets' },
+    { key: 'no-outer',              label: 'No Outer',                  outerCat: null      },
+  ],
+  'smart-casual': [
+    { key: 'blazer-chinos',  label: 'Blazer + Chinos', outerCat: 'blazers' },
+    { key: 'blazer-jeans',   label: 'Blazer + Jeans',  outerCat: 'blazers' },
+    { key: 'jacket-chinos',  label: 'Jacket + Chinos', outerCat: 'jackets' },
+    { key: 'jacket-jeans',   label: 'Jacket + Jeans',  outerCat: 'jackets' },
+    { key: 'no-outer',       label: 'No Outer',         outerCat: null      },
+  ],
+  'casual': [
+    { key: 'jacket-jeans', label: 'Jacket + Jeans', outerCat: 'jackets' },
+    { key: 'no-outer',     label: 'No Outer',        outerCat: null      },
+  ],
+};
+
 // ============================================================
 // ATTRIBUTE SCHEMA (all items get these unless marked optional)
 //
