@@ -95,6 +95,34 @@
     color: #fff;
   }
 
+  /* Outfit type row */
+  .outfit-type-row {
+    display: flex;
+    gap: 5px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    flex: 1;
+  }
+  .outfit-type-row::-webkit-scrollbar { display: none; }
+  .outfit-type-pill {
+    flex-shrink: 0;
+    padding: 6px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    border: none;
+    background: #f2f2f7;
+    color: #8e8e93;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s;
+  }
+  .outfit-type-pill.active {
+    background: #34c759;
+    color: #fff;
+  }
+
   /* ── OUTFIT PREVIEW ── */
   .preview-area {
     flex: 1;
@@ -460,11 +488,12 @@
     <button class="scenario-pill" onclick="setScenario(this,'weekend')">Weekend</button>
     <button class="scenario-pill" onclick="setScenario(this,'travel')">Travel</button>
   </div>
+  <div class="pill-row" id="styleRow">
+    <span class="pill-spacer"></span>
+  </div>
   <div class="pill-row">
     <span class="pill-spacer"></span>
-    <button class="style-pill" onclick="setStyle(this,'formal')">Formal</button>
-    <button class="style-pill active" onclick="setStyle(this,'smart-casual')">Smart Casual</button>
-    <button class="style-pill" onclick="setStyle(this,'casual')">Casual</button>
+    <div class="outfit-type-row" id="outfitTypeRow"></div>
   </div>
 </div>
 
@@ -499,7 +528,7 @@
   <div class="carousel" id="carousel"></div>
 </div>
 
-<script src="catalog.js"></script>
+<script src="catalog.js?v=2"></script>
 <script src="matching.js"></script>
 <script src="builder-logic.js"></script>
 <script>
@@ -555,7 +584,8 @@ let currentCat = 'tops';
 let currentSub = 'All';
 let currentSubSub = 'All';
 let currentScenario = 'office';
-let currentStyle = 'smart-casual';
+let currentStyle = 'formal';
+let currentOutfitType = null;
 
 // Hint messages per scenario
 const HINTS = {
@@ -629,11 +659,39 @@ function setScenario(el, scenario) {
   renderCarousel(currentCat, currentSub, currentSubSub);
 }
 
+function buildStyleRow() {
+  const row = document.getElementById('styleRow');
+  STYLE_ORDER.forEach((key, i) => {
+    const meta = STYLE_META[key];
+    const btn = document.createElement('button');
+    btn.className = 'style-pill' + (key === currentStyle ? ' active' : '');
+    btn.textContent = meta.label;
+    btn.onclick = () => setStyle(btn, key);
+    row.appendChild(btn);
+  });
+}
+
 function setStyle(el, style) {
   document.querySelectorAll('.style-pill').forEach(p => p.classList.remove('active'));
   el.classList.add('active');
   currentStyle = style;
+  renderOutfitTypes(style);
   renderCarousel(currentCat, currentSub, currentSubSub);
+}
+
+function renderOutfitTypes(style) {
+  const row = document.getElementById('outfitTypeRow');
+  const types = OUTFIT_TYPES[style] || [];
+  row.innerHTML = types.map((t, i) =>
+    `<button class="outfit-type-pill ${i === 0 ? 'active' : ''}" onclick="setOutfitType(this,'${t.key}')">${t.label}</button>`
+  ).join('');
+  currentOutfitType = types[0]?.key || null;
+}
+
+function setOutfitType(el, key) {
+  document.querySelectorAll('.outfit-type-pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  currentOutfitType = key;
 }
 
 function setCategory(el, cat) {
@@ -905,7 +963,9 @@ function updateSuitMode() {
 // Init
 renderSubTabs('tops');
 renderSubSubTabs('tops', 'All');
+buildStyleRow();
 renderCarousel('tops', 'All', 'All');
+renderOutfitTypes(currentStyle);
 </script>
 </body>
 </html>
