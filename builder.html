@@ -708,22 +708,24 @@ function clearConflictingSlots(key) {
                          : key.startsWith('jacket')     ? 'jackets'
                          : null;
 
-  // Clear outer if it conflicts with the new outfit type
-  if (selected['outer'] && !lockedSlots['outer']) {
+  // Clear outer if it conflicts — outfit type overrides even a lock
+  if (selected['outer']) {
     if (key === 'no-outer' || selected['outer'].cat !== expectedOuterCat) {
       delete selected['outer'];
+      delete lockedSlots['outer'];
       clearSlot('outer');
     }
   }
 
-  // Clear pants if they conflict with the expected pants type
-  if (selected['pants'] && !lockedSlots['pants']) {
+  // Clear pants if they conflict — outfit type overrides even a lock
+  if (selected['pants']) {
     const expectedSub = key.includes('formal-trouser') ? 'Dress Trousers'
                       : key.includes('chinos')          ? 'Chinos'
                       : key.includes('jeans')           ? 'Jeans'
                       : null;
     if (expectedSub && selected['pants'].sub !== expectedSub) {
       delete selected['pants'];
+      delete lockedSlots['pants'];
       clearSlot('pants');
     }
   }
