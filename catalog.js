@@ -37,7 +37,7 @@ const SUB_CATS = {
   shoes:   ['All', 'Formal', 'Smart Casual', 'Casual', 'Athletic'],
   blazers: ['All', 'Formal', 'Casual'],
   suits:   ['All', 'Formal (Wool)', 'Casual (Linen)'],
-  jackets: ['All'],
+  jackets: ['All', 'Casual'],
 };
 
 // Sub-sub-categories: cat -> sub -> [subsubs]
@@ -374,5 +374,12 @@ const catalog = {
       brand: "", formality: ["Semi-Formal", "Smart Casual", "Casual"], color: "beige", colorFamily: "warm", tone: "light", season: "Summer", description: "Warm sandy beige linen two-piece suit with clearly visible linen texture. Lightweight and relaxed — perfect for summer weddings, garden parties and smart casual occasions.",
       fabric: "linen", pattern: "solid", cut: "slim" },
   ],
-  jackets: [],
+  jackets: [
+    { file: "jacket_harrington_staplesuperior_navy.png",  name: "Staple Superior Navy Harrington", sub: "Casual",
+      brand: "Staple Superior", formality: ["Smart Casual", "Casual"], color: "navy", colorFamily: "cool", tone: "dark", season: "All Season", description: "Navy cotton harrington jacket with zip front and elasticated cuffs, smart enough for casual blazer looks.",
+      fabric: "cotton", pattern: "solid", cut: "regular" },
+    { file: "jacket_leather_benetton_black.png",          name: "Benetton Black Leather Jacket",   sub: "Casual",
+      brand: "Benetton", formality: ["Casual"], color: "black", colorFamily: "neutral", tone: "dark", season: "All Season", description: "Black leather biker-style jacket with zip front, a bold casual statement piece.",
+      fabric: "leather", pattern: "solid", cut: "regular" },
+  ],
 };
