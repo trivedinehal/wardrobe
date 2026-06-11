@@ -84,7 +84,7 @@ function bestForSlot(cats, excludeKey, random = false, filter = null) {
       if (excludeKey && key === excludeKey) return;
       if (filter && !filter(item)) return;
 
-      const result = window.scoreItem ? window.scoreItem(item, cat, canvas, currentStyle) : null;
+      const result = window.scoreItem ? window.scoreItem(item, cat, canvas, currentStyle, currentOutfitType) : null;
       if (!result || result.excluded) return;
       scored.push({ item, cat, stars: result.stars ?? 0, score: result.score ?? 0 });
     });
@@ -147,7 +147,7 @@ function buildSwipeSnapshot(slot) {
   const canvas = buildCanvas();
   const scored = (catalog[cat] || [])
     .map(item => {
-      const result = window.scoreItem ? window.scoreItem(item, cat, canvas, currentStyle) : null;
+      const result = window.scoreItem ? window.scoreItem(item, cat, canvas, currentStyle, currentOutfitType) : null;
       return { item, cat, stars: result?.stars ?? 0, score: result?.score ?? 0, excluded: result?.excluded ?? false };
     })
     .filter(s => !s.excluded)
