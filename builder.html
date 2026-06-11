@@ -780,6 +780,11 @@ function setCategory(el, cat) {
   renderCarousel(cat, 'All', 'All');
 }
 
+function navigateToCategory(cat) {
+  const btn = document.querySelector(`#catTabs .cat-tab[onclick*="'${cat}'"]`);
+  if (btn) setCategory(btn, cat);
+}
+
 function renderSubTabs(cat) {
   const subTabs = document.getElementById('subTabs');
   subTabs.innerHTML = '';
@@ -954,8 +959,8 @@ function fillSwatchSlot(slotKey, item) {
   const locked = lockedSlots[slotKey];
   const stars = slotStarsHTML(item, item.cat || 'tops');
   slot.innerHTML = `
-    <div style="width:100%;height:100%;background:${item.color};border-radius:10px;"></div>
-    <div class="slot-name">${item.name}</div>
+    <div style="width:100%;height:100%;background:${item.color};border-radius:10px;" onclick="navigateToCategory('tops')"></div>
+    <div class="slot-name" onclick="navigateToCategory('tops')">${item.name}</div>
     ${stars}
     <button class="remove-btn" onclick="removeItem('${slotKey}')">✕</button>
     <button class="lock-btn ${locked ? 'locked' : ''}" onclick="toggleLock('${slotKey}')">🔒</button>
@@ -969,8 +974,8 @@ function fillSlot(slotKey, cat, item) {
   const locked = lockedSlots[slotKey];
   const stars = slotStarsHTML(item, cat);
   slot.innerHTML = `
-    <img src="${CATALOG_BASE}/${cat}/${item.file}?v=${VERSION}" alt="${item.name}">
-    <div class="slot-name">${item.name}</div>
+    <img src="${CATALOG_BASE}/${cat}/${item.file}?v=${VERSION}" alt="${item.name}" onclick="navigateToCategory('${cat}')">
+    <div class="slot-name" onclick="navigateToCategory('${cat}')">${item.name}</div>
     ${stars}
     <button class="remove-btn" onclick="removeItem('${slotKey}')">✕</button>
     <button class="lock-btn ${locked ? 'locked' : ''}" onclick="toggleLock('${slotKey}')">🔒</button>
