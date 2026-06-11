@@ -147,7 +147,7 @@ const catalog = {
     { swatch: true, color: "#89CFF0", border: "#89CFF0", name: "Sky Blue",    sub: "Shirts",
       formality: ["Formal", "Semi-Formal", "Smart Casual", "Casual"], colorFamily: "cool", tone: "light", season: "Summer", description: "Sky blue shirt — fresh and casual, works with chinos, jeans and casual blazers.",
       type: "swatch" },
-    { swatch: true, color: "#8B4513", border: "#8B4513", name: "Plaid",       sub: "Shirts",
+    { swatch: true, color: "#8B4513", border: "#8B4513", name: "Rust Brown",  sub: "Shirts",
       formality: ["Formal", "Semi-Formal", "Smart Casual", "Casual"], colorFamily: "warm", tone: "medium", season: "All Season", description: "Plaid shirt — casual only, best untucked with jeans and casual boots or sneakers.",
       type: "swatch" },
     { swatch: true, color: "#FFFFFF", border: "#e0e0e0", name: "White",       sub: "T-Shirts",

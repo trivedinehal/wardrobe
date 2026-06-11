@@ -131,9 +131,7 @@
 
   function toneVal(t) { return t === 'light' ? 1 : t === 'medium' ? 2 : 3; }
   function isNeutral(cf) { return cf === 'neutral'; }
-  function isSuit(item) { return item && item.cat === 'suits'; }
-
-  function getTopType(item) {
+function getTopType(item) {
     if (item.sub === 'T-Shirts') return 't-shirt';
     if (item.formality.includes('Formal') || item.formality.includes('Semi-Formal')) return 'dress-shirt';
     return 'casual-shirt';
@@ -196,16 +194,24 @@
 
   // ─── Exclusion check ──────────────────────────────────────────────────────────
 
+  const STYLE_LABEL = { 'formal': 'Formal', 'semi-formal': 'Semi-Formal', 'smart-casual': 'Smart Casual', 'casual': 'Casual' };
+
   function isExcluded(candidate, candidateCat, candidateSlot, canvas, context, ctxFit) {
     // Athletic shoes always excluded
     if (candidateCat === 'shoes' && candidate.style === 'athletic') return true;
+
+    // Formality hard lock — item must support the selected style
+    if (context && candidate.formality) {
+      const style = context.split('/')[0];
+      const styleLabel = STYLE_LABEL[style];
+      if (styleLabel && !candidate.formality.includes(styleLabel)) return true;
+    }
 
     // Context-driven exclusion (ctxFit === null means excluded by context table)
     if (ctxFit === null && context) return true;
 
     // Pairwise — top vs outer
     if (candidateSlot === 'top' && canvas.outer) {
-      if (isSuit(canvas.outer) && candidate.pattern === 'plaid') return true;
       if (canvas.outer.pattern !== 'solid' && candidate.pattern && candidate.pattern !== 'solid') return true;
     }
 
@@ -221,8 +227,18 @@
     // Belt pairwise exclusions
     if (candidateSlot === 'belts') {
       if (canvas.pants) {
+        // No belt loop — exclude all belts
         if (canvas.pants.beltLoop === 'none') return true;
-        if (canvas.pants.beltLoop === 'narrow' && candidate.width === 'wide') return true;
+        // Wide belt excluded on medium-loop pants (chinos, linen, utility)
+        if (canvas.pants.beltLoop === 'medium' && candidate.width === 'wide') return true;
+        // Belt must support the pants type on canvas
+        if (candidate.pants) {
+          const pantsType = getPantsType(canvas.pants);
+          const pantsLabel = pantsType === 'dress-trousers' ? 'Formal Trousers'
+                           : pantsType === 'chinos'         ? 'Chinos'
+                           : 'Jeans';
+          if (!candidate.pants.includes(pantsLabel)) return true;
+        }
       }
       if (canvas.shoes) {
         const shoeBlack = isNeutral(canvas.shoes.colorFamily) && canvas.shoes.color.toLowerCase().includes('black');
@@ -299,7 +315,10 @@
     }
 
     // ── Context fit ──
-    const ctxFit = hasContext ? getContextFit(candidate, candidateCat, context) : undefined;
+    // Swatches (tops) — score on harmony only, context fit not applicable
+    const ctxFit = (hasContext && !(candidateCat === 'tops' && candidate.type === 'swatch'))
+      ? getContextFit(candidate, candidateCat, context)
+      : undefined;
 
     // undefined = no score for this category in this context (not excluded)
     if (ctxFit === undefined && !hasCanvas) return { stars: null, excluded: false };
