@@ -146,8 +146,8 @@
     return 'relaxed';
   }
 
-  function getOuterType(item) {
-    if (isSuit(item)) return item.fabric === 'linen' ? 'suit-linen' : 'suit-wool';
+  function getOuterType(item, cat) {
+    if (cat === 'suits') return item.fabric === 'linen' ? 'suit-linen' : 'suit-wool';
     return item.sub === 'Formal' ? 'formal-blazer' : 'casual-blazer';
   }
 
@@ -167,7 +167,7 @@
     if (candidateCat === 'tops')       { table = MATCH_CONFIG.contextFit.tops[context];  type = getTopType(item); }
     else if (candidateCat === 'pants') { table = MATCH_CONFIG.contextFit.pants[context]; type = getPantsType(item); }
     else if (candidateCat === 'shoes') { table = MATCH_CONFIG.contextFit.shoes[context]; type = item.style; }
-    else if (isOuter)                  { table = MATCH_CONFIG.contextFit.outer[context]; type = getOuterType(item); }
+    else if (isOuter)                  { table = MATCH_CONFIG.contextFit.outer[context]; type = getOuterType(item, candidateCat); }
 
     if (!table) return undefined; // context not in table
     const score = table[type];
