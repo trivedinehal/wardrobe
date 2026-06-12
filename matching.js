@@ -106,6 +106,7 @@
 
     // Belt width vs pants loop width (harmony scoring)
     beltVsPants: {
+      'thin':   { label: 'Thin loops',   scores: { 'thin': 3, 'wide': null } },
       'narrow': { label: 'Narrow loops', scores: { 'thin': 3, 'wide': null } },
       'wide':   { label: 'Wide loops',   scores: { 'wide': 3, 'thin': 1   } },
     },
@@ -265,7 +266,7 @@ function getTopType(item) {
     }
 
     if (canvas.pants && canvas.pants.beltLoop !== 'none') {
-      const loopKey = canvas.pants.beltLoop === 'narrow' ? 'narrow' : 'wide';
+      const loopKey = canvas.pants.beltLoop === 'thin' ? 'thin' : canvas.pants.beltLoop === 'narrow' ? 'narrow' : 'wide';
       const pts = MATCH_CONFIG.beltVsPants[loopKey].scores[belt.width];
       if (pts !== null && pts !== undefined) {
         score += pts;
