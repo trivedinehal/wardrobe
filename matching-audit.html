@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Matching Audit</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f2f2f7; color: #1c1c1e; min-height: 100vh; padding-bottom: 40px; }
+
+    /* Header */
+    .header { background: rgba(255,255,255,0.85); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); padding: 12px 16px; border-bottom: 1px solid #e5e5ea; position: sticky; top: 0; z-index: 100; display: flex; align-items: center; gap: 12px; }
+    .back-btn { color: #007aff; font-size: 15px; text-decoration: none; white-space: nowrap; }
+    .header h1 { font-size: 17px; font-weight: 600; }
+
+    /* Sections */
+    .section { background: #fff; border-radius: 12px; margin: 10px 12px 0; padding: 12px; }
+    .section-title { font-size: 11px; font-weight: 600; color: #8e8e93; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+
+    /* Pills */
+    .pills { display: flex; flex-wrap: wrap; gap: 6px; }
+    .pill { padding: 5px 13px; border-radius: 20px; font-size: 13px; font-weight: 500; border: none; cursor: pointer; background: #f2f2f7; color: #1c1c1e; }
+    .pill.active { background: #1c1c1e; color: #fff; }
+
+    /* Canvas slots */
+    .canvas-slots { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 2px; }
+    .slot-btn { flex: 0 0 68px; border-radius: 10px; border: 2px dashed #c7c7cc; background: #f9f9f9; cursor: pointer; padding: 6px 4px; text-align: center; font-size: 11px; color: #8e8e93; display: flex; flex-direction: column; align-items: center; gap: 3px; min-height: 82px; justify-content: center; }
+    .slot-btn.filled { border: 2px solid #007aff; background: #fff; color: #1c1c1e; }
+    .slot-swatch { width: 38px; height: 38px; border-radius: 6px; border: 1px solid #e5e5ea; }
+    .slot-img { width: 38px; height: 38px; border-radius: 6px; object-fit: cover; border: 1px solid #e5e5ea; }
+    .slot-name { font-size: 9px; line-height: 1.2; max-width: 60px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .slot-label { font-size: 10px; color: #8e8e93; }
+    .slot-clear { font-size: 9px; color: #ff3b30; margin-top: 1px; }
+
+    /* Category filter */
+    .cat-filter { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; }
+    .cat-btn { flex: 0 0 auto; padding: 5px 13px; border-radius: 20px; font-size: 13px; font-weight: 500; border: none; cursor: pointer; background: #f2f2f7; color: #1c1c1e; }
+    .cat-btn.active { background: #007aff; color: #fff; }
+
+    /* Items list */
+    .items-list { display: flex; flex-direction: column; gap: 8px; margin: 10px 12px 0; }
+    .empty-state { text-align: center; padding: 48px 20px; color: #8e8e93; font-size: 14px; background: #fff; border-radius: 12px; }
+
+    /* Item card */
+    .item-card { background: #fff; border-radius: 12px; padding: 12px; }
+    .item-card.excluded { opacity: 0.55; }
+
+    .item-header { display: flex; align-items: center; gap: 10px; }
+    .item-thumb { width: 46px; height: 46px; border-radius: 8px; object-fit: cover; flex: 0 0 46px; border: 1px solid #e5e5ea; background: #f2f2f7; }
+    .item-swatch-box { width: 46px; height: 46px; border-radius: 8px; flex: 0 0 46px; }
+    .item-info { flex: 1; min-width: 0; }
+    .item-name { font-size: 15px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .item-sub { font-size: 12px; color: #8e8e93; margin-top: 1px; }
+    .item-badge { margin-left: auto; flex: 0 0 auto; font-size: 16px; }
+    .badge-excluded { background: #ff3b30; color: #fff; font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 10px; }
+    .badge-no-score { color: #c7c7cc; font-size: 13px; }
+    .badge-zero { color: #c7c7cc; font-size: 12px; font-weight: 500; }
+    .add-to-canvas { margin-top: 8px; padding: 7px 0; width: 100%; background: #f2f2f7; border: none; border-radius: 8px; color: #007aff; font-size: 13px; font-weight: 500; cursor: pointer; }
+    .add-to-canvas:active { opacity: 0.7; }
+    .on-canvas-label { margin-top: 8px; padding: 6px 0; text-align: center; font-size: 12px; color: #34c759; font-weight: 500; }
+
+    /* Tab toggle */
+    .tab-toggle { display: flex; margin: 10px 12px 0; background: #e5e5ea; border-radius: 10px; padding: 2px; }
+    .tab-btn { flex: 1; padding: 7px; border: none; background: none; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; color: #8e8e93; }
+    .tab-btn.active { background: #fff; color: #1c1c1e; box-shadow: 0 1px 3px rgba(0,0,0,0.12); }
+
+    /* Outfits view */
+    .outfits-list { display: flex; flex-direction: column; gap: 12px; margin: 10px 12px 0; }
+    .outfit-card { background: #fff; border-radius: 12px; padding: 12px; }
+    .outfit-num { font-size: 11px; font-weight: 600; color: #8e8e93; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; }
+    .outfit-slots { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; }
+    .outfit-slot { flex: 0 0 72px; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+    .outfit-slot-label { font-size: 10px; color: #8e8e93; }
+    .outfit-slot-thumb { width: 60px; height: 60px; border-radius: 8px; object-fit: cover; border: 1px solid #e5e5ea; background: #f2f2f7; }
+    .outfit-slot-swatch { width: 60px; height: 60px; border-radius: 8px; border: 1px solid #e5e5ea; }
+    .outfit-slot-empty { width: 60px; height: 60px; border-radius: 8px; border: 2px dashed #e5e5ea; background: #fafafa; }
+    .outfit-slot-name { font-size: 10px; text-align: center; line-height: 1.2; max-width: 72px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+    .outfit-slot-stars { font-size: 10px; }
+    .outfit-score { margin-top: 10px; padding-top: 8px; border-top: 1px solid #f2f2f7; display: flex; justify-content: space-between; align-items: center; font-size: 13px; }
+    .outfit-score-label { color: #8e8e93; }
+    .outfit-score-val { font-weight: 600; }
+    .generate-btn { width: 100%; padding: 12px; background: #007aff; color: #fff; border: none; border-radius: 10px; font-size: 15px; font-weight: 600; cursor: pointer; margin-top: 4px; }
+    .generate-btn:active { opacity: 0.85; }
+    .outfits-empty { text-align: center; padding: 48px 20px; color: #8e8e93; font-size: 14px; background: #fff; border-radius: 12px; margin: 10px 12px 0; }
+
+    .score-rows { border-top: 1px solid #f2f2f7; margin-top: 10px; padding-top: 8px; display: flex; flex-direction: column; gap: 7px; }
+    .score-row { display: flex; gap: 10px; font-size: 13px; align-items: flex-start; }
+    .score-label { color: #8e8e93; font-size: 12px; min-width: 72px; flex: 0 0 72px; padding-top: 1px; }
+    .score-detail { flex: 1; line-height: 1.4; }
+    .exclusion-text { color: #ff3b30; }
+    .harmony-pair { margin-bottom: 5px; }
+    .harmony-pair:last-child { margin-bottom: 0; }
+    .harmony-against { font-size: 11px; color: #8e8e93; margin-bottom: 2px; }
+    .harmony-breakdown { font-size: 12px; color: #3a3a3c; }
+    .harmony-total { font-weight: 600; color: #1c1c1e; }
+    .harmony-avg { font-size: 11px; color: #8e8e93; margin-top: 3px; }
+    .total-score { font-weight: 600; }
+
+    /* Modal */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 200; display: none; align-items: flex-end; }
+    .modal-overlay.open { display: flex; }
+    .modal { background: #f2f2f7; border-radius: 16px 16px 0 0; width: 100%; max-height: 75vh; overflow-y: auto; padding-bottom: 20px; }
+    .modal-header { position: sticky; top: 0; background: rgba(242,242,247,0.95); backdrop-filter: blur(10px); padding: 14px 16px 10px; border-bottom: 1px solid #e5e5ea; display: flex; justify-content: space-between; align-items: center; }
+    .modal-title-text { font-size: 16px; font-weight: 600; }
+    .modal-done { color: #007aff; font-size: 15px; font-weight: 500; cursor: pointer; border: none; background: none; }
+    .modal-items { padding: 8px 12px 0; display: flex; flex-direction: column; gap: 6px; }
+    .modal-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: #fff; border-radius: 10px; cursor: pointer; }
+    .modal-item:active { opacity: 0.7; }
+    .modal-swatch { width: 38px; height: 38px; border-radius: 6px; flex: 0 0 38px; }
+    .modal-img { width: 38px; height: 38px; border-radius: 6px; object-fit: cover; flex: 0 0 38px; border: 1px solid #e5e5ea; background: #f2f2f7; }
+    .modal-item-name { font-size: 14px; font-weight: 500; }
+    .modal-item-sub { font-size: 12px; color: #8e8e93; margin-top: 1px; }
+    .modal-clear-row { margin: 8px 12px 0; }
+    .modal-clear-btn { width: 100%; padding: 12px; background: #fff; border-radius: 10px; border: none; color: #ff3b30; font-size: 14px; font-weight: 500; cursor: pointer; }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <a href="wardrobe.html" class="back-btn">‹ Home</a>
+  <h1>Matching Audit</h1>
+</div>
+
+<div class="tab-toggle">
+  <button class="tab-btn active" id="tabItemScores" onclick="switchTab('item-scores')">Item Scores</button>
+  <button class="tab-btn" id="tabOutfits" onclick="switchTab('outfits')">Complete Outfits</button>
+</div>
+
+<div class="section">
+  <div class="section-title">Style</div>
+  <div class="pills" id="stylePills"></div>
+</div>
+
+<div class="section" id="outfitTypeSection" style="display:none">
+  <div class="section-title">Outfit Type</div>
+  <div class="pills" id="outfitTypePills"></div>
+</div>
+
+<div class="section canvas-section">
+  <div class="section-title">Canvas — tap a slot to add an item</div>
+  <div class="canvas-slots">
+    <div class="slot-btn" id="slot-outer"  onclick="openPicker('outer')"><span class="slot-label">Outer</span></div>
+    <div class="slot-btn" id="slot-top"    onclick="openPicker('top')"><span class="slot-label">Top</span></div>
+    <div class="slot-btn" id="slot-pants"  onclick="openPicker('pants')"><span class="slot-label">Pants</span></div>
+    <div class="slot-btn" id="slot-belts"  onclick="openPicker('belts')"><span class="slot-label">Belt</span></div>
+    <div class="slot-btn" id="slot-shoes"  onclick="openPicker('shoes')"><span class="slot-label">Shoes</span></div>
+  </div>
+</div>
+
+<div class="section cat-section" style="padding: 10px 12px;">
+  <div class="cat-filter" id="catFilter"></div>
+</div>
+
+<div class="items-list" id="itemsList">
+  <div class="empty-state">Add an item to the canvas to see scores.</div>
+</div>
+
+<div id="outfitsView" style="display:none">
+  <div style="margin: 10px 12px 0;">
+    <button class="generate-btn" onclick="generateOutfits()">✦ Generate 5 Outfits</button>
+  </div>
+  <div class="outfits-list" id="outfitsList">
+    <div class="outfits-empty">Select a style and outfit type, then hit Generate.</div>
+  </div>
+</div>
+
+<!-- Picker modal -->
+<div class="modal-overlay" id="modalOverlay" onclick="overlayClick(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title-text" id="modalTitleText">Pick item</span>
+      <button class="modal-done" onclick="closePicker()">Done</button>
+    </div>
+    <div class="modal-items" id="modalItems"></div>
+    <div class="modal-clear-row" id="modalClearRow" style="display:none">
+      <button class="modal-clear-btn" id="modalClearBtn">✕ Clear this slot</button>
+    </div>
+  </div>
+</div>
+
+<script src="catalog.js"></script>
+<script src="matching.js"></script>
+<script>
+
+const CATALOG_BASE = 'catalog';
+const SLOT_CATS   = { outer: ['blazers','suits','jackets'], top: ['tops'], pants: ['pants'], belts: ['belts'], shoes: ['shoes'] };
+const AUDIT_SLOT_LABELS = { outer: 'Outer', top: 'Top', pants: 'Pants', belts: 'Belt', shoes: 'Shoes' };
+const STYLE_LABEL_MAP = { 'formal':'Formal', 'semi-formal':'Semi-Formal', 'smart-casual':'Smart Casual', 'casual':'Casual' };
+
+const state = {
+  style: null,
+  outfitType: null,
+  canvas: { outer: null, top: null, pants: null, belts: null, shoes: null },
+  filterCat: 'all',
+  pickerSlot: null,
+  pickerItems: [],
+  activeTab: 'item-scores',
+};
+
+// ── Boot ───────────────────────────────────────────────────────────────────────
+function init() {
+  renderStylePills();
+  renderCatFilter();
+  renderItems();
+}
+
+// ── Style ──────────────────────────────────────────────────────────────────────
+function renderStylePills() {
+  document.getElementById('stylePills').innerHTML = STYLE_ORDER.map(s =>
+    `<button class="pill ${state.style === s ? 'active' : ''}" onclick="selectStyle('${s}')">${STYLE_META[s].label}</button>`
+  ).join('');
+}
+
+function selectStyle(s) {
+  state.style = state.style === s ? null : s;
+  state.outfitType = null;
+  renderStylePills();
+  renderOutfitTypePills();
+  renderItems();
+}
+
+// ── Outfit type ────────────────────────────────────────────────────────────────
+function renderOutfitTypePills() {
+  const sec = document.getElementById('outfitTypeSection');
+  if (!state.style) { sec.style.display = 'none'; return; }
+  sec.style.display = '';
+  const types = OUTFIT_TYPES[state.style] || [];
+  document.getElementById('outfitTypePills').innerHTML = types.map(t =>
+    `<button class="pill ${state.outfitType === t.key ? 'active' : ''}" onclick="selectOutfitType('${t.key}')">${t.label}</button>`
+  ).join('');
+}
+
+function selectOutfitType(id) {
+  state.outfitType = state.outfitType === id ? null : id;
+  renderOutfitTypePills();
+  renderItems();
+}
+
+// ── Category filter ────────────────────────────────────────────────────────────
+function renderCatFilter() {
+  const cats = ['all', ...CAT_ORDER];
+  document.getElementById('catFilter').innerHTML = cats.map(c =>
+    `<button class="cat-btn ${state.filterCat === c ? 'active' : ''}" onclick="selectCat('${c}')">${c === 'all' ? 'All' : CAT_META[c].label}</button>`
+  ).join('');
+}
+
+function selectCat(c) {
+  state.filterCat = c;
+  renderCatFilter();
+  renderItems();
+}
+
+// ── Canvas slot picker ─────────────────────────────────────────────────────────
+function openPicker(slot) {
+  state.pickerSlot = slot;
+  const cats = SLOT_CATS[slot];
+  document.getElementById('modalTitleText').textContent = `Pick ${AUDIT_SLOT_LABELS[slot]}`;
+
+  const items = [];
+  cats.forEach(cat => (catalog[cat] || []).forEach(item => items.push({ item, cat })));
+  state.pickerItems = items;
+
+  document.getElementById('modalItems').innerHTML = items.map(({ item, cat }, i) => {
+    const thumb = item.swatch
+      ? `<div class="modal-swatch" style="background:${item.color};border:1px solid ${item.border || item.color}"></div>`
+      : `<img class="modal-img" src="${CATALOG_BASE}/${cat}/${item.file}" alt="${item.name}">`;
+    return `<div class="modal-item" onclick="pickItem(${i})">
+      ${thumb}
+      <div>
+        <div class="modal-item-name">${item.name}</div>
+        <div class="modal-item-sub">${CAT_META[cat].label}${item.sub ? ' · ' + item.sub : ''}</div>
+      </div>
+    </div>`;
+  }).join('');
+
+  const clearRow = document.getElementById('modalClearRow');
+  if (state.canvas[slot]) {
+    clearRow.style.display = '';
+    document.getElementById('modalClearBtn').onclick = () => clearSlot(slot);
+  } else {
+    clearRow.style.display = 'none';
+  }
+
+  document.getElementById('modalOverlay').classList.add('open');
+}
+
+function pickItem(idx) {
+  const { item, cat } = state.pickerItems[idx];
+  state.canvas[state.pickerSlot] = { ...item, _cat: cat };
+  closePicker();
+  renderCanvasSlots();
+  renderItems();
+}
+
+function clearSlot(slot) {
+  state.canvas[slot] = null;
+  closePicker();
+  renderCanvasSlots();
+  renderItems();
+}
+
+function closePicker() { document.getElementById('modalOverlay').classList.remove('open'); }
+function overlayClick(e) { if (e.target === document.getElementById('modalOverlay')) closePicker(); }
+
+// ── Canvas rendering ───────────────────────────────────────────────────────────
+function renderCanvasSlots() {
+  Object.keys(AUDIT_SLOT_LABELS).forEach(slot => {
+    const item = state.canvas[slot];
+    const el   = document.getElementById(`slot-${slot}`);
+    if (!item) {
+      el.className = 'slot-btn';
+      el.innerHTML = `<span class="slot-label">${AUDIT_SLOT_LABELS[slot]}</span>`;
+    } else {
+      el.className = 'slot-btn filled';
+      const thumb = item.swatch
+        ? `<div class="slot-swatch" style="background:${item.color};border:1px solid ${item.border || item.color}"></div>`
+        : `<img class="slot-img" src="${CATALOG_BASE}/${item._cat}/${item.file}" alt="${item.name}">`;
+      el.innerHTML = `${thumb}
+        <div class="slot-name">${item.name}</div>
+        <div class="slot-clear" onclick="event.stopPropagation();clearSlot('${slot}')">✕ clear</div>`;
+    }
+  });
+}
+
+// ── Score explanation helpers ──────────────────────────────────────────────────
+function toneVal(t) { return t === 'light' ? 1 : t === 'medium' ? 2 : 3; }
+function isNeutral(cf) { return cf === 'neutral'; }
+
+function explainHarmonyPair(a, b) {
+  const d = Math.abs(toneVal(a.tone) - toneVal(b.tone));
+  const toneScore = d === 2 ? 2.5 : d === 1 ? 1.5 : 0.5;
+  const toneNote  = d === 2 ? 'full contrast' : d === 1 ? 'adjacent tones' : 'same tone';
+
+  let colScore, colNote;
+  if (isNeutral(a.colorFamily) || isNeutral(b.colorFamily)) { colScore = 2;   colNote = 'neutral';               }
+  else if (a.colorFamily === b.colorFamily)                  { colScore = 1.5; colNote = `same (${a.colorFamily})`; }
+  else                                                        { colScore = 1;   colNote = `${a.colorFamily} vs ${b.colorFamily}`; }
+
+  let patScore = 0, patNote = null;
+  if (a.pattern && b.pattern && (a.pattern !== 'solid') !== (b.pattern !== 'solid')) {
+    patScore = 1; patNote = 'pattern + solid';
+  }
+
+  const total = Math.min(toneScore + colScore + patScore, 5);
+  let breakdown = `tone +${fmt(toneScore)} (${toneNote}) · colour +${fmt(colScore)} (${colNote})`;
+  if (patNote) breakdown += ` · pattern +1 (${patNote})`;
+  return { total, breakdown };
+}
+
+function fmt(n) { return Number.isInteger(n) ? n : n.toFixed(1); }
+
+function getExclusionReason(candidate, candidateCat, canvas, style, outfitType) {
+  if (candidateCat === 'shoes' && candidate.style === 'athletic')
+    return 'Athletic shoes excluded from all outfit scoring';
+
+  if (style && candidate.formality) {
+    const label = STYLE_LABEL_MAP[style];
+    if (label && !candidate.formality.includes(label))
+      return `Formality lock — item not rated for ${label}`;
+  }
+
+  if (candidateCat === 'belts') {
+    if (canvas.pants) {
+      if (canvas.pants.beltLoop === 'none') return 'Elastic waist — no belt loop';
+      if (canvas.pants.beltLoop === 'medium' && candidate.width === 'wide')
+        return `Wide belt doesn't fit medium belt loops (${canvas.pants.name})`;
+      if (candidate.pants) {
+        const p = canvas.pants;
+        let pType;
+        if (p.sub === 'Dress Trousers') pType = 'dress-trousers';
+        else if (p.fabric === 'denim') pType = 'jeans';
+        else if (p.fabric === 'chino' || p.fabric === 'cotton' || p.fabric === 'linen' || p.fabric === 'wool') pType = 'chinos';
+        else pType = 'jeans';
+        const pLabel = pType === 'dress-trousers' ? 'Formal Trousers' : pType === 'chinos' ? 'Chinos' : 'Jeans';
+        if (!candidate.pants.includes(pLabel))
+          return `Belt not suited for ${canvas.pants.name} — needs: ${candidate.pants.join(' / ')}`;
+      }
+    }
+    if (canvas.shoes) {
+      const shoeBlack = isNeutral(canvas.shoes.colorFamily) && canvas.shoes.color.toLowerCase().includes('black');
+      const shoeWarm  = canvas.shoes.colorFamily === 'warm';
+      const beltBlack = isNeutral(candidate.colorFamily) && candidate.color.toLowerCase().includes('black');
+      const beltWarm  = candidate.colorFamily === 'warm';
+      if (shoeBlack && beltWarm) return `Warm belt with black shoes — must colour-match`;
+      if (shoeWarm  && beltBlack) return `Black belt with warm shoes — must colour-match`;
+    }
+  }
+
+  if (candidateCat === 'tops' && canvas.outer)
+    if (canvas.outer.pattern !== 'solid' && candidate.pattern && candidate.pattern !== 'solid')
+      return `Pattern clash — ${candidate.pattern} top with ${canvas.outer.pattern} outer`;
+
+  const isOuter = ['blazers','suits','jackets'].includes(candidateCat);
+  if (isOuter && canvas.top)
+    if (candidate.pattern !== 'solid' && canvas.top.pattern && canvas.top.pattern !== 'solid')
+      return `Pattern clash — ${candidate.pattern} outer with ${canvas.top.pattern} top`;
+  if (isOuter && canvas.pants && canvas.pants.fabric === 'utility')
+    return 'Utility/cargo pants with outerwear';
+
+  if (candidateCat === 'pants' && canvas.outer && candidate.fabric === 'utility')
+    return 'Utility/cargo pants with outerwear';
+
+  if (outfitType && outfitType !== 'no-outer' && isOuter) {
+    // context fit exclusion
+  }
+
+  return 'Excluded by context fit rules';
+}
+
+function getHarmonyPairs(candidate, candidateCat, canvas) {
+  const slotMap = { tops:'top', pants:'pants', belts:'belts', shoes:'shoes', blazers:'outer', suits:'outer', jackets:'outer' };
+  const slot = slotMap[candidateCat];
+  const pairs = [];
+  switch (slot) {
+    case 'top':
+      if (canvas.outer) pairs.push([canvas.outer, canvas.outer.name]);
+      else if (canvas.pants) pairs.push([canvas.pants, canvas.pants.name]);
+      break;
+    case 'outer':
+      if (canvas.top)   pairs.push([canvas.top,   canvas.top.name]);
+      if (canvas.pants) pairs.push([canvas.pants, canvas.pants.name]);
+      break;
+    case 'pants':
+      if (canvas.outer) pairs.push([canvas.outer, canvas.outer.name]);
+      else if (canvas.top) pairs.push([canvas.top, canvas.top.name]);
+      if (canvas.shoes) pairs.push([canvas.shoes, canvas.shoes.name]);
+      break;
+    case 'shoes':
+      if (canvas.pants) pairs.push([canvas.pants, canvas.pants.name]);
+      if (canvas.outer) pairs.push([canvas.outer, canvas.outer.name]);
+      break;
+  }
+  return pairs.map(([item, name]) => ({ name, ...explainHarmonyPair(candidate, item) }));
+}
+
+// ── Items rendering ────────────────────────────────────────────────────────────
+function starsHtml(n) {
+  if (n === 3) return '⭐⭐⭐';
+  if (n === 2) return '⭐⭐';
+  if (n === 1) return '⭐';
+  return '';
+}
+
+function renderItems() {
+  const el = document.getElementById('itemsList');
+  const hasCanvas = Object.values(state.canvas).some(Boolean);
+
+  if (!hasCanvas) {
+    el.innerHTML = '<div class="empty-state">Add an item to the canvas to see scores.</div>';
+    return;
+  }
+
+  const style     = state.style || null;
+  const outfitType = state.outfitType || null;
+
+  // Gather items
+  let items = [];
+  CAT_ORDER.forEach(cat => (catalog[cat] || []).forEach(item => items.push({ item, cat })));
+  if (state.filterCat !== 'all') items = items.filter(({ cat }) => cat === state.filterCat);
+
+  // Score + explain
+  const rows = items.map(({ item, cat }) => {
+    const result   = window.scoreItem(item, cat, state.canvas, style, outfitType);
+    const isSwatch = cat === 'tops' && item.type === 'swatch';
+    const harmPairs = (!result.excluded && result.stars !== null) ? getHarmonyPairs(item, cat, state.canvas) : [];
+    const avgHarm   = harmPairs.length > 0 ? harmPairs.reduce((s, p) => s + p.total, 0) / harmPairs.length : null;
+    const exclusionReason = result.excluded ? getExclusionReason(item, cat, state.canvas, style, outfitType) : null;
+    return { item, cat, result, isSwatch, harmPairs, avgHarm, exclusionReason };
+  });
+
+  // Sort: scored desc → no score → excluded
+  rows.sort((a, b) => {
+    if (a.result.excluded !== b.result.excluded) return a.result.excluded ? 1 : -1;
+    if ((a.result.score === null) !== (b.result.score === null)) return a.result.score === null ? 1 : -1;
+    return (b.result.score || 0) - (a.result.score || 0);
+  });
+
+  el.innerHTML = rows.map(({ item, cat, result, isSwatch, harmPairs, avgHarm, exclusionReason }) => {
+    const thumb = item.swatch
+      ? `<div class="item-swatch-box" style="background:${item.color};border:1px solid ${item.border || item.color}"></div>`
+      : `<img class="item-thumb" src="${CATALOG_BASE}/${cat}/${item.file}" alt="${item.name}">`;
+
+    let badge;
+    if (result.excluded)        badge = `<span class="item-badge"><span class="badge-excluded">✕</span></span>`;
+    else if (result.stars === null) badge = `<span class="item-badge badge-no-score">—</span>`;
+    else if (result.stars === 0)    badge = `<span class="item-badge badge-zero">0 ★</span>`;
+    else                            badge = `<span class="item-badge">${starsHtml(result.stars)}</span>`;
+
+    let scoreHtml = '';
+    if (result.excluded) {
+      scoreHtml = `<div class="score-rows">
+        <div class="score-row">
+          <span class="score-label">Excluded</span>
+          <span class="score-detail exclusion-text">${exclusionReason}</span>
+        </div>
+      </div>`;
+    } else if (result.stars !== null) {
+      let rows = '';
+
+      // Context fit
+      if (isSwatch) {
+        rows += `<div class="score-row">
+          <span class="score-label">Context fit</span>
+          <span class="score-detail" style="color:#8e8e93">Swatch — colour harmony only, no context fit applied</span>
+        </div>`;
+      } else if (style && outfitType) {
+        const cfScore = result.score !== null && avgHarm !== null ? (result.score - avgHarm) : (result.score !== null ? result.score / 2 : null);
+        rows += `<div class="score-row">
+          <span class="score-label">Context fit</span>
+          <span class="score-detail">${STYLE_LABEL_MAP[style]} / ${outfitType}${cfScore !== null ? ` <span style="color:#007aff;font-weight:500">= ${fmt(cfScore)}/5</span>` : ''}</span>
+        </div>`;
+      }
+
+      // Harmony pairs
+      if (harmPairs.length > 0) {
+        const pairsHtml = harmPairs.map(p =>
+          `<div class="harmony-pair">
+            <div class="harmony-against">vs ${p.name}</div>
+            <div class="harmony-breakdown">${p.breakdown} <span class="harmony-total">= ${fmt(p.total)}/5</span></div>
+          </div>`
+        ).join('');
+        const avgLine = harmPairs.length > 1
+          ? `<div class="harmony-avg">avg = ${fmt(avgHarm)}/5</div>` : '';
+        rows += `<div class="score-row">
+          <span class="score-label">Harmony</span>
+          <span class="score-detail">${pairsHtml}${avgLine}</span>
+        </div>`;
+      }
+
+      // Total
+      const scoreStr = result.score !== null ? fmt(result.score) : '—';
+      rows += `<div class="score-row">
+        <span class="score-label">Total</span>
+        <span class="score-detail total-score">${scoreStr} / 10 → ${starsHtml(result.stars) || '0 stars'}</span>
+      </div>`;
+
+      scoreHtml = `<div class="score-rows">${rows}</div>`;
+    }
+
+    const slot = { tops:'top', pants:'pants', belts:'belts', shoes:'shoes', blazers:'outer', suits:'outer', jackets:'outer' }[cat];
+    const onCanvas = state.canvas[slot] && (state.canvas[slot].name === item.name);
+    const canvasBtn = onCanvas
+      ? `<div class="on-canvas-label">✓ On canvas</div>`
+      : `<button class="add-to-canvas" onclick="addToCanvas('${slot}', '${cat}', '${item.name}')">+ Add to canvas</button>`;
+
+    return `<div class="item-card ${result.excluded ? 'excluded' : ''}">
+      <div class="item-header">
+        ${thumb}
+        <div class="item-info">
+          <div class="item-name">${item.name}</div>
+          <div class="item-sub">${CAT_META[cat].label}${item.sub ? ' · ' + item.sub : ''}</div>
+        </div>
+        ${badge}
+      </div>
+      ${scoreHtml}
+      ${canvasBtn}
+    </div>`;
+  }).join('');
+}
+
+// ── Tab switching ──────────────────────────────────────────────────────────────
+function switchTab(tab) {
+  state.activeTab = tab;
+  document.getElementById('tabItemScores').className = 'tab-btn' + (tab === 'item-scores' ? ' active' : '');
+  document.getElementById('tabOutfits').className    = 'tab-btn' + (tab === 'outfits'      ? ' active' : '');
+
+  const isItemScores = tab === 'item-scores';
+  document.getElementById('itemsList').style.display    = isItemScores ? '' : 'none';
+  document.getElementById('outfitsView').style.display  = isItemScores ? 'none' : '';
+
+  // canvas + cat filter only relevant for item scores
+  document.querySelectorAll('.canvas-section, .cat-section').forEach(el => {
+    el.style.display = isItemScores ? '' : 'none';
+  });
+}
+
+// ── Outfit generation ──────────────────────────────────────────────────────────
+function auditOuterCats(outfitType) {
+  if (!outfitType || outfitType === 'no-outer') return [];
+  if (outfitType === 'suit')                    return ['suits'];
+  if (outfitType.startsWith('blazer'))          return ['blazers'];
+  if (outfitType.startsWith('jacket'))          return ['jackets'];
+  return ['blazers'];
+}
+
+function auditPantsFilter(outfitType) {
+  if (!outfitType) return null;
+  if (outfitType.includes('formal-trouser')) return item => item.sub === 'Dress Trousers';
+  if (outfitType.includes('chinos'))         return item => item.sub === 'Chinos';
+  if (outfitType.includes('jeans'))          return item => item.sub === 'Jeans';
+  return null;
+}
+
+function auditBestForSlot(cats, canvas, style, outfitType, random, excludeName, filter) {
+  const scored = [];
+  cats.forEach(cat => {
+    (catalog[cat] || []).forEach(item => {
+      if (excludeName && item.name === excludeName) return;
+      if (filter && !filter(item)) return;
+      const result = window.scoreItem(item, cat, canvas, style, outfitType);
+      if (!result || result.excluded) return;
+      scored.push({ item, cat, stars: result.stars ?? 0, score: result.score ?? 0 });
+    });
+  });
+  if (scored.length === 0) return null;
+  if (random) {
+    for (const minStars of [3, 2, 1, 0]) {
+      const tier = scored.filter(s => s.stars >= minStars);
+      if (tier.length > 0) return tier[Math.floor(Math.random() * tier.length)];
+    }
+  } else {
+    scored.sort((a, b) => b.score - a.score);
+    return scored[0];
+  }
+  return null;
+}
+
+function generateSingleOutfit(style, outfitType, random) {
+  const canvas   = { outer: null, top: null, pants: null, belts: null, shoes: null };
+  const outerCatsList = auditOuterCats(outfitType);
+  const pantsFilter   = auditPantsFilter(outfitType);
+  const isSuit    = outfitType === 'suit';
+  const isNoOuter = outfitType === 'no-outer';
+
+  if (!isNoOuter && outerCatsList.length > 0) {
+    const p = auditBestForSlot(outerCatsList, canvas, style, outfitType, random, null, null);
+    if (p) canvas.outer = { ...p.item, _cat: p.cat };
+  }
+  if (!isSuit) {
+    const p = auditBestForSlot(['pants'], canvas, style, outfitType, random, null, pantsFilter);
+    if (p) canvas.pants = { ...p.item, _cat: p.cat };
+  }
+  const top   = auditBestForSlot(['tops'],  canvas, style, outfitType, random, null, null);
+  if (top)   canvas.top   = { ...top.item,   _cat: top.cat   };
+  const shoes = auditBestForSlot(['shoes'], canvas, style, outfitType, random, null, null);
+  if (shoes) canvas.shoes = { ...shoes.item, _cat: shoes.cat };
+  const belt  = auditBestForSlot(['belts'], canvas, style, outfitType, random, null, null);
+  if (belt)  canvas.belts = { ...belt.item,  _cat: belt.cat  };
+
+  return canvas;
+}
+
+function generateOutfits() {
+  const style      = state.style;
+  const outfitType = state.outfitType;
+  const el         = document.getElementById('outfitsList');
+
+  if (!style || !outfitType) {
+    el.innerHTML = '<div class="outfits-empty">Select a style and outfit type first.</div>';
+    return;
+  }
+
+  const outfits = [
+    generateSingleOutfit(style, outfitType, false), // deterministic best
+    generateSingleOutfit(style, outfitType, true),
+    generateSingleOutfit(style, outfitType, true),
+    generateSingleOutfit(style, outfitType, true),
+    generateSingleOutfit(style, outfitType, true),
+  ];
+
+  const isSuit = outfitType === 'suit';
+
+  el.innerHTML = outfits.map((outfit, i) => {
+    const slots = isSuit
+      ? ['outer', 'top', 'belts', 'shoes']
+      : ['outer', 'top', 'pants', 'belts', 'shoes'];
+
+    const slotHtml = slots.map(slot => {
+      const item = outfit[slot];
+      const label = { outer:'Outer', top:'Top', pants:'Pants', belts:'Belt', shoes:'Shoes' }[slot];
+      if (!item) return `<div class="outfit-slot">
+        <div class="outfit-slot-label">${label}</div>
+        <div class="outfit-slot-empty"></div>
+        <div class="outfit-slot-name" style="color:#c7c7cc">—</div>
+      </div>`;
+
+      const cat   = item._cat;
+      const thumb = item.swatch
+        ? `<div class="outfit-slot-swatch" style="background:${item.color};border:1px solid ${item.border||item.color}"></div>`
+        : `<img class="outfit-slot-thumb" src="${CATALOG_BASE}/${cat}/${item.file}" alt="${item.name}">`;
+
+      const scoreResult = window.scoreItem(item, cat, outfit, style, outfitType);
+      const stars = scoreResult?.stars ? starsHtml(scoreResult.stars) : '';
+
+      return `<div class="outfit-slot">
+        <div class="outfit-slot-label">${label}</div>
+        ${thumb}
+        <div class="outfit-slot-name">${item.name}</div>
+        <div class="outfit-slot-stars">${stars}</div>
+      </div>`;
+    }).join('');
+
+    // Total score = average of slot scores
+    const slotScores = slots.map(slot => {
+      const item = outfit[slot];
+      if (!item) return null;
+      const r = window.scoreItem(item, item._cat, outfit, style, outfitType);
+      return r?.score ?? null;
+    }).filter(s => s !== null);
+    const avgScore = slotScores.length ? (slotScores.reduce((a,b) => a+b, 0) / slotScores.length) : 0;
+
+    return `<div class="outfit-card">
+      <div class="outfit-num">Outfit ${i + 1}${i === 0 ? ' — Best match' : ''}</div>
+      <div class="outfit-slots">${slotHtml}</div>
+      <div class="outfit-score">
+        <span class="outfit-score-label">Avg score</span>
+        <span class="outfit-score-val">${avgScore.toFixed(1)} / 10</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function addToCanvas(slot, cat, itemName) {
+  const item = (catalog[cat] || []).find(i => i.name === itemName);
+  if (!item) return;
+  state.canvas[slot] = { ...item, _cat: cat };
+  renderCanvasSlots();
+  renderItems();
+}
+
+init();
+
+// Expose event handlers to global scope for inline onclick attributes
+window.selectStyle      = selectStyle;
+window.selectOutfitType = selectOutfitType;
+window.selectCat        = selectCat;
+window.openPicker       = openPicker;
+window.pickItem         = pickItem;
+window.clearSlot        = clearSlot;
+window.closePicker      = closePicker;
+window.overlayClick     = overlayClick;
+window.addToCanvas      = addToCanvas;
+window.switchTab        = switchTab;
+window.generateOutfits  = generateOutfits;
+</script>
+</body>
+</html>
