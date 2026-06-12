@@ -96,6 +96,31 @@
     .harmony-avg { font-size: 11px; color: #8e8e93; margin-top: 3px; }
     .total-score { font-weight: 600; }
 
+    /* Browser */
+    .browser-section { margin: 10px 12px 0; background: #fff; border-radius: 12px; padding: 10px 12px 12px; }
+    .browser-cat-tabs { display: flex; gap: 8px; padding: 4px 0 4px; overflow-x: auto; }
+    .browser-cat-tabs::-webkit-scrollbar { display: none; }
+    .browser-cat-tab { padding: 5px 14px; border-radius: 20px; font-size: 13px; font-weight: 600; border: none; background: #e5e5ea; color: #8e8e93; cursor: pointer; white-space: nowrap; flex-shrink: 0; }
+    .browser-cat-tab.active { background: #1c1c1e; color: #fff; }
+    .browser-sub-tabs { display: flex; gap: 6px; padding: 4px 0 4px; overflow-x: auto; }
+    .browser-sub-tabs::-webkit-scrollbar { display: none; }
+    .browser-sub-tab { padding: 3px 12px; border-radius: 20px; font-size: 11px; font-weight: 500; border: 1.5px solid #d1d1d6; background: transparent; color: #8e8e93; cursor: pointer; white-space: nowrap; flex-shrink: 0; }
+    .browser-sub-tab.active { background: #f2f2f7; color: #1c1c1e; border-color: #1c1c1e; }
+    .browser-subsub-tabs { display: flex; gap: 6px; padding: 2px 0 4px; overflow-x: auto; min-height: 20px; }
+    .browser-subsub-tabs::-webkit-scrollbar { display: none; }
+    .browser-subsub-tab { padding: 2px 10px; border-radius: 20px; font-size: 10px; font-weight: 500; border: 1.5px solid #e5e5ea; background: transparent; color: #aeaeb2; cursor: pointer; white-space: nowrap; flex-shrink: 0; }
+    .browser-subsub-tab.active { background: #f2f2f7; color: #1c1c1e; border-color: #8e8e93; }
+    .browser-carousel { display: flex; gap: 8px; padding: 4px 0 4px; overflow-x: auto; scroll-snap-type: x mandatory; }
+    .browser-carousel::-webkit-scrollbar { display: none; }
+    .browser-car-item { flex-shrink: 0; width: 80px; border-radius: 12px; background: #f2f2f7; border: 2px solid transparent; cursor: pointer; scroll-snap-align: start; overflow: hidden; display: flex; flex-direction: column; }
+    .browser-car-item:active { opacity: 0.7; }
+    .browser-car-item img { width: 100%; height: 90px; object-fit: contain; background: #fff; padding: 4px; }
+    .browser-car-name { padding: 3px 6px 5px; font-size: 9px; font-weight: 500; color: #3a3a3c; line-height: 1.3; height: 24px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+    .browser-swatch-item { flex-shrink: 0; width: 68px; border-radius: 10px; background: #f2f2f7; border: 2px solid transparent; cursor: pointer; scroll-snap-align: start; overflow: hidden; display: flex; flex-direction: column; }
+    .browser-swatch-item:active { opacity: 0.7; }
+    .browser-swatch-color { width: 100%; height: 64px; }
+    .browser-swatch-name { padding: 3px 4px 5px; font-size: 9px; font-weight: 500; color: #3a3a3c; text-align: center; height: 22px; overflow: hidden; }
+
     /* Modal */
     .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 200; display: none; align-items: flex-end; }
     .modal-overlay.open { display: flex; }
@@ -136,6 +161,16 @@
   <div class="pills" id="outfitTypePills"></div>
 </div>
 
+<div id="browserSection">
+  <div class="browser-section">
+    <div class="section-title" style="margin-bottom:6px">Browse — tap to add to canvas</div>
+    <div class="browser-cat-tabs" id="browserCatTabs"></div>
+    <div class="browser-sub-tabs" id="browserSubTabs"></div>
+    <div class="browser-subsub-tabs" id="browserSubSubTabs"></div>
+    <div class="browser-carousel" id="browserCarousel"></div>
+  </div>
+</div>
+
 <div class="section canvas-section">
   <div class="section-title">Canvas — tap a slot to add an item</div>
   <div class="canvas-slots">
@@ -147,13 +182,13 @@
   </div>
 </div>
 
-<div class="section cat-section" style="padding: 10px 12px;">
+<div class="section cat-section" id="catSection" style="padding: 10px 12px; display:none">
   <div class="cat-filter" id="catFilter"></div>
+  <div class="browser-sub-tabs" id="catSubTabs" style="margin-top:6px"></div>
+  <div class="browser-subsub-tabs" id="catSubSubTabs"></div>
 </div>
 
-<div class="items-list" id="itemsList">
-  <div class="empty-state">Add an item to the canvas to see scores.</div>
-</div>
+<div class="items-list" id="itemsList"></div>
 
 <div id="outfitsView" style="display:none">
   <div style="margin: 10px 12px 0;">
@@ -192,6 +227,8 @@ const state = {
   outfitType: null,
   canvas: { outer: null, top: null, pants: null, belts: null, shoes: null },
   filterCat: 'all',
+  filterSub: 'All',
+  filterSubSub: 'All',
   pickerSlot: null,
   pickerItems: [],
   activeTab: 'item-scores',
@@ -200,7 +237,9 @@ const state = {
 // ── Boot ───────────────────────────────────────────────────────────────────────
 function init() {
   renderStylePills();
+  renderOutfitTypePills();
   renderCatFilter();
+  renderBrowser();
   renderItems();
 }
 
@@ -222,9 +261,11 @@ function selectStyle(s) {
 // ── Outfit type ────────────────────────────────────────────────────────────────
 function renderOutfitTypePills() {
   const sec = document.getElementById('outfitTypeSection');
-  if (!state.style) { sec.style.display = 'none'; return; }
   sec.style.display = '';
-  const types = OUTFIT_TYPES[state.style] || [];
+  const styles = state.style ? [state.style] : STYLE_ORDER;
+  const seen = new Set();
+  const types = [];
+  styles.forEach(s => (OUTFIT_TYPES[s] || []).forEach(t => { if (!seen.has(t.key)) { seen.add(t.key); types.push(t); } }));
   document.getElementById('outfitTypePills').innerHTML = types.map(t =>
     `<button class="pill ${state.outfitType === t.key ? 'active' : ''}" onclick="selectOutfitType('${t.key}')">${t.label}</button>`
   ).join('');
@@ -233,6 +274,95 @@ function renderOutfitTypePills() {
 function selectOutfitType(id) {
   state.outfitType = state.outfitType === id ? null : id;
   renderOutfitTypePills();
+  renderBrowser();
+  renderItems();
+}
+
+// ── Browser (first item picker) ───────────────────────────────────────────────
+const browserState = { cat: CAT_ORDER[0], sub: 'All', subsub: 'All' };
+
+function renderBrowser() {
+  renderBrowserCatTabs();
+  renderBrowserSubTabs();
+  renderBrowserSubSubTabs();
+  renderBrowserCarousel();
+}
+
+function renderBrowserCatTabs() {
+  document.getElementById('browserCatTabs').innerHTML = CAT_ORDER.map(cat =>
+    `<button class="browser-cat-tab ${browserState.cat === cat ? 'active' : ''}" onclick="setBrowserCat('${cat}')">${CAT_META[cat].label}</button>`
+  ).join('');
+}
+
+function setBrowserCat(cat) {
+  browserState.cat = cat;
+  browserState.sub = 'All';
+  browserState.subsub = 'All';
+  renderBrowserCatTabs();
+  renderBrowserSubTabs();
+  renderBrowserSubSubTabs();
+  renderBrowserCarousel();
+}
+
+function renderBrowserSubTabs() {
+  const subs = SUB_CATS[browserState.cat] || ['All'];
+  document.getElementById('browserSubTabs').innerHTML = subs.map(sub =>
+    `<button class="browser-sub-tab ${browserState.sub === sub ? 'active' : ''}" onclick="setBrowserSub('${sub}')">${sub}</button>`
+  ).join('');
+}
+
+function setBrowserSub(sub) {
+  browserState.sub = sub;
+  browserState.subsub = 'All';
+  renderBrowserSubTabs();
+  renderBrowserSubSubTabs();
+  renderBrowserCarousel();
+}
+
+function renderBrowserSubSubTabs() {
+  const subsubs = SUBSUB_CATS[browserState.cat]?.[browserState.sub];
+  const el = document.getElementById('browserSubSubTabs');
+  if (!subsubs) { el.innerHTML = ''; return; }
+  el.innerHTML = subsubs.map(ss =>
+    `<button class="browser-subsub-tab ${browserState.subsub === ss ? 'active' : ''}" onclick="setBrowserSubSub('${ss}')">${ss}</button>`
+  ).join('');
+}
+
+function setBrowserSubSub(ss) {
+  browserState.subsub = ss;
+  renderBrowserSubSubTabs();
+  renderBrowserCarousel();
+}
+
+function renderBrowserCarousel() {
+  const cat = browserState.cat;
+  let items = catalog[cat] || [];
+  if (browserState.sub !== 'All') items = items.filter(i => i.sub === browserState.sub);
+  if (browserState.subsub !== 'All') items = items.filter(i => i.subsub === browserState.subsub);
+  document.getElementById('browserCarousel').innerHTML = items.map(item => {
+    const key = encodeURIComponent(item.file || item.name);
+    if (item.swatch) {
+      return `<div class="browser-swatch-item" onclick="browserPickItem('${cat}','${key}')">
+        <div class="browser-swatch-color" style="background:${item.color};border-bottom:1px solid ${item.border||item.color}"></div>
+        <div class="browser-swatch-name">${item.name}</div>
+      </div>`;
+    }
+    return `<div class="browser-car-item" onclick="browserPickItem('${cat}','${key}')">
+      <img src="${CATALOG_BASE}/${cat}/${item.file}" alt="${item.name}" loading="lazy">
+      <div class="browser-car-name">${item.name}</div>
+    </div>`;
+  }).join('');
+}
+
+function browserPickItem(cat, key) {
+  const decodedKey = decodeURIComponent(key);
+  const item = (catalog[cat] || []).find(i => (i.file || i.name) === decodedKey);
+  if (!item) return;
+  const slot = SLOT_MAP[cat];
+  if (!slot) return;
+  state.canvas[slot] = { ...item, _cat: cat };
+  renderCanvasSlots();
+  renderBrowser();
   renderItems();
 }
 
@@ -246,7 +376,44 @@ function renderCatFilter() {
 
 function selectCat(c) {
   state.filterCat = c;
+  state.filterSub = 'All';
+  state.filterSubSub = 'All';
   renderCatFilter();
+  renderCatSubTabs();
+  renderCatSubSubTabs();
+  renderItems();
+}
+
+function renderCatSubTabs() {
+  const el = document.getElementById('catSubTabs');
+  if (state.filterCat === 'all') { el.innerHTML = ''; return; }
+  const subs = SUB_CATS[state.filterCat] || [];
+  el.innerHTML = subs.map(sub =>
+    `<button class="browser-sub-tab ${state.filterSub === sub ? 'active' : ''}" onclick="selectCatSub('${sub}')">${sub}</button>`
+  ).join('');
+}
+
+function selectCatSub(sub) {
+  state.filterSub = sub;
+  state.filterSubSub = 'All';
+  renderCatSubTabs();
+  renderCatSubSubTabs();
+  renderItems();
+}
+
+function renderCatSubSubTabs() {
+  const el = document.getElementById('catSubSubTabs');
+  if (state.filterCat === 'all') { el.innerHTML = ''; return; }
+  const subsubs = SUBSUB_CATS[state.filterCat]?.[state.filterSub];
+  if (!subsubs) { el.innerHTML = ''; return; }
+  el.innerHTML = subsubs.map(ss =>
+    `<button class="browser-subsub-tab ${state.filterSubSub === ss ? 'active' : ''}" onclick="selectCatSubSub('${ss}')">${ss}</button>`
+  ).join('');
+}
+
+function selectCatSubSub(ss) {
+  state.filterSubSub = ss;
+  renderCatSubSubTabs();
   renderItems();
 }
 
@@ -296,6 +463,7 @@ function clearSlot(slot) {
   state.canvas[slot] = null;
   closePicker();
   renderCanvasSlots();
+  renderBrowser();
   renderItems();
 }
 
@@ -444,11 +612,10 @@ function starsHtml(n) {
 function renderItems() {
   const el = document.getElementById('itemsList');
   const hasCanvas = Object.values(state.canvas).some(Boolean);
-
-  if (!hasCanvas) {
-    el.innerHTML = '<div class="empty-state">Add an item to the canvas to see scores.</div>';
-    return;
-  }
+  document.getElementById('catSection').style.display = hasCanvas ? '' : 'none';
+  if (!hasCanvas) { el.innerHTML = ''; return; }
+  renderCatSubTabs();
+  renderCatSubSubTabs();
 
   const style     = state.style || null;
   const outfitType = state.outfitType || null;
@@ -457,6 +624,8 @@ function renderItems() {
   let items = [];
   CAT_ORDER.forEach(cat => (catalog[cat] || []).forEach(item => items.push({ item, cat })));
   if (state.filterCat !== 'all') items = items.filter(({ cat }) => cat === state.filterCat);
+  if (state.filterSub !== 'All') items = items.filter(({ item }) => item.sub === state.filterSub);
+  if (state.filterSubSub !== 'All') items = items.filter(({ item }) => item.subsub === state.filterSubSub);
 
   // Score + explain
   const rows = items.map(({ item, cat }) => {
@@ -715,23 +884,30 @@ function addToCanvas(slot, cat, itemName) {
   if (!item) return;
   state.canvas[slot] = { ...item, _cat: cat };
   renderCanvasSlots();
+  renderBrowser();
   renderItems();
 }
 
 init();
 
 // Expose event handlers to global scope for inline onclick attributes
-window.selectStyle      = selectStyle;
-window.selectOutfitType = selectOutfitType;
-window.selectCat        = selectCat;
-window.openPicker       = openPicker;
-window.pickItem         = pickItem;
-window.clearSlot        = clearSlot;
-window.closePicker      = closePicker;
-window.overlayClick     = overlayClick;
-window.addToCanvas      = addToCanvas;
-window.switchTab        = switchTab;
-window.generateOutfits  = generateOutfits;
+window.selectStyle        = selectStyle;
+window.selectOutfitType   = selectOutfitType;
+window.selectCat          = selectCat;
+window.openPicker         = openPicker;
+window.pickItem           = pickItem;
+window.clearSlot          = clearSlot;
+window.closePicker        = closePicker;
+window.overlayClick       = overlayClick;
+window.addToCanvas        = addToCanvas;
+window.switchTab          = switchTab;
+window.generateOutfits    = generateOutfits;
+window.setBrowserCat      = setBrowserCat;
+window.setBrowserSub      = setBrowserSub;
+window.setBrowserSubSub   = setBrowserSubSub;
+window.browserPickItem    = browserPickItem;
+window.selectCatSub       = selectCatSub;
+window.selectCatSubSub    = selectCatSubSub;
 </script>
 </body>
 </html>

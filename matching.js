@@ -104,10 +104,10 @@
       },
     },
 
-    // Belt width vs pants loop width (hard rules)
+    // Belt width vs pants loop width (harmony scoring)
     beltVsPants: {
-      'narrow': { label: 'Narrow loops', scores: { 'thin': 3, 'medium': 1, 'wide': null } },
-      'wide':   { label: 'Wide loops',   scores: { 'wide': 3, 'medium': 2, 'thin': 1   } },
+      'narrow': { label: 'Narrow loops', scores: { 'thin': 3, 'wide': null } },
+      'wide':   { label: 'Wide loops',   scores: { 'wide': 3, 'thin': 1   } },
     },
 
     // Hard exclusion rules (displayed on matching-logic.html)
