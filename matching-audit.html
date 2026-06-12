@@ -23,14 +23,13 @@
     .pill.active { background: #1c1c1e; color: #fff; }
 
     /* Canvas slots */
-    .canvas-slots { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 2px; }
-    .slot-btn { flex: 0 0 68px; border-radius: 10px; border: 2px dashed #c7c7cc; background: #f9f9f9; cursor: pointer; padding: 6px 4px; text-align: center; font-size: 11px; color: #8e8e93; display: flex; flex-direction: column; align-items: center; gap: 3px; min-height: 82px; justify-content: center; }
-    .slot-btn.filled { border: 2px solid #007aff; background: #fff; color: #1c1c1e; }
-    .slot-swatch { width: 38px; height: 38px; border-radius: 6px; border: 1px solid #e5e5ea; }
-    .slot-img { width: 38px; height: 38px; border-radius: 6px; object-fit: cover; border: 1px solid #e5e5ea; }
-    .slot-name { font-size: 9px; line-height: 1.2; max-width: 60px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .slot-label { font-size: 10px; color: #8e8e93; }
-    .slot-clear { font-size: 9px; color: #ff3b30; margin-top: 1px; }
+    .canvas-slots { display: flex; flex-direction: column; gap: 8px; }
+    .canvas-empty-slot { width: 100%; padding: 10px; background: #f9f9f9; border: 2px dashed #c7c7cc; border-radius: 10px; color: #8e8e93; font-size: 13px; font-weight: 500; cursor: pointer; text-align: center; border-width: 1.5px; }
+    .canvas-empty-slot:active { opacity: 0.7; }
+    .canvas-card-slot-label { font-size: 10px; font-weight: 600; color: #8e8e93; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+    .canvas-card-actions { display: flex; gap: 8px; margin-top: 8px; }
+    .canvas-btn-change { flex: 1; padding: 7px 0; background: #f2f2f7; border: none; border-radius: 8px; color: #007aff; font-size: 13px; font-weight: 500; cursor: pointer; }
+    .canvas-btn-clear  { flex: 0 0 auto; padding: 7px 14px; background: #f2f2f7; border: none; border-radius: 8px; color: #ff3b30; font-size: 13px; font-weight: 500; cursor: pointer; }
 
     /* Category filter */
     .cat-filter { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; }
@@ -172,14 +171,8 @@
 </div>
 
 <div class="section canvas-section">
-  <div class="section-title">Canvas — tap a slot to add an item</div>
-  <div class="canvas-slots">
-    <div class="slot-btn" id="slot-outer"  onclick="openPicker('outer')"><span class="slot-label">Outer</span></div>
-    <div class="slot-btn" id="slot-top"    onclick="openPicker('top')"><span class="slot-label">Top</span></div>
-    <div class="slot-btn" id="slot-pants"  onclick="openPicker('pants')"><span class="slot-label">Pants</span></div>
-    <div class="slot-btn" id="slot-belts"  onclick="openPicker('belts')"><span class="slot-label">Belt</span></div>
-    <div class="slot-btn" id="slot-shoes"  onclick="openPicker('shoes')"><span class="slot-label">Shoes</span></div>
-  </div>
+  <div class="section-title">Canvas</div>
+  <div class="canvas-slots" id="canvasSlots"></div>
 </div>
 
 <div class="section cat-section" id="catSection" style="padding: 10px 12px; display:none">
@@ -240,6 +233,7 @@ function init() {
   renderOutfitTypePills();
   renderCatFilter();
   renderBrowser();
+  renderCanvasSlots();
   renderItems();
 }
 
@@ -472,22 +466,82 @@ function overlayClick(e) { if (e.target === document.getElementById('modalOverla
 
 // ── Canvas rendering ───────────────────────────────────────────────────────────
 function renderCanvasSlots() {
-  Object.keys(AUDIT_SLOT_LABELS).forEach(slot => {
-    const item = state.canvas[slot];
-    const el   = document.getElementById(`slot-${slot}`);
+  const style = state.style || null;
+  const outfitType = state.outfitType || null;
+  const el = document.getElementById('canvasSlots');
+  const slotOrder = ['outer', 'top', 'pants', 'belts', 'shoes'];
+
+  el.innerHTML = slotOrder.map(slot => {
+    const item  = state.canvas[slot];
+    const label = AUDIT_SLOT_LABELS[slot];
+
     if (!item) {
-      el.className = 'slot-btn';
-      el.innerHTML = `<span class="slot-label">${AUDIT_SLOT_LABELS[slot]}</span>`;
-    } else {
-      el.className = 'slot-btn filled';
-      const thumb = item.swatch
-        ? `<div class="slot-swatch" style="background:${item.color};border:1px solid ${item.border || item.color}"></div>`
-        : `<img class="slot-img" src="${CATALOG_BASE}/${item._cat}/${item.file}" alt="${item.name}">`;
-      el.innerHTML = `${thumb}
-        <div class="slot-name">${item.name}</div>
-        <div class="slot-clear" onclick="event.stopPropagation();clearSlot('${slot}')">✕ clear</div>`;
+      return `<button class="canvas-empty-slot" onclick="openPicker('${slot}')">+ Add ${label}</button>`;
     }
-  });
+
+    const cat = item._cat;
+    const canvasWithout = { ...state.canvas, [slot]: null };
+    const result = window.scoreItem(item, cat, canvasWithout, style, outfitType);
+    const isSwatch = item.type === 'swatch';
+    const harmPairs = (!result.excluded && result.stars !== null) ? getHarmonyPairs(item, cat, canvasWithout) : [];
+    const avgHarm = harmPairs.length > 0 ? harmPairs.reduce((s, p) => s + p.total, 0) / harmPairs.length : null;
+    const exclusionReason = result.excluded ? getExclusionReason(item, cat, canvasWithout, style, outfitType) : null;
+
+    const thumb = isSwatch
+      ? `<div class="item-swatch-box" style="background:${item.color};border:1px solid ${item.border || item.color}"></div>`
+      : `<img class="item-thumb" src="${CATALOG_BASE}/${cat}/${item.file}" alt="${item.name}">`;
+
+    let badge;
+    if (result.excluded)            badge = `<span class="item-badge"><span class="badge-excluded">✕</span></span>`;
+    else if (result.stars === null) badge = `<span class="item-badge badge-no-score">—</span>`;
+    else if (result.stars === 0)    badge = `<span class="item-badge badge-zero">0 ★</span>`;
+    else                            badge = `<span class="item-badge">${starsHtml(result.stars)}</span>`;
+
+    let scoreHtml = '';
+    if (result.excluded) {
+      scoreHtml = `<div class="score-rows">
+        <div class="score-row"><span class="score-label">Excluded</span><span class="score-detail exclusion-text">${exclusionReason}</span></div>
+      </div>`;
+    } else if (result.stars !== null) {
+      let rows = '';
+      if (isSwatch) {
+        rows += `<div class="score-row"><span class="score-label">Context fit</span><span class="score-detail" style="color:#8e8e93">Swatch — colour harmony only</span></div>`;
+      } else if (style && outfitType) {
+        const cfScore = result.score !== null && avgHarm !== null ? (result.score - avgHarm) : (result.score !== null ? result.score / 2 : null);
+        rows += `<div class="score-row"><span class="score-label">Context fit</span><span class="score-detail">${STYLE_LABEL_MAP[style]} / ${outfitType}${cfScore !== null ? ` <span style="color:#007aff;font-weight:500">= ${fmt(cfScore)}/5</span>` : ''}</span></div>`;
+      }
+      if (harmPairs.length > 0) {
+        const pairsHtml = harmPairs.map(p =>
+          `<div class="harmony-pair">
+            <div class="harmony-against">vs ${p.name}</div>
+            <div class="harmony-breakdown">${p.breakdown} <span class="harmony-total">= ${fmt(p.total)}/5</span></div>
+          </div>`
+        ).join('');
+        const avgLine = harmPairs.length > 1 ? `<div class="harmony-avg">avg = ${fmt(avgHarm)}/5</div>` : '';
+        rows += `<div class="score-row"><span class="score-label">Harmony</span><span class="score-detail">${pairsHtml}${avgLine}</span></div>`;
+      }
+      const scoreStr = result.score !== null ? fmt(result.score) : '—';
+      rows += `<div class="score-row"><span class="score-label">Total</span><span class="score-detail total-score">${scoreStr} / 10 → ${starsHtml(result.stars) || '0 stars'}</span></div>`;
+      scoreHtml = `<div class="score-rows">${rows}</div>`;
+    }
+
+    return `<div class="item-card">
+      <div class="canvas-card-slot-label">${label}</div>
+      <div class="item-header">
+        ${thumb}
+        <div class="item-info">
+          <div class="item-name">${item.name}</div>
+          <div class="item-sub">${CAT_META[cat].label}${item.sub ? ' · ' + item.sub : ''}</div>
+        </div>
+        ${badge}
+      </div>
+      ${scoreHtml}
+      <div class="canvas-card-actions">
+        <button class="canvas-btn-change" onclick="openPicker('${slot}')">↺ Change</button>
+        <button class="canvas-btn-clear"  onclick="clearSlot('${slot}')">✕ Clear</button>
+      </div>
+    </div>`;
+  }).join('');
 }
 
 // ── Score explanation helpers ──────────────────────────────────────────────────
