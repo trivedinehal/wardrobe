@@ -200,6 +200,42 @@ function resetAllSwipeSnapshots() {
 
 // ── Action functions ──────────────────────────────────────────────────────────
 
+// Determine fill order based on locked slots — locked items are anchors,
+// unlocked slots fill in order of most locked neighbours first so each pick
+// has the richest possible scoring context.
+function getFillOrder() {
+  // Adjacency for scoring (belt always last — it depends on the main outfit)
+  const adjacent = {
+    outer: ['pants', 'top'],
+    pants: ['outer', 'shoes'],
+    top:   ['outer', 'pants'],
+    shoes: ['pants', 'outer'],
+  };
+  const defaultPriority = { outer: 0, pants: 1, top: 2, shoes: 3 };
+  const main = ['outer', 'pants', 'top', 'shoes'];
+
+  const locked = new Set(main.filter(s => lockedSlots[s]));
+  const remaining = new Set(main.filter(s => !lockedSlots[s]));
+  const placed = new Set(locked);
+  const result = [];
+
+  while (remaining.size > 0) {
+    let best = null, bestCount = -1;
+    for (const slot of remaining) {
+      const count = (adjacent[slot] || []).filter(n => placed.has(n)).length;
+      if (best === null || count > bestCount || (count === bestCount && defaultPriority[slot] < defaultPriority[best])) {
+        best = slot; bestCount = count;
+      }
+    }
+    placed.add(best);
+    remaining.delete(best);
+    result.push(best);
+  }
+
+  if (!lockedSlots['belts']) result.push('belts');
+  return result;
+}
+
 function completeOutfit() {
   resetAllSwipeSnapshots();
   const slots = ['outer', 'pants', 'top', 'shoes', 'belts'];
@@ -220,6 +256,8 @@ function completeOutfit() {
     return selected[slot] || lockedSlots[slot];
   });
 
+  const fillOrder = getFillOrder();
+
   if (allFilled) {
     // Canvas full — randomly pick from top tier for each unlocked slot
     const prev = {};
@@ -232,11 +270,11 @@ function completeOutfit() {
     });
     updateSuitMode();
     const pantsFilter = getPantsFilter();
-    slots.forEach(slot => fillBestForSlot(slot, cats[slot], prev[slot], true, slot === 'pants' ? pantsFilter : null));
+    fillOrder.forEach(slot => fillBestForSlot(slot, cats[slot], prev[slot], true, slot === 'pants' ? pantsFilter : null));
   } else {
     // Fill empty slots deterministically (best match)
     const pantsFilter = getPantsFilter();
-    slots.forEach(slot => fillBestForSlot(slot, cats[slot], null, false, slot === 'pants' ? pantsFilter : null));
+    fillOrder.forEach(slot => fillBestForSlot(slot, cats[slot], null, false, slot === 'pants' ? pantsFilter : null));
   }
 
   refreshAllSlotStars();
