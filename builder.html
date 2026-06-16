@@ -1098,8 +1098,8 @@ function showAnalysis() {
       if (explain.notes)          explain.notes.forEach(n => lines.push(n));
       if (explain.harmonyPairs)   explain.harmonyPairs.forEach(p => {
         lines.push(`Harmony ${p.label}: ${p.score}/5`);
-        lines.push(`&nbsp;&nbsp;Tone: ${p.toneScore} — ${p.toneLabel}`);
-        lines.push(`&nbsp;&nbsp;Colour: ${p.colScore} — ${p.colLabel}`);
+        lines.push(`&nbsp;&nbsp;Tone: ${p.toneScore}/2.5 — ${p.toneLabel}`);
+        lines.push(`&nbsp;&nbsp;Colour: ${p.colScore}/2.0 — ${p.colLabel}`);
       });
       if (lines.length) notesHtml = `<div class="analysis-notes">${lines.map(l => `<div class="analysis-note">${l}</div>`).join('')}</div>`;
     }
