@@ -2,16 +2,11 @@
 
 ## FIRST THING: Read all memory files
 
-At the start of every session, before doing anything else, read ALL of these files in order:
+At the start of every session, before doing anything else, read ALL `.md` files in this folder:
 
-1. `G:\My Drive\Assistant - Nehal\Wardrobe Base\memory\user_profile.md`
-2. `G:\My Drive\Assistant - Nehal\Wardrobe Base\memory\feedback_memory_updates.md`
-3. `G:\My Drive\Assistant - Nehal\Wardrobe Base\memory\project_purpose.md`
-4. `G:\My Drive\Assistant - Nehal\Wardrobe Base\memory\project_plan.md`
-5. `G:\My Drive\Assistant - Nehal\Wardrobe Base\memory\design_notes.md`
-6. `G:\My Drive\Assistant - Nehal\Wardrobe Base\memory\matching_logic_design.md`
+`G:\My Drive\Assistant - Nehal\Wardrobe Base\memory\`
 
-Do NOT rely on any other memory index or folder. These 6 files are the source of truth.
+Read every file in that folder — do not skip any. Do NOT rely on any other memory index or folder.
 
 ---
 

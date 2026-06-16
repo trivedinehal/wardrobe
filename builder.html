@@ -495,11 +495,11 @@
 <!-- OUTFIT PREVIEW -->
 <div class="preview-area">
   <div class="outfit-canvas" id="outfitCanvas">
-    <div class="outfit-slot" id="slot-outer"><div class="empty-label">Blazer</div></div>
-    <div class="outfit-slot" id="slot-top"><div class="empty-label">Shirt</div></div>
-    <div class="outfit-slot" id="slot-pants"><div class="empty-label">Pants</div></div>
-    <div class="outfit-slot" id="slot-belts"><div class="empty-label">Belt</div></div>
-    <div class="outfit-slot" id="slot-shoes"><div class="empty-label">Shoes</div></div>
+    <div class="outfit-slot" id="slot-outer"><div class="empty-label" onclick="navigateToCategory(outerCats()[0] || 'blazers')" style="cursor:pointer">Blazer</div></div>
+    <div class="outfit-slot" id="slot-top"><div class="empty-label" onclick="navigateToCategory('tops')" style="cursor:pointer">Shirt</div></div>
+    <div class="outfit-slot" id="slot-pants"><div class="empty-label" onclick="navigateToCategory('pants')" style="cursor:pointer">Pants</div></div>
+    <div class="outfit-slot" id="slot-belts"><div class="empty-label" onclick="navigateToCategory('belts')" style="cursor:pointer">Belt</div></div>
+    <div class="outfit-slot" id="slot-shoes"><div class="empty-label" onclick="navigateToCategory('shoes')" style="cursor:pointer">Shoes</div></div>
   </div>
 </div>
 
@@ -986,7 +986,14 @@ function clearSlot(slotKey) {
   const slot = document.getElementById(`slot-${slotKey}`);
   if (!slot) return;
   slot.classList.remove('filled');
-  slot.innerHTML = `<div class="empty-label">${SLOT_LABELS[slotKey]}</div>`;
+  const navCat = slotKey === 'outer' ? (outerCats()[0] || 'blazers')
+               : slotKey === 'top'   ? 'tops'
+               : slotKey === 'pants' ? 'pants'
+               : slotKey === 'belts' ? 'belts'
+               : slotKey === 'shoes' ? 'shoes'
+               : null;
+  const onclick = navCat ? `onclick="navigateToCategory('${navCat}')"` : '';
+  slot.innerHTML = `<div class="empty-label" ${onclick} style="${navCat ? 'cursor:pointer' : ''}">${SLOT_LABELS[slotKey]}</div>`;
 }
 
 function removeItem(slotKey) {
