@@ -1098,27 +1098,17 @@ function showAnalysis() {
       if (lines.length) notesHtml = `<div class="analysis-notes">${lines.map(l => `<div class="analysis-note">${l}</div>`).join('')}</div>`;
     }
 
-    // Scan excluded items in this category
-    const excluded = [];
-    cats.forEach(c => {
-      (catalog[c] || []).forEach(ci => {
-        const r = window.explainItem ? window.explainItem(ci, c, canvas, currentStyle, currentOutfitType) : null;
-        if (r?.excluded && r.exclusionReason) excluded.push({ name: ci.name || ci.color || '', reason: r.exclusionReason });
-      });
-    });
     const total = cats.reduce((s, c) => s + (catalog[c]?.length || 0), 0);
+    const excludedCount = cats.reduce((s, c) => s + (catalog[c] || []).filter(ci => {
+      const r = window.explainItem ? window.explainItem(ci, c, canvas, currentStyle, currentOutfitType) : null;
+      return r?.excluded;
+    }).length, 0);
 
-    const gapHtml = excluded.length === total && total > 0
+    const gapHtml = excludedCount === total && total > 0
       ? `<div class="analysis-gap-alert">⚠️ Nothing in your wardrobe works here — consider buying a ${label.toLowerCase()}.</div>`
       : '';
 
-    const exclHtml = excluded.length > 0 && excluded.length < total
-      ? `<div class="analysis-excl-section">
-          <div class="analysis-excl-title">Not working (${excluded.length})</div>
-          ${excluded.slice(0, 4).map(e => `<div class="analysis-excl-item">✕ ${e.name} — ${e.reason}</div>`).join('')}
-          ${excluded.length > 4 ? `<div class="analysis-excl-item" style="color:#aeaeb2">+${excluded.length - 4} more excluded</div>` : ''}
-        </div>`
-      : '';
+    const exclHtml = '';
 
     html += `
       <div class="analysis-card">
