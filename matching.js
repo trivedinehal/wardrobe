@@ -467,10 +467,12 @@ function getTopType(item) {
     const addPair = (a, b, label) => {
       const score = harmonyScore(a, b);
       const td = Math.abs(toneVal(a.tone) - toneVal(b.tone));
-      const toneNote = td === 2 ? 'strong contrast' : td === 1 ? 'good contrast' : 'same tone';
+      const toneScore = td === 2 ? 2.5 : td === 1 ? 1.5 : 0.5;
+      const toneLabel = td === 2 ? 'strong contrast' : td === 1 ? 'good contrast' : 'same tone';
       const neutral = isNeutral(a.colorFamily) || isNeutral(b.colorFamily);
-      const colNote = neutral ? 'neutral pairing' : a.colorFamily === b.colorFamily ? 'same colour family' : 'contrasting colours';
-      harmonyPairs.push({ label, score: Math.round(score * 10) / 10, note: `${toneNote}, ${colNote}` });
+      const colScore = neutral ? 2.0 : a.colorFamily === b.colorFamily ? 1.5 : 1.0;
+      const colLabel = neutral ? 'neutral pairing' : a.colorFamily === b.colorFamily ? 'same colour family' : 'contrasting colours';
+      harmonyPairs.push({ label, score: Math.round(score * 10) / 10, toneScore, toneLabel, colScore, colLabel });
     };
 
     switch (candidateSlot) {

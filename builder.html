@@ -607,7 +607,7 @@
 </div>
 
 <script src="catalog.js?v=2"></script>
-<script src="matching.js?v=7"></script>
+<script src="matching.js?v=8"></script>
 <script src="builder-logic.js"></script>
 <script>
 const VERSION = Date.now();
@@ -1096,7 +1096,11 @@ function showAnalysis() {
       const lines = [];
       if (explain.contextFitNote) lines.push(explain.contextFitNote);
       if (explain.notes)          explain.notes.forEach(n => lines.push(n));
-      if (explain.harmonyPairs)   explain.harmonyPairs.forEach(p => lines.push(`Harmony ${p.label}: ${p.score}/5 — ${p.note}`));
+      if (explain.harmonyPairs)   explain.harmonyPairs.forEach(p => {
+        lines.push(`Harmony ${p.label}: ${p.score}/5`);
+        lines.push(`&nbsp;&nbsp;Tone: ${p.toneScore} — ${p.toneLabel}`);
+        lines.push(`&nbsp;&nbsp;Colour: ${p.colScore} — ${p.colLabel}`);
+      });
       if (lines.length) notesHtml = `<div class="analysis-notes">${lines.map(l => `<div class="analysis-note">${l}</div>`).join('')}</div>`;
     }
 
