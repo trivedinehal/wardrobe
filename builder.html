@@ -264,7 +264,90 @@
     text-align: center;
     white-space: nowrap;
   }
+  .action-btn-why {
+    flex: 0 0 auto;
+    background: #fff;
+    color: #007aff;
+    border: 1.5px solid #007aff;
+    padding: 4px 14px;
+  }
 
+  /* ── ANALYSIS PANEL ── */
+  .analysis-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    z-index: 200;
+    display: none;
+    align-items: flex-end;
+  }
+  .analysis-overlay.open { display: flex; }
+  .analysis-sheet {
+    width: 100%;
+    max-height: 80vh;
+    background: #f2f2f7;
+    border-radius: 16px 16px 0 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .analysis-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px 10px;
+    background: #fff;
+    border-bottom: 1px solid #e5e5ea;
+    flex-shrink: 0;
+  }
+  .analysis-header h2 { font-size: 16px; font-weight: 600; }
+  .analysis-close {
+    width: 28px; height: 28px;
+    background: #e5e5ea; border: none; border-radius: 50%;
+    font-size: 14px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .analysis-body {
+    overflow-y: auto; flex: 1;
+    padding: 10px 12px;
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .analysis-card {
+    background: #fff; border-radius: 12px; padding: 12px;
+  }
+  .analysis-card-header {
+    display: flex; align-items: center; gap: 10px; margin-bottom: 8px;
+  }
+  .analysis-thumb {
+    width: 44px; height: 44px; border-radius: 8px;
+    object-fit: cover; border: 1px solid #e5e5ea;
+    background: #f2f2f7; flex: 0 0 44px;
+  }
+  .analysis-swatch-box {
+    width: 44px; height: 44px; border-radius: 8px; flex: 0 0 44px;
+  }
+  .analysis-slot-label {
+    font-size: 10px; font-weight: 600; color: #8e8e93;
+    text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .analysis-item-name { font-size: 14px; font-weight: 600; }
+  .analysis-stars { font-size: 13px; margin-left: auto; flex-shrink: 0; }
+  .analysis-notes { display: flex; flex-direction: column; gap: 4px; }
+  .analysis-note {
+    font-size: 12px; color: #3c3c43;
+    padding: 4px 8px; background: #f2f2f7; border-radius: 6px;
+  }
+  .analysis-excl-section { margin-top: 8px; padding-top: 8px; border-top: 1px solid #f2f2f7; }
+  .analysis-excl-title {
+    font-size: 10px; font-weight: 600; color: #8e8e93;
+    text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;
+  }
+  .analysis-excl-item { font-size: 11px; color: #8e8e93; padding: 2px 0; }
+  .analysis-gap-alert {
+    margin-top: 8px; padding: 8px 10px;
+    background: #fff3cd; border-left: 3px solid #ff9500;
+    border-radius: 8px; font-size: 12px; color: #1c1c1e;
+  }
 
   /* Sub-sub-category tabs */
   .subsub-tabs {
@@ -506,6 +589,7 @@
 <div class="bottom-panel">
   <div class="action-row">
     <button class="action-btn" onclick="completeOutfit()">✨ Complete Outfit</button>
+    <button class="action-btn action-btn-why" onclick="showAnalysis()">Why?</button>
     <button class="action-btn" onclick="clearOutfit()">✕ Clear</button>
   </div>
   <div class="cat-tabs" id="catTabs">
@@ -523,7 +607,7 @@
 </div>
 
 <script src="catalog.js?v=2"></script>
-<script src="matching.js?v=6"></script>
+<script src="matching.js?v=7"></script>
 <script src="builder-logic.js"></script>
 <script>
 const VERSION = Date.now();
@@ -967,6 +1051,107 @@ renderSubSubTabs('tops', 'All');
 buildStyleRow();
 renderCarousel('tops', 'All', 'All');
 renderOutfitTypes(currentStyle);
+
+// ── Analysis panel ────────────────────────────────────────────────────────────
+
+function showAnalysis() {
+  const hasSomething = Object.values(selected).some(v => v);
+  const body = document.getElementById('analysisBody');
+
+  if (!hasSomething) {
+    body.innerHTML = '<div style="padding:32px;text-align:center;color:#8e8e93;font-size:14px">Add items to the canvas first.</div>';
+    document.getElementById('analysisOverlay').classList.add('open');
+    return;
+  }
+
+  const canvas = buildCanvas();
+  const SLOTS = [
+    { key: 'outer', label: 'Outer', cats: outerCats() },
+    { key: 'top',   label: 'Shirt', cats: ['tops'] },
+    { key: 'pants', label: 'Pants', cats: ['pants'] },
+    { key: 'belts', label: 'Belt',  cats: ['belts'] },
+    { key: 'shoes', label: 'Shoes', cats: ['shoes'] },
+  ];
+
+  let html = '';
+
+  SLOTS.forEach(({ key, label, cats }) => {
+    const item = selected[key];
+    if (!item) return;
+
+    const cat = item.cat || cats[0];
+    const explain = window.explainItem ? window.explainItem(item, cat, canvas, currentStyle, currentOutfitType) : null;
+
+    const starsStr = explain?.stars != null ? ('⭐'.repeat(explain.stars) || '—') : '—';
+    const scoreStr = explain?.score != null ? ` (${explain.score})` : '';
+
+    let thumb = item.swatch
+      ? `<div class="analysis-swatch-box" style="background:${item.swatch}"></div>`
+      : `<img class="analysis-thumb" src="catalog/${cat}/${item.file || ''}" onerror="this.style.background='#f2f2f7'">`;
+
+    let notesHtml = '';
+    if (explain && !explain.excluded) {
+      const lines = [];
+      if (explain.contextFitNote) lines.push(explain.contextFitNote);
+      if (explain.notes)          explain.notes.forEach(n => lines.push(n));
+      if (explain.harmonyPairs)   explain.harmonyPairs.forEach(p => lines.push(`Harmony ${p.label}: ${p.score}/5 — ${p.note}`));
+      if (lines.length) notesHtml = `<div class="analysis-notes">${lines.map(l => `<div class="analysis-note">${l}</div>`).join('')}</div>`;
+    }
+
+    // Scan excluded items in this category
+    const excluded = [];
+    cats.forEach(c => {
+      (catalog[c] || []).forEach(ci => {
+        const r = window.explainItem ? window.explainItem(ci, c, canvas, currentStyle, currentOutfitType) : null;
+        if (r?.excluded && r.exclusionReason) excluded.push({ name: ci.name || ci.color || '', reason: r.exclusionReason });
+      });
+    });
+    const total = cats.reduce((s, c) => s + (catalog[c]?.length || 0), 0);
+
+    const gapHtml = excluded.length === total && total > 0
+      ? `<div class="analysis-gap-alert">⚠️ Nothing in your wardrobe works here — consider buying a ${label.toLowerCase()}.</div>`
+      : '';
+
+    const exclHtml = excluded.length > 0 && excluded.length < total
+      ? `<div class="analysis-excl-section">
+          <div class="analysis-excl-title">Not working (${excluded.length})</div>
+          ${excluded.slice(0, 4).map(e => `<div class="analysis-excl-item">✕ ${e.name} — ${e.reason}</div>`).join('')}
+          ${excluded.length > 4 ? `<div class="analysis-excl-item" style="color:#aeaeb2">+${excluded.length - 4} more excluded</div>` : ''}
+        </div>`
+      : '';
+
+    html += `
+      <div class="analysis-card">
+        <div class="analysis-card-header">
+          ${thumb}
+          <div>
+            <div class="analysis-slot-label">${label}</div>
+            <div class="analysis-item-name">${item.name || item.color || ''}</div>
+          </div>
+          <div class="analysis-stars">${starsStr}${scoreStr}</div>
+        </div>
+        ${notesHtml}${gapHtml}${exclHtml}
+      </div>`;
+  });
+
+  body.innerHTML = html || '<div style="padding:32px;text-align:center;color:#8e8e93">No items on canvas.</div>';
+  document.getElementById('analysisOverlay').classList.add('open');
+}
+
+function hideAnalysis() {
+  document.getElementById('analysisOverlay').classList.remove('open');
+}
 </script>
+
+<!-- ANALYSIS PANEL -->
+<div class="analysis-overlay" id="analysisOverlay" onclick="if(event.target===this)hideAnalysis()">
+  <div class="analysis-sheet" onclick="event.stopPropagation()">
+    <div class="analysis-header">
+      <h2>Outfit Analysis</h2>
+      <button class="analysis-close" onclick="hideAnalysis()">✕</button>
+    </div>
+    <div class="analysis-body" id="analysisBody"></div>
+  </div>
+</div>
 </body>
 </html>

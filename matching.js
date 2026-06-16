@@ -374,4 +374,145 @@ function getTopType(item) {
     return { stars: toStars(finalScore), score: finalScore, excluded: false };
   };
 
+  // ─── Explain export (used by builder analysis panel) ─────────────────────────
+
+  window.explainItem = function(candidate, candidateCat, canvas, style, outfitType) {
+    const slotMap = { tops:'top', pants:'pants', belts:'belts', shoes:'shoes', blazers:'outer', suits:'outer', jackets:'outer' };
+    const candidateSlot = slotMap[candidateCat];
+    const context = (style && outfitType) ? `${style}/${outfitType}` : null;
+    const TYPE_NAMES = {
+      'suit':'Suit', 'blazer-formal-trouser':'Blazer + Formal Trousers', 'blazer-chinos':'Blazer + Chinos',
+      'blazer-jeans':'Blazer + Jeans', 'jacket-formal-trouser':'Jacket + Formal Trousers',
+      'jacket-chinos':'Jacket + Chinos', 'jacket-jeans':'Jacket + Jeans', 'no-outer':'No Outer'
+    };
+    const STYLE_NAMES = { 'formal':'Formal', 'semi-formal':'Semi-Formal', 'smart-casual':'Smart Casual', 'casual':'Casual' };
+    const contextLabel = context ? `${STYLE_NAMES[style] || style} / ${TYPE_NAMES[outfitType] || outfitType}` : null;
+
+    if (context && candidate.formality) {
+      const s = context.split('/')[0];
+      const sLabel = STYLE_LABEL[s];
+      if (sLabel && !candidate.formality.includes(sLabel)) {
+        return { excluded: true, exclusionReason: `Formality mismatch — not rated for ${sLabel}` };
+      }
+    }
+
+    const filled = [canvas.outer, canvas.top, canvas.pants, canvas.belts, canvas.shoes].filter(Boolean);
+    if (filled.length === 0) return { stars: null, excluded: false };
+    if (candidateCat === 'pants' && outfitType === 'suit') return { stars: null, excluded: false };
+
+    // ── Belt ──
+    if (candidateSlot === 'belts') {
+      const ctxFit = context ? getContextFit(candidate, candidateCat, context) : undefined;
+      if (isExcluded(candidate, candidateCat, candidateSlot, canvas, context, ctxFit)) {
+        let reason = 'Excluded from this outfit';
+        if (canvas.pants?.beltLoop === 'none') {
+          reason = 'These pants have no belt loop';
+        } else if (canvas.pants && candidate.pants) {
+          const pantsType = getPantsType(canvas.pants);
+          const pantsLabel = pantsType === 'dress-trousers' ? 'Formal Trousers' : pantsType === 'chinos' ? 'Chinos' : 'Jeans';
+          if (!candidate.pants.includes(pantsLabel)) reason = `Belt not designed for ${pantsLabel}`;
+        }
+        if (canvas.shoes) {
+          const shoeBlack = isNeutral(canvas.shoes.colorFamily) && canvas.shoes.color.toLowerCase().includes('black');
+          const shoeWarm  = canvas.shoes.colorFamily === 'warm';
+          const beltWarm  = candidate.colorFamily === 'warm';
+          const beltBlack = isNeutral(candidate.colorFamily) && candidate.color.toLowerCase().includes('black');
+          if (shoeBlack && beltWarm) reason = 'Black shoes require a black belt';
+          if (shoeWarm  && beltBlack) reason = 'Brown/tan shoes require a warm-tone belt';
+        }
+        return { excluded: true, exclusionReason: reason };
+      }
+      const notes = [];
+      let totalScore = 0;
+      if (canvas.shoes) {
+        const td = Math.abs(toneVal(candidate.tone) - toneVal(canvas.shoes.tone));
+        const base = td === 0 ? 5 : td === 1 ? 4 : 2;
+        const leather = candidate.material === 'leather' ? 1 : 0;
+        totalScore += base + leather;
+        const toneNote = td === 0 ? 'same tone — perfect' : td === 1 ? 'adjacent tone — good' : 'contrasting tones';
+        notes.push(`vs Shoes: ${base + leather}/6 — ${toneNote}${leather ? ', leather +1' : ''}`);
+      }
+      if (canvas.pants && canvas.pants.beltLoop !== 'none') {
+        const loopKey = canvas.pants.beltLoop === 'thin' ? 'thin' : canvas.pants.beltLoop === 'narrow' ? 'narrow' : 'wide';
+        const pts = MATCH_CONFIG.beltVsPants[loopKey].scores[candidate.width];
+        if (pts != null) {
+          totalScore += pts;
+          notes.push(`vs Pants: ${pts}/3 — ${pts === 3 ? 'width matches loops' : 'belt narrower than loop width'}`);
+        }
+      }
+      return { excluded: false, stars: toStars(totalScore), score: totalScore, notes };
+    }
+
+    // ── Context fit ──
+    const ctxFit = (context && !(candidateCat === 'tops' && candidate.type === 'swatch'))
+      ? getContextFit(candidate, candidateCat, context) : undefined;
+
+    if (isExcluded(candidate, candidateCat, candidateSlot, canvas, context, ctxFit)) {
+      let reason = 'Excluded from this outfit';
+      if (ctxFit === null && contextLabel) reason = `Doesn't fit ${contextLabel} context`;
+      if (candidateSlot === 'top' && canvas.outer?.pattern !== 'solid' && candidate.pattern && candidate.pattern !== 'solid') {
+        reason = 'Pattern clash — outer garment is already patterned';
+      }
+      if (candidateSlot === 'outer' && canvas.pants?.fabric === 'utility') {
+        reason = 'Utility/cargo pants don\'t work with a blazer or jacket';
+      }
+      if (candidateSlot === 'pants' && canvas.outer && candidate.fabric === 'utility') {
+        reason = 'Utility/cargo pants don\'t work with a blazer or jacket';
+      }
+      return { excluded: true, exclusionReason: reason };
+    }
+
+    // ── Harmony pairs ──
+    const harmonyPairs = [];
+    const addPair = (a, b, label) => {
+      const score = harmonyScore(a, b);
+      const td = Math.abs(toneVal(a.tone) - toneVal(b.tone));
+      const toneNote = td === 2 ? 'strong contrast' : td === 1 ? 'good contrast' : 'same tone';
+      const neutral = isNeutral(a.colorFamily) || isNeutral(b.colorFamily);
+      const colNote = neutral ? 'neutral pairing' : a.colorFamily === b.colorFamily ? 'same colour family' : 'contrasting colours';
+      harmonyPairs.push({ label, score: Math.round(score * 10) / 10, note: `${toneNote}, ${colNote}` });
+    };
+
+    switch (candidateSlot) {
+      case 'top':
+        if (canvas.outer) addPair(candidate, canvas.outer, 'vs Outer');
+        else if (canvas.pants) addPair(candidate, canvas.pants, 'vs Pants');
+        break;
+      case 'outer':
+        if (canvas.top)   addPair(candidate, canvas.top,   'vs Shirt');
+        if (canvas.pants) addPair(candidate, canvas.pants, 'vs Pants');
+        break;
+      case 'pants':
+        if (canvas.outer) addPair(candidate, canvas.outer, 'vs Outer');
+        else if (canvas.top) addPair(candidate, canvas.top, 'vs Shirt');
+        if (canvas.shoes) addPair(candidate, canvas.shoes, 'vs Shoes');
+        break;
+      case 'shoes':
+        if (canvas.pants) addPair(candidate, canvas.pants, 'vs Pants');
+        if (canvas.outer) addPair(candidate, canvas.outer, 'vs Outer');
+        break;
+    }
+
+    const avgHarm = harmonyPairs.length > 0
+      ? harmonyPairs.reduce((s, p) => s + p.score, 0) / harmonyPairs.length : null;
+    const cf = (ctxFit !== null && ctxFit !== undefined) ? ctxFit : null;
+    let finalScore;
+    if (cf !== null && avgHarm !== null) finalScore = cf + avgHarm;
+    else if (cf !== null)               finalScore = cf * 2;
+    else if (avgHarm !== null)          finalScore = avgHarm * 2;
+    else return { stars: null, excluded: false };
+
+    const cfNote = cf !== null
+      ? (cf >= 4 ? `${cf}/5 — great fit` : cf >= 2 ? `${cf}/5 — acceptable` : `${cf}/5 — not ideal`) + ` for ${contextLabel}`
+      : null;
+
+    return {
+      excluded: false,
+      stars: toStars(finalScore),
+      score: Math.round(finalScore * 10) / 10,
+      contextFitNote: cfNote,
+      harmonyPairs
+    };
+  };
+
 })();
