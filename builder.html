@@ -1090,7 +1090,9 @@ function showAnalysis() {
       : `<img class="analysis-thumb" src="catalog/${cat}/${item.file || ''}" onerror="this.style.background='#f2f2f7'">`;
 
     let notesHtml = '';
-    if (explain && !explain.excluded) {
+    if (explain?.excluded && explain.exclusionReason) {
+      notesHtml = `<div class="analysis-notes"><div class="analysis-note" style="color:#ff3b30">✕ ${explain.exclusionReason}</div></div>`;
+    } else if (explain && !explain.excluded) {
       const lines = [];
       if (explain.contextFitNote) lines.push(explain.contextFitNote);
       if (explain.notes)          explain.notes.forEach(n => lines.push(n));
