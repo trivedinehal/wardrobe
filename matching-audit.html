@@ -995,7 +995,6 @@ function selectGapSlot(key) {
 
 function runGapAnalysis() {
   const el = document.getElementById('gapResults');
-  el.innerHTML = '<div class="outfits-empty">Running analysis…</div>';
 
   if (!gapFocusSlot) {
     el.innerHTML = '<div class="outfits-empty">Pick a category first.</div>';
@@ -1006,9 +1005,12 @@ function runGapAnalysis() {
   const CAT_FOR_SLOT = { outer: ['blazers','suits','jackets'], top: ['tops'], pants: ['pants'], belts: ['belts'], shoes: ['shoes'] };
   const slotLabel = GAP_SLOTS.find(s => s.key === gapFocusSlot).label;
 
+  // Build all combos, skipping ones where focus slot doesn't apply
   const combos = [];
   STYLE_ORDER.forEach(style => {
     (OUTFIT_TYPES[style] || []).forEach(t => {
+      if (gapFocusSlot === 'outer' && t.key === 'no-outer') return;
+      if (gapFocusSlot === 'pants' && t.key === 'suit') return;
       combos.push({ style, outfitType: t.key, label: `${STYLE_META[style].label} / ${t.label}` });
     });
   });
@@ -1016,18 +1018,18 @@ function runGapAnalysis() {
   el.innerHTML = `<div class="outfits-empty">Analysing ${slotLabel}…</div>`;
 
   setTimeout(() => {
-    const stats = {};
-    combos.forEach(({ style, outfitType, label }) => {
+    // For each combo, run RUNS outfits and track best result achieved
+    const results = combos.map(({ style, outfitType, label }) => {
       const isSuit    = outfitType === 'suit';
       const isNoOuter = outfitType === 'no-outer';
-      if (gapFocusSlot === 'outer' && isNoOuter) return;
-      if (gapFocusSlot === 'pants' && isSuit) return;
-
-      if (!stats[label]) stats[label] = { empty: 0, weak: 0, total: 0 };
       const outerCatsList = auditOuterCats(outfitType);
       const pantsFilter   = auditPantsFilter(outfitType);
+      const focusCats = gapFocusSlot === 'outer' ? outerCatsList : CAT_FOR_SLOT[gapFocusSlot];
+
+      let bestStars = -1; // -1 = never found anything
 
       for (let i = 0; i < RUNS; i++) {
+        // Build outfit without focus slot
         const canvas = { outer: null, top: null, pants: null, belts: null, shoes: null };
         const random = i > 0;
         ['outer', 'pants', 'top', 'shoes', 'belts'].forEach(slot => {
@@ -1040,59 +1042,41 @@ function runGapAnalysis() {
           if (p) canvas[slot] = { ...p.item, _cat: p.cat };
         });
 
-        stats[label].total++;
-        const focusCats = gapFocusSlot === 'outer' ? outerCatsList : CAT_FOR_SLOT[gapFocusSlot];
+        // Try focus slot last
         const result = auditBestForSlot(focusCats, canvas, style, outfitType, random, null, gapFocusSlot === 'pants' ? pantsFilter : null);
-
-        if (!result) {
-          stats[label].empty++;
-        } else {
+        if (result) {
           const r = window.scoreItem(result.item, result.cat, canvas, style, outfitType);
-          if (r && !r.excluded && r.stars !== null && r.stars < 3) stats[label].weak++;
+          const stars = (r && !r.excluded && r.stars !== null) ? r.stars : 0;
+          if (stars > bestStars) bestStars = stars;
         }
       }
+
+      // Status: ✅ found ⭐⭐⭐, ⚠️ only ⭐ or ⭐⭐, ❌ never found
+      const status = bestStars === -1 ? 'hard' : bestStars < 3 ? 'weak' : 'good';
+      const stars  = bestStars >= 0 ? '⭐'.repeat(bestStars) : '';
+      return { label, status, stars };
     });
 
-    const hardGaps = Object.entries(stats)
-      .filter(([, s]) => s.empty > s.total * 0.3)
-      .map(([label, s]) => ({ label, rate: s.empty / s.total }))
-      .sort((a, b) => b.rate - a.rate);
-    const weakAreas = Object.entries(stats)
-      .filter(([, s]) => s.empty === 0 && s.weak > s.total * 0.5)
-      .map(([label, s]) => ({ label, rate: s.weak / s.total }))
-      .sort((a, b) => b.rate - a.rate);
-
-    if (hardGaps.length === 0 && weakAreas.length === 0) {
-      el.innerHTML = `<div class="outfits-empty">No gaps found for ${slotLabel} — well covered!</div>`;
-      return;
-    }
-
-    let html = '';
-    hardGaps.forEach(({ label, rate }) => {
-      const pct = Math.round(rate * 100);
-      html += `<div class="gap-card gap-severity-hard">
+    // Render — one card per combo
+    const html = results.map(({ label, status, stars }) => {
+      const icon      = status === 'hard' ? '❌' : status === 'weak' ? '⚠️' : '✅';
+      const cls       = status === 'hard' ? 'gap-severity-hard' : status === 'weak' ? 'gap-severity-weak' : '';
+      const starsHtml = stars ? `<div style="font-size:13px;margin-top:2px">${stars}</div>` : '';
+      const subText   = status === 'hard' ? `No valid ${slotLabel.toLowerCase()} found`
+                      : status === 'weak' ? `Best found: ${stars || '0 ★'}`
+                      : `Well covered — best: ${stars}`;
+      return `<div class="gap-card ${cls}">
         <div class="gap-card-header">
-          <div class="gap-icon">❌</div>
+          <div class="gap-icon">${icon}</div>
           <div class="gap-info">
-            <div class="gap-title">No valid ${slotLabel.toLowerCase()} — ${pct}% of runs</div>
-            <div class="gap-sub">${label}</div>
+            <div class="gap-title">${label}</div>
+            <div class="gap-sub">${subText}</div>
           </div>
         </div>
       </div>`;
-    });
-    weakAreas.forEach(({ label, rate }) => {
-      const pct = Math.round(rate * 100);
-      html += `<div class="gap-card gap-severity-weak">
-        <div class="gap-card-header">
-          <div class="gap-icon">⚠️</div>
-          <div class="gap-info">
-            <div class="gap-title">Only ⭐ or ⭐⭐ — ${pct}% of runs</div>
-            <div class="gap-sub">${label}</div>
-          </div>
-        </div>
-      </div>`;
-    });
-    el.innerHTML = html;
+    }).join('');
+
+    el.innerHTML = html || `<div class="outfits-empty">No combos to analyse for ${slotLabel}.</div>`;
   }, 50);
 }
 
