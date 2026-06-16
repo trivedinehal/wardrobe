@@ -37,15 +37,7 @@ function outerCats() {
     return [selected['outer'].cat];
   }
 
-  // If pants are locked, check what type — suits conflict with jeans/chinos
-  if (lockedSlots['pants'] && selected['pants']) {
-    const pantsSub = selected['pants'].sub || '';
-    const pantsSubsub = selected['pants'].subsub || '';
-    const isCasualPants = pantsSub === 'Jeans' || pantsSub === 'Chinos' || pantsSubsub === 'Casual';
-    if (isCasualPants) return ['blazers', 'jackets'];
-  }
-
-  // Use outfit type as primary signal
+  // Use outfit type as primary signal — takes priority over locked pants
   const type = currentOutfitType;
   if (type === 'suit')    return ['suits'];
   if (type === 'no-outer') return [];
