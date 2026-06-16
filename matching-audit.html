@@ -120,6 +120,20 @@
     .browser-swatch-color { width: 100%; height: 64px; }
     .browser-swatch-name { padding: 3px 4px 5px; font-size: 9px; font-weight: 500; color: #3a3a3c; text-align: center; height: 22px; overflow: hidden; }
 
+    /* Gap Analysis */
+    .gap-section-title { font-size: 12px; font-weight: 700; color: #8e8e93; text-transform: uppercase; letter-spacing: 0.5px; margin: 14px 0 6px; }
+    .gap-card { background: #fff; border-radius: 12px; padding: 12px; margin-bottom: 8px; }
+    .gap-card-header { display: flex; align-items: center; gap: 10px; }
+    .gap-icon { font-size: 20px; flex: 0 0 32px; text-align: center; }
+    .gap-info { flex: 1; }
+    .gap-title { font-size: 15px; font-weight: 600; }
+    .gap-sub { font-size: 12px; color: #8e8e93; margin-top: 2px; }
+    .gap-detail { margin-top: 8px; padding-top: 8px; border-top: 1px solid #f2f2f7; font-size: 13px; color: #3a3a3c; line-height: 1.5; }
+    .gap-combos { margin-top: 6px; display: flex; flex-wrap: wrap; gap: 4px; }
+    .gap-combo-pill { padding: 3px 10px; background: #f2f2f7; border-radius: 20px; font-size: 11px; color: #3a3a3c; }
+    .gap-severity-hard { border-left: 3px solid #ff3b30; }
+    .gap-severity-weak { border-left: 3px solid #ff9500; }
+
     /* Modal */
     .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 200; display: none; align-items: flex-end; }
     .modal-overlay.open { display: flex; }
@@ -148,6 +162,7 @@
 <div class="tab-toggle">
   <button class="tab-btn active" id="tabItemScores" onclick="switchTab('item-scores')">Item Scores</button>
   <button class="tab-btn" id="tabOutfits" onclick="switchTab('outfits')">Complete Outfits</button>
+  <button class="tab-btn" id="tabGaps" onclick="switchTab('gaps')">Gap Analysis</button>
 </div>
 
 <div class="section">
@@ -182,6 +197,15 @@
 </div>
 
 <div class="items-list" id="itemsList"></div>
+
+<div id="gapsView" style="display:none">
+  <div style="margin: 10px 12px 0;">
+    <button class="generate-btn" onclick="runGapAnalysis()">🔍 Run Gap Analysis</button>
+  </div>
+  <div id="gapResults" style="margin: 10px 12px 0;">
+    <div class="outfits-empty">Hit Run to analyse your wardrobe for gaps.</div>
+  </div>
+</div>
 
 <div id="outfitsView" style="display:none">
   <div style="margin: 10px 12px 0;">
@@ -785,11 +809,20 @@ function renderItems() {
 function switchTab(tab) {
   state.activeTab = tab;
   document.getElementById('tabItemScores').className = 'tab-btn' + (tab === 'item-scores' ? ' active' : '');
-  document.getElementById('tabOutfits').className    = 'tab-btn' + (tab === 'outfits'      ? ' active' : '');
+  document.getElementById('tabOutfits').className    = 'tab-btn' + (tab === 'outfits'     ? ' active' : '');
+  document.getElementById('tabGaps').className       = 'tab-btn' + (tab === 'gaps'        ? ' active' : '');
 
   const isItemScores = tab === 'item-scores';
+  const isGaps       = tab === 'gaps';
+
   document.getElementById('itemsList').style.display    = isItemScores ? '' : 'none';
-  document.getElementById('outfitsView').style.display  = isItemScores ? 'none' : '';
+  document.getElementById('outfitsView').style.display  = tab === 'outfits' ? '' : 'none';
+  document.getElementById('gapsView').style.display     = isGaps ? '' : 'none';
+
+  // style/outfit type selectors + browser visible on outfits + item-scores, hidden on gaps
+  document.querySelectorAll('.section, #browserSection').forEach(el => {
+    el.style.display = isGaps ? 'none' : '';
+  });
 
   // canvas + cat filter only relevant for item scores
   document.querySelectorAll('.canvas-section, .cat-section').forEach(el => {
@@ -933,6 +966,125 @@ function generateOutfits() {
   }).join('');
 }
 
+// ── Gap Analysis ───────────────────────────────────────────────────────────────
+function runGapAnalysis() {
+  const el = document.getElementById('gapResults');
+  el.innerHTML = '<div class="outfits-empty">Running analysis…</div>';
+
+  const RUNS = 10;
+  const SLOT_LABELS_GA = { outer: 'Outer', top: 'Shirt', pants: 'Pants', belts: 'Belt', shoes: 'Shoes' };
+  const CAT_FOR_SLOT   = { outer: ['blazers','suits','jackets'], top: ['tops'], pants: ['pants'], belts: ['belts'], shoes: ['shoes'] };
+
+  const combos = [];
+  STYLE_ORDER.forEach(style => {
+    (OUTFIT_TYPES[style] || []).forEach(t => {
+      combos.push({ style, outfitType: t.key, label: `${STYLE_META[style].label} / ${t.label}` });
+    });
+  });
+
+  const slots = ['outer', 'top', 'pants', 'belts', 'shoes'];
+  const report = {};
+  let slotIdx = 0;
+
+  function analyseNextSlot() {
+    if (slotIdx >= slots.length) { renderGapResults(); return; }
+    const focusSlot = slots[slotIdx++];
+    el.innerHTML = `<div class="outfits-empty">Analysing ${SLOT_LABELS_GA[focusSlot]}… (${slotIdx}/${slots.length})</div>`;
+
+    setTimeout(() => {
+      const stats = {};
+      combos.forEach(({ style, outfitType, label }) => {
+        const isSuit    = outfitType === 'suit';
+        const isNoOuter = outfitType === 'no-outer';
+        if (focusSlot === 'outer' && isNoOuter) return;
+        if (focusSlot === 'pants' && isSuit) return;
+
+        if (!stats[label]) stats[label] = { empty: 0, weak: 0, total: 0 };
+        const outerCatsList = auditOuterCats(outfitType);
+        const pantsFilter   = auditPantsFilter(outfitType);
+
+        for (let i = 0; i < RUNS; i++) {
+          const canvas = { outer: null, top: null, pants: null, belts: null, shoes: null };
+          const random = i > 0;
+          ['outer', 'pants', 'top', 'shoes', 'belts'].forEach(slot => {
+            if (slot === focusSlot) return;
+            if (slot === 'pants' && isSuit) return;
+            if (slot === 'outer' && isNoOuter) return;
+            const cats = slot === 'outer' ? outerCatsList : CAT_FOR_SLOT[slot];
+            if (!cats || cats.length === 0) return;
+            const p = auditBestForSlot(cats, canvas, style, outfitType, random, null, slot === 'pants' ? pantsFilter : null);
+            if (p) canvas[slot] = { ...p.item, _cat: p.cat };
+          });
+
+          stats[label].total++;
+          const focusCats = focusSlot === 'outer' ? outerCatsList : CAT_FOR_SLOT[focusSlot];
+          const result = auditBestForSlot(focusCats, canvas, style, outfitType, random, null, focusSlot === 'pants' ? pantsFilter : null);
+
+          if (!result) {
+            stats[label].empty++;
+          } else {
+            const r = window.scoreItem(result.item, result.cat, canvas, style, outfitType);
+            if (r && !r.excluded && r.stars !== null && r.stars < 3) stats[label].weak++;
+          }
+        }
+      });
+
+      const hardGaps = Object.entries(stats)
+        .filter(([, s]) => s.empty > s.total * 0.3)
+        .map(([label, s]) => ({ label, rate: s.empty / s.total }))
+        .sort((a, b) => b.rate - a.rate);
+      const weakAreas = Object.entries(stats)
+        .filter(([, s]) => s.empty === 0 && s.weak > s.total * 0.5)
+        .map(([label, s]) => ({ label, rate: s.weak / s.total }))
+        .sort((a, b) => b.rate - a.rate);
+
+      if (hardGaps.length > 0 || weakAreas.length > 0) report[focusSlot] = { hardGaps, weakAreas };
+      analyseNextSlot();
+    }, 20);
+  }
+
+  function renderGapResults() {
+    if (Object.keys(report).length === 0) {
+      el.innerHTML = '<div class="outfits-empty">No significant gaps found — your wardrobe looks well covered!</div>';
+      return;
+    }
+    let html = '';
+    slots.forEach(slot => {
+      if (!report[slot]) return;
+      const { hardGaps, weakAreas } = report[slot];
+      const slotLabel = SLOT_LABELS_GA[slot];
+      html += `<div class="gap-section-title">${slotLabel}</div>`;
+      hardGaps.forEach(({ label, rate }) => {
+        const pct = Math.round(rate * 100);
+        html += `<div class="gap-card gap-severity-hard">
+          <div class="gap-card-header">
+            <div class="gap-icon">❌</div>
+            <div class="gap-info">
+              <div class="gap-title">No valid ${slotLabel.toLowerCase()} — ${pct}% of runs</div>
+              <div class="gap-sub">${label}</div>
+            </div>
+          </div>
+        </div>`;
+      });
+      weakAreas.forEach(({ label, rate }) => {
+        const pct = Math.round(rate * 100);
+        html += `<div class="gap-card gap-severity-weak">
+          <div class="gap-card-header">
+            <div class="gap-icon">⚠️</div>
+            <div class="gap-info">
+              <div class="gap-title">Only ⭐ or ⭐⭐ — ${pct}% of runs</div>
+              <div class="gap-sub">${label}</div>
+            </div>
+          </div>
+        </div>`;
+      });
+    });
+    el.innerHTML = html;
+  }
+
+  analyseNextSlot();
+}
+
 function addToCanvas(slot, cat, itemName) {
   const item = (catalog[cat] || []).find(i => i.name === itemName);
   if (!item) return;
@@ -956,6 +1108,7 @@ window.overlayClick       = overlayClick;
 window.addToCanvas        = addToCanvas;
 window.switchTab          = switchTab;
 window.generateOutfits    = generateOutfits;
+window.runGapAnalysis     = runGapAnalysis;
 window.setBrowserCat      = setBrowserCat;
 window.setBrowserSub      = setBrowserSub;
 window.setBrowserSubSub   = setBrowserSubSub;
