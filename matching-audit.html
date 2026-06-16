@@ -199,11 +199,15 @@
 <div class="items-list" id="itemsList"></div>
 
 <div id="gapsView" style="display:none">
+  <div class="section" style="margin-top:10px">
+    <div class="section-title">Category</div>
+    <div class="pills" id="gapCatPills"></div>
+  </div>
   <div style="margin: 10px 12px 0;">
     <button class="generate-btn" onclick="runGapAnalysis()">🔍 Run Gap Analysis</button>
   </div>
   <div id="gapResults" style="margin: 10px 12px 0;">
-    <div class="outfits-empty">Hit Run to analyse your wardrobe for gaps.</div>
+    <div class="outfits-empty">Pick a category and hit Run.</div>
   </div>
 </div>
 
@@ -259,6 +263,7 @@ function init() {
   renderBrowser();
   renderCanvasSlots();
   renderItems();
+  renderGapCatPills();
 }
 
 // ── Style ──────────────────────────────────────────────────────────────────────
@@ -967,13 +972,39 @@ function generateOutfits() {
 }
 
 // ── Gap Analysis ───────────────────────────────────────────────────────────────
+const GAP_SLOTS = [
+  { key: 'outer', label: 'Outer' },
+  { key: 'top',   label: 'Shirt' },
+  { key: 'pants', label: 'Pants' },
+  { key: 'belts', label: 'Belt'  },
+  { key: 'shoes', label: 'Shoes' },
+];
+let gapFocusSlot = null;
+
+function renderGapCatPills() {
+  document.getElementById('gapCatPills').innerHTML = GAP_SLOTS.map(s =>
+    `<button class="pill ${gapFocusSlot === s.key ? 'active' : ''}" onclick="selectGapSlot('${s.key}')">${s.label}</button>`
+  ).join('');
+}
+
+function selectGapSlot(key) {
+  gapFocusSlot = key;
+  renderGapCatPills();
+  document.getElementById('gapResults').innerHTML = '<div class="outfits-empty">Hit Run to analyse.</div>';
+}
+
 function runGapAnalysis() {
   const el = document.getElementById('gapResults');
   el.innerHTML = '<div class="outfits-empty">Running analysis…</div>';
 
+  if (!gapFocusSlot) {
+    el.innerHTML = '<div class="outfits-empty">Pick a category first.</div>';
+    return;
+  }
+
   const RUNS = 10;
-  const SLOT_LABELS_GA = { outer: 'Outer', top: 'Shirt', pants: 'Pants', belts: 'Belt', shoes: 'Shoes' };
-  const CAT_FOR_SLOT   = { outer: ['blazers','suits','jackets'], top: ['tops'], pants: ['pants'], belts: ['belts'], shoes: ['shoes'] };
+  const CAT_FOR_SLOT = { outer: ['blazers','suits','jackets'], top: ['tops'], pants: ['pants'], belts: ['belts'], shoes: ['shoes'] };
+  const slotLabel = GAP_SLOTS.find(s => s.key === gapFocusSlot).label;
 
   const combos = [];
   STYLE_ORDER.forEach(style => {
@@ -982,107 +1013,87 @@ function runGapAnalysis() {
     });
   });
 
-  const slots = ['outer', 'top', 'pants', 'belts', 'shoes'];
-  const report = {};
-  let slotIdx = 0;
+  el.innerHTML = `<div class="outfits-empty">Analysing ${slotLabel}…</div>`;
 
-  function analyseNextSlot() {
-    if (slotIdx >= slots.length) { renderGapResults(); return; }
-    const focusSlot = slots[slotIdx++];
-    el.innerHTML = `<div class="outfits-empty">Analysing ${SLOT_LABELS_GA[focusSlot]}… (${slotIdx}/${slots.length})</div>`;
+  setTimeout(() => {
+    const stats = {};
+    combos.forEach(({ style, outfitType, label }) => {
+      const isSuit    = outfitType === 'suit';
+      const isNoOuter = outfitType === 'no-outer';
+      if (gapFocusSlot === 'outer' && isNoOuter) return;
+      if (gapFocusSlot === 'pants' && isSuit) return;
 
-    setTimeout(() => {
-      const stats = {};
-      combos.forEach(({ style, outfitType, label }) => {
-        const isSuit    = outfitType === 'suit';
-        const isNoOuter = outfitType === 'no-outer';
-        if (focusSlot === 'outer' && isNoOuter) return;
-        if (focusSlot === 'pants' && isSuit) return;
+      if (!stats[label]) stats[label] = { empty: 0, weak: 0, total: 0 };
+      const outerCatsList = auditOuterCats(outfitType);
+      const pantsFilter   = auditPantsFilter(outfitType);
 
-        if (!stats[label]) stats[label] = { empty: 0, weak: 0, total: 0 };
-        const outerCatsList = auditOuterCats(outfitType);
-        const pantsFilter   = auditPantsFilter(outfitType);
+      for (let i = 0; i < RUNS; i++) {
+        const canvas = { outer: null, top: null, pants: null, belts: null, shoes: null };
+        const random = i > 0;
+        ['outer', 'pants', 'top', 'shoes', 'belts'].forEach(slot => {
+          if (slot === gapFocusSlot) return;
+          if (slot === 'pants' && isSuit) return;
+          if (slot === 'outer' && isNoOuter) return;
+          const cats = slot === 'outer' ? outerCatsList : CAT_FOR_SLOT[slot];
+          if (!cats || cats.length === 0) return;
+          const p = auditBestForSlot(cats, canvas, style, outfitType, random, null, slot === 'pants' ? pantsFilter : null);
+          if (p) canvas[slot] = { ...p.item, _cat: p.cat };
+        });
 
-        for (let i = 0; i < RUNS; i++) {
-          const canvas = { outer: null, top: null, pants: null, belts: null, shoes: null };
-          const random = i > 0;
-          ['outer', 'pants', 'top', 'shoes', 'belts'].forEach(slot => {
-            if (slot === focusSlot) return;
-            if (slot === 'pants' && isSuit) return;
-            if (slot === 'outer' && isNoOuter) return;
-            const cats = slot === 'outer' ? outerCatsList : CAT_FOR_SLOT[slot];
-            if (!cats || cats.length === 0) return;
-            const p = auditBestForSlot(cats, canvas, style, outfitType, random, null, slot === 'pants' ? pantsFilter : null);
-            if (p) canvas[slot] = { ...p.item, _cat: p.cat };
-          });
+        stats[label].total++;
+        const focusCats = gapFocusSlot === 'outer' ? outerCatsList : CAT_FOR_SLOT[gapFocusSlot];
+        const result = auditBestForSlot(focusCats, canvas, style, outfitType, random, null, gapFocusSlot === 'pants' ? pantsFilter : null);
 
-          stats[label].total++;
-          const focusCats = focusSlot === 'outer' ? outerCatsList : CAT_FOR_SLOT[focusSlot];
-          const result = auditBestForSlot(focusCats, canvas, style, outfitType, random, null, focusSlot === 'pants' ? pantsFilter : null);
-
-          if (!result) {
-            stats[label].empty++;
-          } else {
-            const r = window.scoreItem(result.item, result.cat, canvas, style, outfitType);
-            if (r && !r.excluded && r.stars !== null && r.stars < 3) stats[label].weak++;
-          }
+        if (!result) {
+          stats[label].empty++;
+        } else {
+          const r = window.scoreItem(result.item, result.cat, canvas, style, outfitType);
+          if (r && !r.excluded && r.stars !== null && r.stars < 3) stats[label].weak++;
         }
-      });
+      }
+    });
 
-      const hardGaps = Object.entries(stats)
-        .filter(([, s]) => s.empty > s.total * 0.3)
-        .map(([label, s]) => ({ label, rate: s.empty / s.total }))
-        .sort((a, b) => b.rate - a.rate);
-      const weakAreas = Object.entries(stats)
-        .filter(([, s]) => s.empty === 0 && s.weak > s.total * 0.5)
-        .map(([label, s]) => ({ label, rate: s.weak / s.total }))
-        .sort((a, b) => b.rate - a.rate);
+    const hardGaps = Object.entries(stats)
+      .filter(([, s]) => s.empty > s.total * 0.3)
+      .map(([label, s]) => ({ label, rate: s.empty / s.total }))
+      .sort((a, b) => b.rate - a.rate);
+    const weakAreas = Object.entries(stats)
+      .filter(([, s]) => s.empty === 0 && s.weak > s.total * 0.5)
+      .map(([label, s]) => ({ label, rate: s.weak / s.total }))
+      .sort((a, b) => b.rate - a.rate);
 
-      if (hardGaps.length > 0 || weakAreas.length > 0) report[focusSlot] = { hardGaps, weakAreas };
-      analyseNextSlot();
-    }, 20);
-  }
-
-  function renderGapResults() {
-    if (Object.keys(report).length === 0) {
-      el.innerHTML = '<div class="outfits-empty">No significant gaps found — your wardrobe looks well covered!</div>';
+    if (hardGaps.length === 0 && weakAreas.length === 0) {
+      el.innerHTML = `<div class="outfits-empty">No gaps found for ${slotLabel} — well covered!</div>`;
       return;
     }
+
     let html = '';
-    slots.forEach(slot => {
-      if (!report[slot]) return;
-      const { hardGaps, weakAreas } = report[slot];
-      const slotLabel = SLOT_LABELS_GA[slot];
-      html += `<div class="gap-section-title">${slotLabel}</div>`;
-      hardGaps.forEach(({ label, rate }) => {
-        const pct = Math.round(rate * 100);
-        html += `<div class="gap-card gap-severity-hard">
-          <div class="gap-card-header">
-            <div class="gap-icon">❌</div>
-            <div class="gap-info">
-              <div class="gap-title">No valid ${slotLabel.toLowerCase()} — ${pct}% of runs</div>
-              <div class="gap-sub">${label}</div>
-            </div>
+    hardGaps.forEach(({ label, rate }) => {
+      const pct = Math.round(rate * 100);
+      html += `<div class="gap-card gap-severity-hard">
+        <div class="gap-card-header">
+          <div class="gap-icon">❌</div>
+          <div class="gap-info">
+            <div class="gap-title">No valid ${slotLabel.toLowerCase()} — ${pct}% of runs</div>
+            <div class="gap-sub">${label}</div>
           </div>
-        </div>`;
-      });
-      weakAreas.forEach(({ label, rate }) => {
-        const pct = Math.round(rate * 100);
-        html += `<div class="gap-card gap-severity-weak">
-          <div class="gap-card-header">
-            <div class="gap-icon">⚠️</div>
-            <div class="gap-info">
-              <div class="gap-title">Only ⭐ or ⭐⭐ — ${pct}% of runs</div>
-              <div class="gap-sub">${label}</div>
-            </div>
+        </div>
+      </div>`;
+    });
+    weakAreas.forEach(({ label, rate }) => {
+      const pct = Math.round(rate * 100);
+      html += `<div class="gap-card gap-severity-weak">
+        <div class="gap-card-header">
+          <div class="gap-icon">⚠️</div>
+          <div class="gap-info">
+            <div class="gap-title">Only ⭐ or ⭐⭐ — ${pct}% of runs</div>
+            <div class="gap-sub">${label}</div>
           </div>
-        </div>`;
-      });
+        </div>
+      </div>`;
     });
     el.innerHTML = html;
-  }
-
-  analyseNextSlot();
+  }, 50);
 }
 
 function addToCanvas(slot, cat, itemName) {
@@ -1109,6 +1120,7 @@ window.addToCanvas        = addToCanvas;
 window.switchTab          = switchTab;
 window.generateOutfits    = generateOutfits;
 window.runGapAnalysis     = runGapAnalysis;
+window.selectGapSlot      = selectGapSlot;
 window.setBrowserCat      = setBrowserCat;
 window.setBrowserSub      = setBrowserSub;
 window.setBrowserSubSub   = setBrowserSubSub;
