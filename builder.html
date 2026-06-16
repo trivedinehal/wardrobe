@@ -478,13 +478,10 @@
 </head>
 <body>
 
-<!-- HEADER — Scenario + Style -->
+<!-- HEADER — Style + Outfit Type -->
 <div class="header">
-  <div class="pill-row" id="whereRow">
-    <a class="header-home pill-label" href="wardrobe.html">⌂</a>
-  </div>
   <div class="pill-row" id="styleRow">
-    <span class="pill-spacer"></span>
+    <a class="header-home pill-label" href="wardrobe.html">⌂</a>
   </div>
   <div class="pill-row">
     <span class="pill-spacer"></span>
@@ -578,93 +575,8 @@ function matchBadgeHTML(result) {
 let currentCat = 'tops';
 let currentSub = 'All';
 let currentSubSub = 'All';
-let currentScenario = 'office';
 let currentStyle = 'formal';
 let currentOutfitType = null;
-
-// Hint messages per scenario
-const HINTS = {
-  office: {
-    none:  "For <strong>Office</strong> — start by picking a blazer or suit",
-    outer: "Great start! Now pick a <strong>shirt</strong> to go with it",
-    top:   "Looking sharp! Now choose your <strong>pants</strong>",
-    pants: "Almost there — add a <strong>belt and shoes</strong> to finish",
-    done:  "Outfit complete! Looking office-ready 💼",
-  },
-  dinner: {
-    none:  "For <strong>Dinner</strong> — start with a blazer or smart top",
-    outer: "Nice choice! Now pick a <strong>shirt</strong>",
-    top:   "Now choose your <strong>pants</strong>",
-    pants: "Finish with <strong>shoes</strong> and a <strong>belt</strong>",
-    done:  "Dinner-ready! 🍽️",
-  },
-  event: {
-    none:  "For an <strong>Event</strong> — start with a suit or formal blazer",
-    outer: "Excellent! Now pick a <strong>formal shirt</strong>",
-    top:   "Choose your <strong>trousers or smart pants</strong>",
-    pants: "Complete with a <strong>belt and dress shoes</strong>",
-    done:  "Very sharp — event ready! 👔",
-  },
-  weekend: {
-    none:  "For the <strong>Weekend</strong> — keep it relaxed, start anywhere",
-    outer: "Laid back! Now pick a <strong>shirt or t-shirt</strong>",
-    top:   "Go for <strong>jeans or casual pants</strong>",
-    pants: "Finish with your favourite <strong>sneakers</strong>",
-    done:  "Perfect weekend look! 😎",
-  },
-  travel: {
-    none:  "For <strong>Travel</strong> — comfort first, start with pants",
-    outer: "Good call! Now pick a <strong>comfortable top</strong>",
-    top:   "Now choose <strong>easy pants or jeans</strong>",
-    pants: "Finish with <strong>comfortable shoes</strong>",
-    done:  "Travel-ready! ✈️",
-  },
-};
-
-function updateHintStrip() {
-  const hintStrip = document.getElementById('hintStrip');
-  const hintText  = document.getElementById('hintText');
-  const hints = HINTS[currentScenario];
-  if (!hints) return;
-
-  const hasOuter = !!selected['outer'];
-  const hasTop   = !!selected['top'];
-  const hasPants = !!selected['pants'];
-  const hasShoes = !!selected['shoes'];
-  const hasBelt  = !!selected['belts'];
-  const totalSelected = Object.keys(selected).length;
-
-  let key = 'none';
-  if (totalSelected === 0) key = 'none';
-  else if (!hasOuter && !hasTop) key = 'none';
-  else if (hasOuter && !hasTop) key = 'outer';
-  else if (hasTop && !hasPants) key = 'top';
-  else if (hasPants && (!hasShoes || !hasBelt)) key = 'pants';
-  else key = 'done';
-
-  hintText.innerHTML = hints[key];
-  hintStrip.classList.add('visible');
-}
-
-
-function setScenario(el, scenario) {
-  document.querySelectorAll('.scenario-pill').forEach(p => p.classList.remove('active'));
-  el.classList.add('active');
-  currentScenario = scenario;
-  renderCarousel(currentCat, currentSub, currentSubSub);
-}
-
-function buildWhereRow() {
-  const row = document.getElementById('whereRow');
-  WHERE_ORDER.forEach((key, i) => {
-    const meta = WHERE_META[key];
-    const btn = document.createElement('button');
-    btn.className = 'scenario-pill' + (key === currentScenario ? ' active' : '');
-    btn.textContent = meta.label;
-    btn.onclick = () => setScenario(btn, key);
-    row.appendChild(btn);
-  });
-}
 
 function buildStyleRow() {
   const row = document.getElementById('styleRow');
@@ -1050,7 +962,6 @@ function updateSuitMode() {
 // Init
 renderSubTabs('tops');
 renderSubSubTabs('tops', 'All');
-buildWhereRow();
 buildStyleRow();
 renderCarousel('tops', 'All', 'All');
 renderOutfitTypes(currentStyle);
