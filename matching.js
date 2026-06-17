@@ -258,6 +258,15 @@ function getTopType(item) {
     let score = 0;
     let pairs = 0;
 
+    // In suit mode pants slot is hidden — inject virtual pants from the suit so belt
+    // scores against both shoes and pants and can reach full star range
+    const pants = canvas.pants || (canvas.outer?.cat === 'suits' ? {
+      beltLoop:    'narrow',
+      colorFamily: canvas.outer.colorFamily,
+      tone:        canvas.outer.tone,
+      color:       canvas.outer.color,
+    } : null);
+
     if (canvas.shoes) {
       const td = Math.abs(toneVal(belt.tone) - toneVal(canvas.shoes.tone));
       score += td === 0 ? 5 : td === 1 ? 4 : 2;
@@ -265,8 +274,8 @@ function getTopType(item) {
       pairs++;
     }
 
-    if (canvas.pants && canvas.pants.beltLoop !== 'none') {
-      const loopKey = canvas.pants.beltLoop === 'thin' ? 'thin' : canvas.pants.beltLoop === 'narrow' ? 'narrow' : 'wide';
+    if (pants && pants.beltLoop !== 'none') {
+      const loopKey = pants.beltLoop === 'thin' ? 'thin' : pants.beltLoop === 'narrow' ? 'narrow' : 'wide';
       const pts = MATCH_CONFIG.beltVsPants[loopKey].scores[belt.width];
       if (pts !== null && pts !== undefined) {
         score += pts;
