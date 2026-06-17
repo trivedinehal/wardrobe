@@ -223,6 +223,38 @@
     color: #f5a623;
   }
 
+  /* Top type hint panel inside shirt slot */
+  #top-hint-panel {
+    position: absolute;
+    bottom: 22px; left: 4px;
+    width: 50%;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    pointer-events: none;
+  }
+  .top-hint-row {
+    background: rgba(0,0,0,0.52);
+    border-radius: 6px;
+    padding: 3px 5px;
+    color: #fff;
+    font-size: 8px;
+    line-height: 1.3;
+  }
+  .top-hint-type {
+    font-weight: 600;
+    letter-spacing: 0.2px;
+  }
+  .top-hint-score {
+    color: #f5a623;
+    font-weight: 500;
+  }
+  .top-hint-tuck {
+    color: rgba(255,255,255,0.75);
+    margin-top: 1px;
+  }
+
   /* Grid placement — BLAZER mode */
   #slot-outer  { grid-column: 1; grid-row: 1 / 3; }
   #slot-top    { grid-column: 2; grid-row: 1 / 3; }
@@ -578,7 +610,10 @@
 <div class="preview-area">
   <div class="outfit-canvas" id="outfitCanvas">
     <div class="outfit-slot" id="slot-outer"><div class="empty-label" onclick="navigateToCategory(outerCats()[0] || 'blazers')" style="cursor:pointer">Blazer</div></div>
-    <div class="outfit-slot" id="slot-top"><div class="empty-label" onclick="navigateToCategory('tops')" style="cursor:pointer">Shirt</div></div>
+    <div class="outfit-slot" id="slot-top">
+      <div class="empty-label" onclick="navigateToCategory('tops')" style="cursor:pointer">Shirt</div>
+      <div id="top-hint-panel"></div>
+    </div>
     <div class="outfit-slot" id="slot-pants"><div class="empty-label" onclick="navigateToCategory('pants')" style="cursor:pointer">Pants</div></div>
     <div class="outfit-slot" id="slot-belts"><div class="empty-label" onclick="navigateToCategory('belts')" style="cursor:pointer">Belt</div></div>
     <div class="outfit-slot" id="slot-shoes"><div class="empty-label" onclick="navigateToCategory('shoes')" style="cursor:pointer">Shoes</div></div>
@@ -645,6 +680,41 @@ function refreshAllSlotStars() {
     if (item.swatch) fillSwatchSlot(slot, item);
     else fillSlot(slot, item.cat, item);
   });
+  renderTopHint();
+}
+
+// Render top type + tuck hint into the shirt slot
+function renderTopHint() {
+  const slot = document.getElementById('slot-top');
+  if (!slot) return;
+
+  // Re-find or re-create the panel (fillSwatchSlot wipes slot innerHTML)
+  let panel = document.getElementById('top-hint-panel');
+  if (!panel) {
+    panel = document.createElement('div');
+    panel.id = 'top-hint-panel';
+    slot.appendChild(panel);
+  }
+
+  const hints = typeof getTopTypeHint === 'function' ? getTopTypeHint() : null;
+  if (!hints || hints.length === 0) { panel.innerHTML = ''; return; }
+
+  panel.innerHTML = hints.map(({ label, score }) => {
+    const key = label === 'Dress shirt' ? 'dressShirt'
+              : label === 'Shirt'       ? 'shirt'
+              : label === 'Polo'        ? 'polo'
+              : 'tshirt';
+
+    const tucks = typeof getTuckHint === 'function' ? getTuckHint(key) : null;
+    const tuckStr = tucks && tucks.length
+      ? tucks.map(t => `${t.label} <span class="top-hint-score">${t.score}</span>`).join(' · ')
+      : '';
+
+    return `<div class="top-hint-row">
+      <span class="top-hint-type">${label}</span> <span class="top-hint-score">${score}</span>
+      ${tuckStr ? `<div class="top-hint-tuck">${tuckStr}</div>` : ''}
+    </div>`;
+  }).join('');
 }
 
 // Convert match result to badge HTML
@@ -682,6 +752,7 @@ function setStyle(el, style) {
   currentStyle = style;
   renderOutfitTypes(style);
   renderCarousel(currentCat, currentSub, currentSubSub);
+  renderTopHint();
 }
 
 function renderOutfitTypes(style) {
@@ -703,6 +774,7 @@ function setOutfitType(el, key) {
   clearConflictingSlots(key);
   updateSlotLabels(key);
   updateCanvasMode(key);
+  renderTopHint();
 }
 
 function clearConflictingSlots(key) {
@@ -1051,6 +1123,7 @@ renderSubSubTabs('tops', 'All');
 buildStyleRow();
 renderCarousel('tops', 'All', 'All');
 renderOutfitTypes(currentStyle);
+renderTopHint();
 
 // ── Analysis panel ────────────────────────────────────────────────────────────
 

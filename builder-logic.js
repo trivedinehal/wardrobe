@@ -310,3 +310,178 @@ function clearOutfit() {
   updateSuitMode();
   renderCarousel(currentCat, currentSub, currentSubSub);
 }
+
+// ── Top type hint ─────────────────────────────────────────────────────────────
+
+// Returns scored top type suggestions based on style, outer, and pants on canvas.
+// Each entry: { label, score } — only types that work are included, ordered by score desc.
+function getTopTypeHint() {
+  const style = currentStyle;
+  const outerItem = selected['outer'];
+  const pantsItem = selected['pants'];
+
+  // Derive outer type: suit / blazer / jacket / none
+  const outerType = !outerItem ? 'none'
+    : outerItem.cat === 'suits'   ? 'suit'
+    : outerItem.cat === 'blazers' ? 'blazer'
+    : outerItem.cat === 'jackets' ? 'jacket'
+    : 'none';
+
+  // Derive pants type: formal-trousers / chinos / jeans / linen / utility
+  const pantsType = !pantsItem ? null
+    : pantsItem.sub === 'Dress Trousers'  ? 'formal-trousers'
+    : pantsItem.sub === 'Chinos'          ? 'chinos'
+    : pantsItem.sub === 'Jeans'           ? 'jeans'
+    : pantsItem.fabric === 'linen'        ? 'linen'
+    : pantsItem.fabric === 'utility'      ? 'utility'
+    : null;
+
+  // Scoring table: [style, outerType, pantsType] → { dressShirt, shirt, polo, tshirt }
+  // null pantsType (no pants on canvas) returns null — no hint yet
+  if (!pantsType && outerType === 'none') return null;
+
+  const scores = lookupTopScores(style, outerType, pantsType);
+  if (!scores) return null;
+
+  const result = [];
+  if (scores.dressShirt) result.push({ label: 'Dress shirt', score: scores.dressShirt });
+  if (scores.shirt)      result.push({ label: 'Shirt',       score: scores.shirt });
+  if (scores.polo)       result.push({ label: 'Polo',        score: scores.polo });
+  if (scores.tshirt)     result.push({ label: 'T-Shirt',     score: scores.tshirt });
+
+  return result.sort((a, b) => b.score - a.score);
+}
+
+function lookupTopScores(style, outer, pants) {
+  // Returns { dressShirt, shirt, polo, tshirt } — omit a key to exclude that type
+  // Scores out of 10. Only include types that genuinely work.
+
+  if (style === 'formal') {
+    if (outer === 'suit')   return { dressShirt: 10 };
+    if (outer === 'blazer') return { dressShirt: 9, shirt: 5 };
+    if (outer === 'none')   return { dressShirt: 9, shirt: 5 };
+  }
+
+  if (style === 'semi-formal') {
+    if (outer === 'blazer' && pants === 'formal-trousers') return { dressShirt: 8, shirt: 6 };
+    if (outer === 'blazer' && pants === 'chinos')          return { dressShirt: 5, shirt: 9, polo: 4 };
+    if (outer === 'jacket' && pants === 'formal-trousers') return { dressShirt: 6, shirt: 8 };
+    if (outer === 'none'   && pants === 'formal-trousers') return { dressShirt: 8, shirt: 6 };
+    if (outer === 'none'   && pants === 'chinos')          return { dressShirt: 4, shirt: 9, polo: 5 };
+  }
+
+  if (style === 'smart-casual') {
+    if (outer === 'blazer' && pants === 'chinos') return { shirt: 9, polo: 7 };
+    if (outer === 'blazer' && pants === 'jeans')  return { shirt: 8, polo: 9 };
+    if (outer === 'jacket' && pants === 'chinos') return { shirt: 8, polo: 7, tshirt: 4 };
+    if (outer === 'jacket' && pants === 'jeans')  return { shirt: 6, polo: 9, tshirt: 7 };
+    if (outer === 'none'   && pants === 'chinos') return { shirt: 9, polo: 7, tshirt: 3 };
+    if (outer === 'none'   && pants === 'jeans')  return { shirt: 6, polo: 8, tshirt: 7 };
+  }
+
+  if (style === 'casual') {
+    if (outer === 'jacket' && pants === 'jeans')   return { shirt: 5, polo: 8, tshirt: 9 };
+    if (outer === 'none'   && pants === 'jeans')   return { shirt: 4, polo: 7, tshirt: 10 };
+    if (outer === 'none'   && pants === 'linen')   return { shirt: 3, polo: 6, tshirt: 10 };
+    if (outer === 'none'   && pants === 'utility') return { polo: 5, tshirt: 10 };
+  }
+
+  return null;
+}
+
+// ── Tuck style hint ───────────────────────────────────────────────────────────
+
+// Returns tuck scores for a given top type + canvas state.
+// Each entry: { label, score } — only tuck styles that work are included, ordered by score desc.
+function getTuckHint(topType) {
+  if (!topType) return null;
+
+  // Dress shirt and t-shirt are always definitive
+  if (topType === 'dressShirt') return [{ label: 'Full tuck', score: 10 }];
+  if (topType === 'tshirt')     return [{ label: 'Untucked',  score: 10 }];
+
+  const style = currentStyle;
+  const outerItem = selected['outer'];
+  const pantsItem = selected['pants'];
+
+  const outerType = !outerItem ? 'none'
+    : outerItem.cat === 'suits'   ? 'suit'
+    : outerItem.cat === 'blazers' ? 'blazer'
+    : outerItem.cat === 'jackets' ? 'jacket'
+    : 'none';
+
+  const pantsType = !pantsItem ? null
+    : pantsItem.sub === 'Dress Trousers'  ? 'formal-trousers'
+    : pantsItem.sub === 'Chinos'          ? 'chinos'
+    : pantsItem.sub === 'Jeans'           ? 'jeans'
+    : pantsItem.fabric === 'linen'        ? 'linen'
+    : pantsItem.fabric === 'utility'      ? 'utility'
+    : null;
+
+  const scores = topType === 'polo'
+    ? lookupPoloTuckScores(style, outerType, pantsType)
+    : lookupShirtTuckScores(style, outerType, pantsType);
+
+  if (!scores) return null;
+
+  const result = [];
+  if (scores.fullTuck)    result.push({ label: 'Full tuck',    score: scores.fullTuck });
+  if (scores.frenchTuck)  result.push({ label: 'French tuck',  score: scores.frenchTuck });
+  if (scores.untucked)    result.push({ label: 'Untucked',     score: scores.untucked });
+
+  return result.sort((a, b) => b.score - a.score);
+}
+
+function lookupShirtTuckScores(style, outer, pants) {
+  if (style === 'formal') {
+    if (outer === 'suit')   return { fullTuck: 10 };
+    if (outer === 'blazer') return { fullTuck: 9, frenchTuck: 4 };
+    if (outer === 'none')   return { fullTuck: 9, frenchTuck: 4 };
+  }
+
+  if (style === 'semi-formal') {
+    if (outer === 'blazer' && pants === 'formal-trousers') return { fullTuck: 8, frenchTuck: 5 };
+    if (outer === 'blazer' && pants === 'chinos')          return { frenchTuck: 9, fullTuck: 5, untucked: 3 };
+    if (outer === 'jacket' && pants === 'formal-trousers') return { fullTuck: 7, frenchTuck: 6 };
+    if (outer === 'none'   && pants === 'formal-trousers') return { fullTuck: 8, frenchTuck: 5 };
+    if (outer === 'none'   && pants === 'chinos')          return { frenchTuck: 9, fullTuck: 4, untucked: 4 };
+  }
+
+  if (style === 'smart-casual') {
+    if (outer === 'blazer' && pants === 'chinos') return { frenchTuck: 9, fullTuck: 4, untucked: 5 };
+    if (outer === 'blazer' && pants === 'jeans')  return { frenchTuck: 8, untucked: 7, fullTuck: 3 };
+    if (outer === 'jacket' && pants === 'chinos') return { frenchTuck: 8, untucked: 6, fullTuck: 3 };
+    if (outer === 'jacket' && pants === 'jeans')  return { untucked: 8, frenchTuck: 7 };
+    if (outer === 'none'   && pants === 'chinos') return { frenchTuck: 9, untucked: 5, fullTuck: 3 };
+    if (outer === 'none'   && pants === 'jeans')  return { untucked: 9, frenchTuck: 7 };
+  }
+
+  if (style === 'casual') {
+    if (outer === 'jacket' && pants === 'jeans')   return { untucked: 9, frenchTuck: 5 };
+    if (outer === 'none'   && pants === 'jeans')   return { untucked: 10, frenchTuck: 4 };
+    if (outer === 'none'   && pants === 'linen')   return { untucked: 10, frenchTuck: 3 };
+    if (outer === 'none'   && pants === 'utility') return { untucked: 10 };
+  }
+
+  return null;
+}
+
+function lookupPoloTuckScores(style, outer, pants) {
+  // Polo is never french tucked — only tucked or untucked
+  if (style === 'semi-formal') {
+    if (outer === 'blazer' && pants === 'chinos')          return { fullTuck: 9, untucked: 5 };
+    if (outer === 'none'   && pants === 'chinos')          return { fullTuck: 8, untucked: 6 };
+  }
+
+  if (style === 'smart-casual') {
+    if (outer === 'blazer' && pants === 'chinos') return { fullTuck: 8, untucked: 6 };
+    if (outer === 'blazer' && pants === 'jeans')  return { fullTuck: 7, untucked: 8 };
+    if (outer === 'jacket' && pants === 'chinos') return { fullTuck: 7, untucked: 7 };
+    if (outer === 'jacket' && pants === 'jeans')  return { fullTuck: 5, untucked: 9 };
+    if (outer === 'none'   && pants === 'chinos') return { untucked: 9, fullTuck: 4 };
+    if (outer === 'none'   && pants === 'jeans')  return { untucked: 10 };
+  }
+
+  // Casual — always untucked
+  return { untucked: 10 };
+}
