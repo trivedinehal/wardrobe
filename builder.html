@@ -1099,8 +1099,8 @@ function showAnalysis() {
       if (explain.harmonyPairs)   explain.harmonyPairs.forEach(p => {
         const toneOpts = ['same tone', 'good contrast', 'strong contrast'];
         const colOpts  = ['contrasting', 'same family', 'neutral pairing'];
-        const toneHtml = toneOpts.map(o => `<span style="color:${o===p.toneLabel?'#1c1c1e':'#c7c7cc'};font-weight:${o===p.toneLabel?'600':'400'}">${o}</span>`).join('<span style="color:#e5e5ea"> · </span>');
-        const colHtml  = colOpts.map(o => `<span style="color:${o===p.colLabel?'#1c1c1e':'#c7c7cc'};font-weight:${o===p.colLabel?'600':'400'}">${o}</span>`).join('<span style="color:#e5e5ea"> · </span>');
+        const toneHtml = toneOpts.map(o => `<span style="color:${o===p.toneLabel?'#1c1c1e':'#c7c7cc'}">${o}</span>`).join('<span style="color:#e5e5ea"> · </span>');
+        const colHtml  = colOpts.map(o => `<span style="color:${o===p.colLabel?'#1c1c1e':'#c7c7cc'}">${o}</span>`).join('<span style="color:#e5e5ea"> · </span>');
         lines.push(`Harmony ${p.label}: ${p.score}/5`);
         lines.push(`&nbsp;&nbsp;Tone: ${p.toneScore}/2.5 — ${toneHtml}`);
         lines.push(`&nbsp;&nbsp;Colour: ${p.colScore}/2.0 — ${colHtml}`);
