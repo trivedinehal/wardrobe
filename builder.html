@@ -706,13 +706,13 @@ function renderTopHint() {
               : 'tshirt';
 
     const tucks = typeof getTuckHint === 'function' ? getTuckHint(key) : null;
-    const tuckStr = tucks && tucks.length
-      ? tucks.map(t => `${t.label} <span class="top-hint-score">${t.score}</span>`).join(' · ')
+    const tuckLines = tucks && tucks.length
+      ? tucks.map(t => `<div class="top-hint-tuck">${t.label} <span class="top-hint-score">${t.score}</span></div>`).join('')
       : '';
 
     return `<div class="top-hint-row">
       <span class="top-hint-type">${label}</span> <span class="top-hint-score">${score}</span>
-      ${tuckStr ? `<div class="top-hint-tuck">${tuckStr}</div>` : ''}
+      ${tuckLines}
     </div>`;
   }).join('');
 }
