@@ -1098,7 +1098,7 @@ function showAnalysis() {
       if (explain.notes)          explain.notes.forEach(n => lines.push(n));
       if (explain.harmonyPairs)   explain.harmonyPairs.forEach(p => {
         const toneOpts = ['same tone', 'good contrast', 'strong contrast'];
-        const colOpts  = ['contrasting', 'same family', 'neutral pairing'];
+        const colOpts  = ['contrasting colours', 'same colour family', 'neutral pairing'];
         const toneHtml = toneOpts.map(o => `<span style="color:${o===p.toneLabel?'#1c1c1e':'#c7c7cc'}">${o}</span>`).join('<span style="color:#e5e5ea"> · </span>');
         const colHtml  = colOpts.map(o => `<span style="color:${o===p.colLabel?'#1c1c1e':'#c7c7cc'}">${o}</span>`).join('<span style="color:#e5e5ea"> · </span>');
         lines.push(`Harmony ${p.label}: ${p.score}/5`);
